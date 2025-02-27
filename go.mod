@@ -1,6 +1,9 @@
 module DBHS
 
-go 1.23
+go 1.24.0
+
+// go 1.23
+// update go version to 1.24.0
 
 require (
 	github.com/jackc/pgx/v5 v5.7.2
