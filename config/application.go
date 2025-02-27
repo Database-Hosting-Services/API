@@ -18,15 +18,15 @@ type Application struct {
 var (
 	App *Application
 	Mux *http.ServeMux
+	DB  *pgxpool.Pool
 )
-
-var DB *pgxpool.Pool
 
 func Init(infoLog, errorLog *log.Logger) {
 
 	if err := godotenv.Load("../.env"); err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
 	App = &Application{
 		ErrorLog: errorLog,
 		InfoLog:  infoLog,
@@ -35,7 +35,7 @@ func Init(infoLog, errorLog *log.Logger) {
 	Mux = http.NewServeMux()
 
 	// ---- database connection ---- //
-	dbURL := os.Getenv("DATABASE_URL")
+	dbURL := os.Getenv("Database_URL")
 
 	config, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
@@ -45,6 +45,10 @@ func Init(infoLog, errorLog *log.Logger) {
 	DB, err = pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v", err)
+	}
+
+	if err := DB.Ping(context.Background()); err != nil {
+		log.Fatalf("Unable to ping database: %v", err)
 	}
 
 	fmt.Println("Connected to PostgreSQL successfully! ✅")

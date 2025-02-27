@@ -1,7 +1,7 @@
 BUILD_DIR := build
 
 build:
-	go build -o $(BUILD_DIR)/API main/main.go main/routes.go
+	go build -o $(BUILD_DIR)/API main/*
 
 run:
 	cd $(BUILD_DIR) && ./API
