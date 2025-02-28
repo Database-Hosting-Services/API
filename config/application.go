@@ -19,6 +19,7 @@ var (
 	App *Application
 	Mux *http.ServeMux
 	DB  *pgxpool.Pool
+	Secret_Key string
 )
 
 func Init(infoLog, errorLog *log.Logger) {
@@ -52,6 +53,8 @@ func Init(infoLog, errorLog *log.Logger) {
 	}
 
 	fmt.Println("Connected to PostgreSQL successfully! ✅")
+
+	Secret_Key = os.Getenv("Secret_Key")
 }
 
 func CloseDB() {
