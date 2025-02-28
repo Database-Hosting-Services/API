@@ -16,6 +16,7 @@ type Token struct {
 func NewToken() Token {
 	t := Token{
 		token:	jwt.New(jwt.SigningMethodHS256),
+		claims: make(jwt.MapClaims),
 	}
 	return t
 }
@@ -84,7 +85,14 @@ func (t Token) GetClaim(claim string) (interface{}, bool) {
 }
 
 func (t Token) String() (string, error) {
+	if len(config.Secret_Key) < 32 {
+		return "", fmt.Errorf("len of secret key can not be less than 32")
+	}
 	// join the claims
 	t.token.Claims = t.claims
 	return t.token.SignedString([]byte(config.Secret_Key))
+}
+
+func (t Token) IsValid() bool {
+	return t.token.Valid
 }
