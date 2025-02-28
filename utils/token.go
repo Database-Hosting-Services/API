@@ -37,10 +37,10 @@ func Decode(tokenString string) (Token, error) {
 		return token, err
 	}
 
-	if cliams, ok := jwtToken.Claims.(jwt.MapClaims); ok {
+	if claims, ok := jwtToken.Claims.(jwt.MapClaims); ok {
 		token = Token{
 			token: jwtToken,
-			claims: cliams,
+			claims: claims,
 		}
 	}
 
