@@ -84,6 +84,7 @@ func (t Token) GetClaim(claim string) (interface{}, bool) {
 	return value, ok
 }
 
+// returns the encoded token
 func (t Token) String() (string, error) {
 	if len(config.Secret_Key) < 32 {
 		return "", fmt.Errorf("len of secret key can not be less than 32")
@@ -93,6 +94,7 @@ func (t Token) String() (string, error) {
 	return t.token.SignedString([]byte(config.Secret_Key))
 }
 
+// return if the token is valid
 func (t Token) IsValid() bool {
 	return t.token.Valid
 }
