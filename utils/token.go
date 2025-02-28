@@ -23,7 +23,7 @@ func NewToken() Token {
 
 // returns new token after parsing the gaven string token 
 // tokenString is the raw token inside the header in the HTTP request
-func NewTokenString(tokenString string) (Token, error) {
+func Decode(tokenString string) (Token, error) {
 	var token Token
 	jwtToken, err := jwt.Parse(tokenString,func(t *jwt.Token) (interface{}, error) { // returns the secret key to be used for verfiacation
 		if config.Secret_Key == "" {

@@ -32,7 +32,7 @@ func TestTokenLifecycle(t *testing.T) {
 	assert.NotEmpty(t, tokenString, "Token string should not be empty")
 
 	// Parse the token string back to a token
-	parsedToken, err := utils.NewTokenString(tokenString)
+	parsedToken, err := utils.Decode(tokenString)
 	assert.NoError(t, err, "Parsing valid token should not error")
 	assert.True(t, parsedToken.IsValid(), "Parsed token should be valid")
 
@@ -55,11 +55,11 @@ func TestInvalidToken(t *testing.T) {
 	config.Secret_Key = "test-secret-key-for-jwt-validation"
 
 	// Test with invalid token string
-	_, err := utils.NewTokenString("invalid.token.string")
+	_, err := utils.Decode("invalid.token.string")
 	assert.Error(t, err, "Invalid token should return error")
 
 	// Test with valid format but invalid signature
-	_, err = utils.NewTokenString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.invalid_signature")
+	_, err = utils.Decode("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.invalid_signature")
 	assert.Error(t, err, "Token with invalid signature should return error")
 
 	// Test with empty secret key
@@ -87,7 +87,7 @@ func TestExpiredToken(t *testing.T) {
 	assert.NoError(t, err, "Token string generation should not error")
 
 	// Parsing an expired token should fail
-	_, err = utils.NewTokenString(tokenString)
+	_, err = utils.Decode(tokenString)
 	assert.Error(t, err, "Parsing expired token should return error")
 	assert.Contains(t, err.Error(), "token is expired", "Error should mention expiration")
 }
@@ -178,7 +178,7 @@ func TestStringTest(t *testing.T) {
 	assert.NoError(t, err, "should not have error")
 	// Verify the token was signed with the custom key
 	// To do this properly, we need to manually parse and verify
-	// Since the utils.NewTokenString uses config.Secret_Key, we need a different approach
+	// Since the utils.Decode uses config.Secret_Key, we need a different approach
 	
 	// Save original key to restore after test
 	originalKey := config.Secret_Key
@@ -188,7 +188,7 @@ func TestStringTest(t *testing.T) {
 	config.Secret_Key = "custom-secret-key-for-testing-string"
 	
 	// Now parsing should work
-	parsedToken, err := utils.NewTokenString(tokenString)
+	parsedToken, err := utils.Decode(tokenString)
 	assert.NoError(t, err, "Parsing token signed with custom key should work when config key matches")
 	
 	// Verify claim
