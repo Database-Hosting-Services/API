@@ -18,6 +18,7 @@ type Response struct {
 
 // Note : you can make the response.Data as map[string]interface{}
 // you can view accounts.service & accounts.handlers for more details
+
 func SendResponse(w http.ResponseWriter, status int, response *Response) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

@@ -46,7 +46,7 @@ func checkUserExists(ctx context.Context, db *pgxpool.Pool, username, email stri
                     WHEN username = $1 THEN 'username' 
                     WHEN email = $2 THEN 'email' 
                 END 
-              FROM "User" 
+              FROM "users" 
               WHERE username = $1 OR email = $2 
               LIMIT 1`
 

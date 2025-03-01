@@ -35,6 +35,7 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]
 	userToken := utils.NewToken()
 	userToken.AddClaims(map[string]interface{}{"id": user.ID})
 	token, err := userToken.String()
+
 	if err != nil {
 		return nil, err
 	}

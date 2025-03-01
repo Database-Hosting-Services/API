@@ -8,7 +8,7 @@ import (
 )
 
 func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
-	query := `INSERT INTO "User" (oid, username, email, password, image, verified, created_at, last_login)
+	query := `INSERT INTO "users" (oid, username, email, password, image, verified, created_at, last_login)
 	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	_, err := db.Exec(ctx, query,
@@ -28,7 +28,7 @@ func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
 func GetUserByEmail(ctx context.Context, db pgx.Tx, user *User) error {
 	query := `SELECT
 				id, oid, username, email, image, verified, created_at, last_login
-			  FROM "User" WHERE email = $1`
+			  FROM "users" WHERE email = $1`
 
 	err := db.QueryRow(ctx, query, user.Email).Scan(
 		&user.ID,
@@ -53,7 +53,7 @@ func GetUserByEmail(ctx context.Context, db pgx.Tx, user *User) error {
 
 func GetUserID(ctx context.Context, db pgx.Tx, user *User) error {
 	query := `SELECT id
-			  FROM "User" WHERE username = $1`
+			  FROM "users" WHERE username = $1`
 	err := db.QueryRow(ctx, query, user.Username).Scan(&user.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
