@@ -45,7 +45,7 @@ func signUp(app *config.Application) http.HandlerFunc {
 	}
 }
 
-func signIn(app *config.Application) http.HandlerFunc {
+func SignIn(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user UserSignIn
 		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
