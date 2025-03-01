@@ -2,6 +2,7 @@ package accounts
 
 import (
 	"DBHS/config"
+	"DBHS/response"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -32,7 +33,7 @@ func signUp(app *config.Application) http.HandlerFunc {
 
 		conflicField, err := checkUserExists(r.Context(), config.DB, user.Username, user.Email)
 		if err != nil {
-			http.Error(w, "Invalid input", http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 
 		if conflicField != "" {
@@ -40,12 +41,12 @@ func signUp(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		err = SignupUser(context.Background(), config.DB, &user)
+		data, err := SignupUser(context.Background(), config.DB, &user)
 		if err != nil {
-			http.Error(w, "error creating user", http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		w.WriteHeader(http.StatusCreated)
+		response.Created(w, "User signed up successfully", data)
 	}
 }
