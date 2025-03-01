@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
@@ -62,4 +63,19 @@ func GetUserID(ctx context.Context, db pgx.Tx, user *User) error {
 		return err
 	}
 	return nil
+}
+
+
+func GetUser(ctx context.Context, db *pgxpool.Pool, email string) (User, error) {
+    var user User
+    query := `SELECT id, oid, username, email, password, image FROM "users" WHERE email = $1`
+    err := db.QueryRow(ctx, query, email).Scan(
+        &user.ID,
+        &user.OID,
+        &user.Username,
+        &user.Email,
+        &user.Password,
+        &user.Image,
+    )
+    return user, err 
 }
