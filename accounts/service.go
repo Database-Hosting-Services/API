@@ -28,7 +28,7 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]
 		return nil, err
 	}
 
-	if err := GetUserByEmail(ctx, transaction, user); err != nil {
+	if err := GetUserID(ctx, transaction, user); err != nil {
 		return nil, err
 	}
 

@@ -43,10 +43,23 @@ func GetUserByEmail(ctx context.Context, db pgx.Tx, user *User) error {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return fmt.Errorf("user with ID %s not found", user.Email)
+			return fmt.Errorf("user with Email %s not found", user.Email)
 		}
 		return err
 	}
 
+	return nil
+}
+
+func GetUserID(ctx context.Context, db pgx.Tx, user *User) error {
+	query := `SELECT id
+			  FROM "User" WHERE username = $1`
+	err := db.QueryRow(ctx, query, user.Username).Scan(&user.ID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("user with username %s not found", user.Username)
+		}
+		return err
+	}
 	return nil
 }
