@@ -14,7 +14,6 @@ type User struct {
 	LastLogin time.Time `db:"last_login" json:"last_login"`
 }
 
-
 type UserSignIn struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`

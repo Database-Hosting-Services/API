@@ -16,9 +16,9 @@ type Application struct {
 }
 
 var (
-	App *Application
-	Mux *http.ServeMux
-	DB  *pgxpool.Pool
+	App        *Application
+	Mux        *http.ServeMux
+	DB         *pgxpool.Pool
 	Secret_Key string
 )
 

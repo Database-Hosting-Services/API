@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"regexp"
 	"golang.org/x/crypto/bcrypt"
+	"regexp"
 )
 
 func checkPasswordStrength(password string) error {
@@ -62,10 +62,10 @@ func checkUserExists(ctx context.Context, db *pgxpool.Pool, username, email stri
 }
 
 func CheckPasswordHash(inputPassword, storedHash string) bool {
-    byteHash := []byte(storedHash)
-    bytePassword := []byte(inputPassword)
+	byteHash := []byte(storedHash)
+	bytePassword := []byte(inputPassword)
 
-    // Compare the password with the hash
-    err := bcrypt.CompareHashAndPassword(byteHash, bytePassword)
-    return err == nil
+	// Compare the password with the hash
+	err := bcrypt.CompareHashAndPassword(byteHash, bytePassword)
+	return err == nil
 }

@@ -55,14 +55,14 @@ func signIn(app *config.Application) http.HandlerFunc {
 
 		if user.Email == "" || user.Password == "" {
 			response.BadRequest(w, "Email and Password are required", nil)
-            return
+			return
 		}
 
 		authenticatedUser, err := GetUser(r.Context(), config.DB, user.Email)
 		if err != nil {
 			if err.Error() == "no rows in result set" {
 				response.BadRequest(w, "InCorrect Email or Password", nil)
-                return
+				return
 			}
 			response.InternalServerError(w, "Server Error, please try again later.", err)
 			return
@@ -70,13 +70,13 @@ func signIn(app *config.Application) http.HandlerFunc {
 
 		if !CheckPasswordHash(user.Password, authenticatedUser.Password) {
 			response.BadRequest(w, "InCorrect Email or Password", nil)
-            return
+			return
 		}
 
 		tokenString := utils.NewToken()
 		tokenString.AddClaim("oid", authenticatedUser.OID)
 		token, err := tokenString.String()
-		
+
 		if err != nil {
 			response.InternalServerError(w, "Server Error, please try again later.", err)
 			return
@@ -84,13 +84,13 @@ func signIn(app *config.Application) http.HandlerFunc {
 
 		response := map[string]interface{}{
 			"message": "User signed in successfully",
-			"status": "success",
+			"status":  "success",
 			"Data": map[string]interface{}{
-				"oid": authenticatedUser.OID,
+				"oid":      authenticatedUser.OID,
 				"username": authenticatedUser.Username,
-				"email": authenticatedUser.Email,
-				"image": authenticatedUser.Image,
-				"token": token,
+				"email":    authenticatedUser.Email,
+				"image":    authenticatedUser.Image,
+				"token":    token,
 			},
 		}
 

@@ -2,7 +2,6 @@ package response
 
 import "net/http"
 
-
 // you can use one of these frequently used response for more code readability
 //
 
