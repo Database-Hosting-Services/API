@@ -53,3 +53,25 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]
 	}
 	return data, nil
 }
+
+func SignInUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]interface{}, error) {
+	tokenString := utils.NewToken()
+	tokenString.AddClaim("oid", user.OID)
+	token, err := tokenString.String()
+
+	if err != nil {
+		return nil, err
+	}
+
+	resp := map[string]interface{}{
+		"Data": map[string]interface{}{
+			"oid":      user.OID,
+			"username": user.Username,
+			"email":    user.Email,
+			"image":    user.Image,
+			"token":    token,
+		},
+	}
+
+	return &resp, nil
+}

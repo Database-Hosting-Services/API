@@ -3,7 +3,6 @@ package accounts
 import (
 	"DBHS/config"
 	"DBHS/response"
-	"DBHS/utils"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -73,25 +72,10 @@ func SignIn(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		tokenString := utils.NewToken()
-		tokenString.AddClaim("oid", authenticatedUser.OID)
-		token, err := tokenString.String()
-
+		resp, err := SignInUser(r.Context(), config.DB, &authenticatedUser)
 		if err != nil {
 			response.InternalServerError(w, "Server Error, please try again later.", err)
 			return
-		}
-
-		resp := map[string]interface{}{
-			"message": "User signed in successfully",
-			"status":  "success",
-			"Data": map[string]interface{}{
-				"oid":      authenticatedUser.OID,
-				"username": authenticatedUser.Username,
-				"email":    authenticatedUser.Email,
-				"image":    authenticatedUser.Image,
-				"token":    token,
-			},
 		}
 
 		response.CreateResponse(w, http.StatusOK, "User signed in successfully", nil, resp)
