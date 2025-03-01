@@ -43,7 +43,7 @@ func GetUserByEmail(ctx context.Context, db pgx.Tx, user *User) error {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return fmt.Errorf("user with ID %d not found", user.Email)
+			return fmt.Errorf("user with ID %s not found", user.Email)
 		}
 		return err
 	}
