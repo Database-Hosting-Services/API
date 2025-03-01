@@ -18,22 +18,22 @@ type Response struct {
 
 // Note : you can make the response.Data as map[string]interface{}
 // you can view accounts.service & accounts.handlers for more details
-func SendResponse(w http.ResponseWriter, status int, response Response) {
+func SendResponse(w http.ResponseWriter, status int, response *Response) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(response)
 }
 
 func CreateResponse(w http.ResponseWriter, status int, message string, err error, data interface{}) {
-	var response Response
+	var response *Response
 	if err != nil {
-		response = Response{
+		response = &Response{
 			Status:  status,
 			Message: message,
 			Error:   err.Error(),
 		}
 	} else {
-		response = Response{
+		response = &Response{
 			Status:  status,
 			Message: message,
 			Data:    data,
