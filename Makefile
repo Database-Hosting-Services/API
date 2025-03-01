@@ -6,6 +6,10 @@ build:
 run:
 	cd $(BUILD_DIR) && ./API
 
+runserver:
+	go build -o $(BUILD_DIR)/API main/*
+	cd $(BUILD_DIR) && ./API
+
 clean:
 	rm -rf $(BUILD_DIR)/*
 

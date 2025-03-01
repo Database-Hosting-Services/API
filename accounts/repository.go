@@ -2,6 +2,8 @@ package accounts
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -21,4 +23,43 @@ func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
 	)
 
 	return err
+}
+
+func GetUserByEmail(ctx context.Context, db pgx.Tx, user *User) error {
+	query := `SELECT
+				id, oid, username, email, image, verified, created_at, last_login
+			  FROM "User" WHERE email = $1`
+
+	err := db.QueryRow(ctx, query, user.Email).Scan(
+		&user.ID,
+		&user.OID,
+		&user.Username,
+		&user.Email,
+		&user.Image,
+		&user.Verified,
+		&user.CreatedAt,
+		&user.LastLogin,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("user with Email %s not found", user.Email)
+		}
+		return err
+	}
+
+	return nil
+}
+
+func GetUserID(ctx context.Context, db pgx.Tx, user *User) error {
+	query := `SELECT id
+			  FROM "User" WHERE username = $1`
+	err := db.QueryRow(ctx, query, user.Username).Scan(&user.ID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("user with username %s not found", user.Username)
+		}
+		return err
+	}
+	return nil
 }
