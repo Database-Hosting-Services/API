@@ -2,9 +2,9 @@
 package caching
 
 import (
+	"DBHS/caching"
 	"testing"
 	"time"
-	"DBHS/caching"
 )
 
 // TestRedisClient tests basic Redis operations: Set, Get, Exists, and Delete.
@@ -14,7 +14,7 @@ func TestRedisClient(t *testing.T) {
 	defer client.Close()
 
 	// Test Set operation.
-	if err := client.Set("testKey", "testValue", 10 * time.Second); err != nil {
+	if err := client.Set("testKey", "testValue", 10*time.Second); err != nil {
 		t.Fatalf("Set() returned an unexpected error: %v", err)
 	}
 
