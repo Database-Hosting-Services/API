@@ -82,7 +82,7 @@ func signIn(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response := map[string]interface{}{
+		resp := map[string]interface{}{
 			"message": "User signed in successfully",
 			"status":  "success",
 			"Data": map[string]interface{}{
@@ -94,7 +94,6 @@ func signIn(app *config.Application) http.HandlerFunc {
 			},
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		response.CreateResponse(w, http.StatusOK, "User signed in successfully", nil, resp)
 	}
 }
