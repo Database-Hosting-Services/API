@@ -6,12 +6,10 @@ import (
 	"DBHS/utils/token"
 	"context"
 	"errors"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
-
-var SELECT_USER_BY_Email = `SELECT id, oid, username, email, password, image, created_at, last_login FROM "users" WHERE email = $1`
-var SELECT_USER_BY_ID = `SELECT id, oid, username, email, password, image, created_at, last_login FROM "users" WHERE oid = $1`
 
 func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]interface{}, error) {
 	transaction, err := db.Begin(ctx) // we should replace this with a middleware
@@ -33,7 +31,8 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]
 		return nil, err
 	}
 
-	if err := GetUserID(ctx, transaction, user); err != nil {
+	err = GetUser(ctx, transaction, user.Email, SELECT_ID_FROM_USER_BY_EMAIL, []interface{}{&user.ID}...)
+	if err != nil {
 		return nil, err
 	}
 
@@ -44,7 +43,7 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]
 	}
 
 	data := &map[string]interface{}{
-		"id":       user.OID, //sent to the clinte
+		"id":       user.OID, // sent to the clinte
 		"email":    user.Email,
 		"username": user.Username,
 		"verified": user.Verified,
@@ -58,34 +57,43 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]
 }
 
 func SignInUser(ctx context.Context, db *pgxpool.Pool, user *UserSignIn) (*map[string]interface{}, error) {
-	authenticatedUser, err := GetUser(ctx, config.DB, user.Email, SELECT_USER_BY_Email)
+
+	var authenticatedUser User
+	err := GetUser(ctx, db, user.Email, SELECT_USER_BY_Email, []interface{}{
+		&authenticatedUser.ID,
+		&authenticatedUser.OID,
+		&authenticatedUser.Username,
+		&authenticatedUser.Email,
+		&authenticatedUser.Password,
+		&authenticatedUser.Image,
+		&authenticatedUser.CreatedAt,
+		&authenticatedUser.LastLogin,
+	}...)
+
 	if err != nil {
 		return nil, err
 	}
 
 	if !CheckPasswordHash(user.Password, authenticatedUser.Password) {
-		return nil, errors.New("InCorrect Email or Password")
+		return nil, errors.New("incorrect email or password")
 	}
 
-	var UserTokenData = &User{
+	UserTokenData := &User{
 		OID:      authenticatedUser.OID,
 		Username: authenticatedUser.Username,
 	}
 
 	token, err := token.CreateAccessToken(UserTokenData, config.Env.AccessTokenExpiryHour)
-
 	if err != nil {
 		return nil, err
 	}
 
 	resp := map[string]interface{}{
-		"Data": map[string]interface{}{
-			"oid":      authenticatedUser.OID,
-			"username": authenticatedUser.Username,
-			"email":    authenticatedUser.Email,
-			"image":    authenticatedUser.Image,
-			"token":    token,
-		},
+		"oid":      authenticatedUser.OID,
+		"username": authenticatedUser.Username,
+		"email":    authenticatedUser.Email,
+		"image":    authenticatedUser.Image,
+		"token":    token,
 	}
 
 	return &resp, nil

@@ -2,10 +2,8 @@ package accounts
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
@@ -26,66 +24,36 @@ func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
 	return err
 }
 
-func GetUserByEmail(ctx context.Context, db pgx.Tx, user *User) error {
-	query := `SELECT
-				id, oid, username, email, image, verified, created_at, last_login
-			  FROM "users" WHERE email = $1`
-
-	err := db.QueryRow(ctx, query, user.Email).Scan(
-		&user.ID,
-		&user.OID,
-		&user.Username,
-		&user.Email,
-		&user.Image,
-		&user.Verified,
-		&user.CreatedAt,
-		&user.LastLogin,
-	)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return fmt.Errorf("user with Email %s not found", user.Email)
-		}
-		return err
-	}
-
-	return nil
-}
-
-func GetUserID(ctx context.Context, db pgx.Tx, user *User) error {
-	query := `SELECT id
-			  FROM "users" WHERE username = $1`
-	err := db.QueryRow(ctx, query, user.Username).Scan(&user.ID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return fmt.Errorf("user with username %s not found", user.Username)
-		}
-		return err
-	}
-	return nil
+// Querier defines an interface for executing a single-row query.
+// Both *pgxpool.Pool and pgx.Tx implement this interface through the QueryRow method.
+type Querier interface {
+	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
 }
 
 /*
 
-GetUser queries the database to fetch a user based on a dynamic search field.
+	GetUser executes a SQL query to retrieve a single user record based on a search field,
+	and scans the result into the provided destination interface(s).
 
-Arguments:
- * SearchField: The field value used to identify the user (email, username, etc.).
- * query: The parameterized SQL query with a single placeholder ($1).
+	Parameters:
+	- ctx:        Context for request cancellation/timeout
+	- db:         Database querier interface (pgxpool.Pool or pgx.Tx)
+	- SearchField: Value used for the WHERE clause search (e.g., user ID, email)
+	- query:      SQL query string containing a single placeholder ($1)
+	- dest:       Variadic slice of pointers to scan results into (must match query columns)
+
+  Example usage:
+	err = GetUser(ctx, transaction, user.Email, SELECT_ID_FROM_USER_BY_EMAIL, []interface{}{&user.ID}...);
 
 */
 
-func GetUser(ctx context.Context, db *pgxpool.Pool, SearchField string, query string) (User, error) {
-	var user User
-	err := db.QueryRow(ctx, query, SearchField).Scan(
-		&user.ID,
-		&user.OID,
-		&user.Username,
-		&user.Email,
-		&user.Password,
-		&user.Image,
-		&user.CreatedAt,
-		&user.LastLogin,
-	)
-	return user, err
+func GetUser(ctx context.Context, db Querier, SearchField string, query string, dest ...interface{}) error {
+	err := db.QueryRow(ctx, query, SearchField).Scan(dest...)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return fmt.Errorf("user with %s not found", SearchField)
+		}
+		return err
+	}
+	return nil
 }
