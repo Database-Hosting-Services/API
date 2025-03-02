@@ -2,12 +2,13 @@ package config
 
 import (
 	"context"
-	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 type Application struct {
@@ -15,17 +16,22 @@ type Application struct {
 	InfoLog  *log.Logger
 }
 
+type Environment struct {
+	AccessTokenExpiryHour 	int
+	AccessTokenSecret 		[]byte
+}
+
 var (
-	App        *Application
-	Mux        *http.ServeMux
-	DB         *pgxpool.Pool
-	Secret_Key string
+	App		*Application
+	Mux 	*http.ServeMux
+	DB  	*pgxpool.Pool
+	Env 	*Environment	
 )
 
 func Init(infoLog, errorLog *log.Logger) {
 
 	if err := godotenv.Load("../.env"); err != nil {
-		log.Fatal("Error loading .env file")
+		errorLog.Fatal("Error loading .env file")
 	}
 
 	App = &Application{
@@ -36,30 +42,39 @@ func Init(infoLog, errorLog *log.Logger) {
 	Mux = http.NewServeMux()
 
 	// ---- database connection ---- //
-	dbURL := os.Getenv("Database_URL")
+	dbURL := os.Getenv("DATABASE_URL")
 
 	config, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
-		log.Fatalf("Unable to parse database URL: %v", err)
+		errorLog.Fatalf("Unable to parse database URL: %v", err)
 	}
 
 	DB, err = pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v", err)
+		errorLog.Fatalf("Unable to connect to database: %v", err)
 	}
 
 	if err := DB.Ping(context.Background()); err != nil {
-		log.Fatalf("Unable to ping database: %v", err)
+		errorLog.Fatalf("Unable to ping database: %v", err)
 	}
 
-	fmt.Println("Connected to PostgreSQL successfully! ✅")
+	infoLog.Println("Connected to PostgreSQL successfully! ✅")
 
-	Secret_Key = os.Getenv("Secret_Key")
+	AccessTokenSecret := os.Getenv("ACCESS_TOKEN_SECRET")
+	AccessTokenExpiryHour, err := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXPIRY_HOUR"))
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
+	Env = &Environment{
+		AccessTokenExpiryHour: 	AccessTokenExpiryHour,
+		AccessTokenSecret: 		[]byte(AccessTokenSecret),
+	}
 }
 
 func CloseDB() {
 	if DB != nil {
 		DB.Close()
-		fmt.Println("Database connection closed. 🔌")
+		App.InfoLog.Println("Database connection closed. 🔌")
 	}
 }

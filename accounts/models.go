@@ -18,3 +18,11 @@ type UserSignIn struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+func (u *User) GetOId() string {
+	return u.OID
+}
+
+func (u *User) GetUserName() string {
+	return u.Username
+}

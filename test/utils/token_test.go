@@ -2,201 +2,256 @@ package token_test
 
 import (
 	"DBHS/config"
-	"DBHS/utils"
+	"DBHS/utils/token"
 	"testing"
 	"time"
 
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTokenLifecycle(t *testing.T) {
-	// Save original key to restore after test
-	originalKey := config.Secret_Key
-	defer func() { config.Secret_Key = originalKey }()
-
-	// Set a test secret key
-	config.Secret_Key = "test-secret-key-for-jwt-validation"
-
-	// Create a new token
-	token := utils.NewToken()
-
-	// Add standard claims
-	token.AddClaim("sub", "1234567890")
-	token.AddClaim("name", "Test User")
-	token.AddClaim("iat", time.Now().Unix())
-	token.AddClaim("exp", time.Now().Add(time.Hour).Unix())
-
-	// Generate token string
-	tokenString, err := token.String()
-	assert.NoError(t, err, "Token string generation should not error")
-	assert.NotEmpty(t, tokenString, "Token string should not be empty")
-
-	// Parse the token string back to a token
-	parsedToken, err := utils.Decode(tokenString)
-	assert.NoError(t, err, "Parsing valid token should not error")
-	assert.True(t, parsedToken.IsValid(), "Parsed token should be valid")
-
-	// Verify claims were preserved
-	sub, ok := parsedToken.GetClaim("sub")
-	assert.True(t, ok, "Subject claim should exist")
-	assert.Equal(t, "1234567890", sub)
-
-	name, ok := parsedToken.GetClaim("name")
-	assert.True(t, ok, "Name claim should exist")
-	assert.Equal(t, "Test User", name)
+// Mock User implementation for testing
+type MockUser struct {
+	OId      string
+	Username string
 }
 
-func TestInvalidToken(t *testing.T) {
-	// Save original key to restore after test
-	originalKey := config.Secret_Key
-	defer func() { config.Secret_Key = originalKey }()
-
-	// Set a test secret key
-	config.Secret_Key = "test-secret-key-for-jwt-validation"
-
-	// Test with invalid token string
-	_, err := utils.Decode("invalid.token.string")
-	assert.Error(t, err, "Invalid token should return error")
-
-	// Test with valid format but invalid signature
-	_, err = utils.Decode("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.invalid_signature")
-	assert.Error(t, err, "Token with invalid signature should return error")
-
-	// Test with empty secret key
-	config.Secret_Key = ""
-	token := utils.NewToken()
-	token.AddClaim("sub", "1234567890")
-	_, err = token.String()
-	assert.Error(t, err, "Token generation with empty secret key should error")
+func (m MockUser) GetOId() string {
+	return m.OId
 }
 
-func TestExpiredToken(t *testing.T) {
-	// Save original key to restore after test
-	originalKey := config.Secret_Key
-	defer func() { config.Secret_Key = originalKey }()
-
-	// Set a test secret key
-	config.Secret_Key = "test-secret-key-for-jwt-validation"
-
-	// Create a token that's already expired
-	token := utils.NewToken()
-	token.AddClaim("exp", time.Now().Add(-time.Hour).Unix()) // Expired an hour ago
-
-	// Generate token string
-	tokenString, err := token.String()
-	assert.NoError(t, err, "Token string generation should not error")
-
-	// Parsing an expired token should fail
-	_, err = utils.Decode(tokenString)
-	assert.Error(t, err, "Parsing expired token should return error")
-	assert.Contains(t, err.Error(), "token is expired", "Error should mention expiration")
+func (m MockUser) GetUserName() string {
+	return m.Username
 }
 
-func TestHeaderManipulation(t *testing.T) {
-	token := utils.NewToken()
-
-	// Test adding a single header
-	token.AddHeader("custom", "value")
-	value, ok := token.GetHeader("custom")
-	assert.True(t, ok, "Custom header should exist")
-	assert.Equal(t, "value", value)
-
-	// Test overriding existing header
-	token.AddHeader("custom", "new-value")
-	value, ok = token.GetHeader("custom")
-	assert.True(t, ok, "Custom header should still exist")
-	assert.Equal(t, "new-value", value)
-
-	// Test adding multiple headers
-	headers := map[string]interface{}{
-		"header1": "value1",
-		"header2": "value2",
+func TestCreateAccessToken_ValidToken(t *testing.T) {
+	// Setup
+	config.Env = &config.Environment{
+		AccessTokenSecret: []byte("test-secret"),
 	}
-	token.AddHeaders(headers)
-
-	value1, ok := token.GetHeader("header1")
-	assert.True(t, ok, "Header1 should exist")
-	assert.Equal(t, "value1", value1)
-
-	value2, ok := token.GetHeader("header2")
-	assert.True(t, ok, "Header2 should exist")
-	assert.Equal(t, "value2", value2)
-
-	// Test getting non-existent header
-	_, ok = token.GetHeader("nonexistent")
-	assert.False(t, ok, "Nonexistent header should not exist")
-}
-
-func TestClaimManipulation(t *testing.T) {
-	token := utils.NewToken()
-
-	// Test adding a single claim
-	token.AddClaim("custom", "value")
-	value, ok := token.GetClaim("custom")
-	assert.True(t, ok, "Custom claim should exist")
-	assert.Equal(t, "value", value)
-
-	// Test overriding existing claim
-	token.AddClaim("custom", "new-value")
-	value, ok = token.GetClaim("custom")
-	assert.True(t, ok, "Custom claim should still exist")
-	assert.Equal(t, "new-value", value)
-
-	// Test adding multiple claims
-	claims := map[string]interface{}{
-		"claim1": "value1",
-		"claim2": 42,
-		"claim3": true,
+	user := MockUser{
+		OId:      "user123",
+		Username: "testuser",
 	}
-	token.AddClaims(claims)
+	expiry := 24
 
-	value1, ok := token.GetClaim("claim1")
-	assert.True(t, ok, "Claim1 should exist")
-	assert.Equal(t, "value1", value1)
-
-	value2, ok := token.GetClaim("claim2")
-	assert.True(t, ok, "Claim2 should exist")
-	assert.Equal(t, 42, value2) // JSON numbers are unmarshaled as float64
-
-	value3, ok := token.GetClaim("claim3")
-	assert.True(t, ok, "Claim3 should exist")
-	assert.Equal(t, true, value3)
-
-	// Test getting non-existent claim
-	_, ok = token.GetClaim("nonexistent")
-	assert.False(t, ok, "Nonexistent claim should not exist")
+	// Create token
+	tokenString, err := token.CreateAccessToken(user, expiry)
+	
+	assert.NoError(t, err)
+	assert.NotEmpty(t, tokenString)
+	
+	// Verify token can be parsed
+	parsedToken, parseErr := token.ParseToken(tokenString)
+	assert.NoError(t, parseErr)
+	assert.True(t, parsedToken.Valid)
+	
+	// Verify claims
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	assert.True(t, ok)
+	assert.Equal(t, user.GetOId(), claims["id"])
+	assert.Equal(t, user.GetUserName(), claims["username"])
 }
 
-func TestStringTest(t *testing.T) {
-	// Create a token
-	token := utils.NewToken()
-	token.AddClaim("sub", "1234567890")
+func TestIsAuthorized_ValidToken(t *testing.T) {
+	// Setup
+	config.Env = &config.Environment{
+		AccessTokenSecret: []byte("test-secret"),
+	}
+	user := MockUser{
+		OId:      "user123",
+		Username: "testuser",
+	}
+	
+	tokenString, _ := token.CreateAccessToken(user, 24)
+	err := token.IsAuthorized(tokenString)
+	
+	assert.NoError(t, err)
+}
 
-	// Test with custom secret key
-	config.Secret_Key = "custom-secret-key-for-testing-string"
-	tokenString, err := token.String()
-	assert.NoError(t, err, "should not have error")
-	// Verify the token was signed with the custom key
-	// To do this properly, we need to manually parse and verify
-	// Since the utils.Decode uses config.Secret_Key, we need a different approach
+func TestIsAuthorized_ExpiredToken(t *testing.T) {
+	// Setup
+	config.Env = &config.Environment{
+		AccessTokenSecret: []byte("test-secret"),
+	}
+	user := MockUser{
+		OId:      "user123",
+		Username: "testuser",
+	}
+	
+	claims := jwt.MapClaims{
+		"id":       user.GetOId(),
+		"username": user.GetUserName(),
+		"exp":      time.Now().Add(-time.Hour).Unix(), // Expired 1 hour ago
+	}
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, _ := jwtToken.SignedString(config.Env.AccessTokenSecret)
+	
+	err := token.IsAuthorized(tokenString)
+	
+	assert.Error(t, err)
+}
 
-	// Save original key to restore after test
-	originalKey := config.Secret_Key
-	defer func() { config.Secret_Key = originalKey }()
+func TestIsAuthorized_InvalidSigningMethod(t *testing.T) {
+	// Setup
+	config.Env = &config.Environment{
+		AccessTokenSecret: []byte("test-secret"),
+	}
+	user := MockUser{
+		OId:      "user123",
+		Username: "testuser",
+	}
+	
+	claims := jwt.MapClaims{
+		"id":       user.GetOId(),
+		"username": user.GetUserName(),
+		"exp":      time.Now().Add(time.Hour).Unix(),
+	}
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodNone, claims)
+	tokenString, _ := jwtToken.SignedString(jwt.UnsafeAllowNoneSignatureType)
+	
+	err := token.IsAuthorized(tokenString)
+	
+	assert.Error(t, err)
+}
 
-	// Set config key to match our custom key
-	config.Secret_Key = "custom-secret-key-for-testing-string"
+func TestIsAuthorized_InvalidTokenFormat(t *testing.T) {
+	tokenString := "invalid.token.format"
+	err := token.IsAuthorized(tokenString)
+	
+	assert.Error(t, err)
+}
 
-	// Now parsing should work
-	parsedToken, err := utils.Decode(tokenString)
-	assert.NoError(t, err, "Parsing token signed with custom key should work when config key matches")
+func TestIsAuthorized_EmptyToken(t *testing.T) {
+	tokenString := ""
+	err := token.IsAuthorized(tokenString)
+	
+	assert.Error(t, err)
+}
 
-	// Verify claim
-	sub, ok := parsedToken.GetClaim("sub")
-	assert.True(t, ok, "Subject claim should exist")
-	assert.Equal(t, "1234567890", sub)
-	config.Secret_Key = ""
-	// Test with empty key
-	_, err = token.String()
-	assert.Error(t, err, "StringTest should error with empty key")
+func TestParseToken_ValidToken(t *testing.T) {
+	// Setup
+	config.Env = &config.Environment{
+		AccessTokenSecret: []byte("test-secret"),
+	}
+	user := MockUser{
+		OId:      "user123",
+		Username: "testuser",
+	}
+	
+	tokenString, _ := token.CreateAccessToken(user, 24)
+	parsedToken, err := token.ParseToken(tokenString)
+	
+	assert.NoError(t, err)
+	assert.NotNil(t, parsedToken)
+	
+	// Verify claims
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	assert.True(t, ok)
+	assert.Equal(t, user.GetOId(), claims["id"])
+	assert.Equal(t, user.GetUserName(), claims["username"])
+}
+
+func TestParseToken_ExpiredToken(t *testing.T) {
+	// Setup
+	config.Env = &config.Environment{
+		AccessTokenSecret: []byte("test-secret"),
+	}
+	user := MockUser{
+		OId:      "user123",
+		Username: "testuser",
+	}
+	
+	claims := jwt.MapClaims{
+		"id":       user.GetOId(),
+		"username": user.GetUserName(),
+		"exp":      time.Now().Add(-time.Hour).Unix(), // Expired 1 hour ago
+	}
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, _ := jwtToken.SignedString(config.Env.AccessTokenSecret)
+	
+	parsedToken, err := token.ParseToken(tokenString)
+	
+	assert.Error(t, err)
+	assert.Nil(t, parsedToken)
+}
+
+func TestParseToken_InvalidTokenFormat(t *testing.T) {
+	tokenString := "invalid.token.format"
+	parsedToken, err := token.ParseToken(tokenString)
+	
+	assert.Error(t, err)
+	assert.Nil(t, parsedToken)
+}
+
+func TestGetIdFromToken_ValidToken(t *testing.T) {
+	// Setup
+	config.Env = &config.Environment{
+		AccessTokenSecret: []byte("test-secret"),
+	}
+	user := MockUser{
+		OId:      "user123",
+		Username: "testuser",
+	}
+	
+	tokenString, _ := token.CreateAccessToken(user, 24)
+	id, err := token.GetIdFromToken(tokenString)
+	
+	assert.NoError(t, err)
+	assert.Equal(t, user.GetOId(), id)
+}
+
+func TestGetIdFromToken_ExpiredToken(t *testing.T) {
+	// Setup
+	config.Env = &config.Environment{
+		AccessTokenSecret: []byte("test-secret"),
+	}
+	user := MockUser{
+		OId:      "user123",
+		Username: "testuser",
+	}
+	
+	claims := jwt.MapClaims{
+		"id":       user.GetOId(),
+		"username": user.GetUserName(),
+		"exp":      time.Now().Add(-time.Hour).Unix(), // Expired 1 hour ago
+	}
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, _ := jwtToken.SignedString(config.Env.AccessTokenSecret)
+	
+	id, err := token.GetIdFromToken(tokenString)
+	
+	assert.Error(t, err)
+	assert.Empty(t, id)
+}
+
+func TestGetIdFromToken_NoIdClaim(t *testing.T) {
+	// Setup
+	config.Env = &config.Environment{
+		AccessTokenSecret: []byte("test-secret"),
+	}
+	user := MockUser{
+		OId:      "user123",
+		Username: "testuser",
+	}
+	
+	claims := jwt.MapClaims{
+		"username": user.GetUserName(),
+		"exp":      time.Now().Add(time.Hour).Unix(),
+	}
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, _ := jwtToken.SignedString(config.Env.AccessTokenSecret)
+	
+	id, err := token.GetIdFromToken(tokenString)
+	
+	assert.Error(t, err)
+	assert.Empty(t, id)
+}
+
+func TestGetIdFromToken_InvalidTokenFormat(t *testing.T) {
+	tokenString := "invalid.token.format"
+	id, err := token.GetIdFromToken(tokenString)
+	
+	assert.Error(t, err)
+	assert.Empty(t, id)
 }

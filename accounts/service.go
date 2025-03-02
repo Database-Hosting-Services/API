@@ -2,6 +2,8 @@ package accounts
 
 import (
 	"DBHS/utils"
+	"DBHS/utils/token"
+	"DBHS/config"
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -32,16 +34,14 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]
 		return nil, err
 	}
 
-	userToken := utils.NewToken()
-	userToken.AddClaims(map[string]interface{}{"id": user.ID})
-	token, err := userToken.String()
+	token, err := token.CreateAccessToken(user, config.Env.AccessTokenExpiryHour)
 
 	if err != nil {
 		return nil, err
 	}
 
 	data := &map[string]interface{}{
-		"id":       user.ID,
+		"id":       user.OID, 		//sent to the clinte
 		"email":    user.Email,
 		"username": user.Username,
 		"verified": user.Verified,
@@ -55,9 +55,7 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]
 }
 
 func SignInUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]interface{}, error) {
-	tokenString := utils.NewToken()
-	tokenString.AddClaim("oid", user.OID)
-	token, err := tokenString.String()
+	token, err := token.CreateAccessToken(user, config.Env.AccessTokenExpiryHour)
 
 	if err != nil {
 		return nil, err
