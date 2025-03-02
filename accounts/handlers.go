@@ -51,22 +51,22 @@ func SignIn(app *config.Application) http.HandlerFunc {
 			response.BadRequest(w, "Invalid JSON body", err)
 			return
 		}
- 
+
 		if user.Email == "" || user.Password == "" {
 			response.BadRequest(w, "Email and Password are required", nil)
 			return
 		}
- 
+
 		resp, err := SignInUser(r.Context(), config.DB, &user)
 		if err != nil {
 			if err.Error() == "no rows in result set" || err.Error() == "InCorrect Email or Password" {
 				response.BadRequest(w, "InCorrect Email or Password", nil)
-                return
+				return
 			}
 			response.InternalServerError(w, "Server Error, please try again later.", err)
 			return
 		}
- 
+
 		response.CreateResponse(w, http.StatusOK, "User signed in successfully", nil, resp)
 	}
 }

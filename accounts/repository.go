@@ -65,9 +65,19 @@ func GetUserID(ctx context.Context, db pgx.Tx, user *User) error {
 	return nil
 }
 
-func GetUser(ctx context.Context, db *pgxpool.Pool, email string, query string) (User, error) {
+/*
+
+GetUser queries the database to fetch a user based on a dynamic search field.
+
+Arguments:
+ * SearchField: The field value used to identify the user (email, username, etc.).
+ * query: The parameterized SQL query with a single placeholder ($1).
+
+*/
+
+func GetUser(ctx context.Context, db *pgxpool.Pool, SearchField string, query string) (User, error) {
 	var user User
-	err := db.QueryRow(ctx, query, email).Scan(
+	err := db.QueryRow(ctx, query, SearchField).Scan(
 		&user.ID,
 		&user.OID,
 		&user.Username,
