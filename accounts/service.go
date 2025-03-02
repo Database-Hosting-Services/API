@@ -9,6 +9,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
+	
+var SELECT_USER = `SELECT id, oid, username, email, password, image, created_at, last_login FROM "users" WHERE email = $1`
 
 func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]interface{}, error) {
 	transaction, err := db.Begin(ctx) // we should replace this with a middleware
@@ -55,7 +57,7 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]
 }
 
 func SignInUser(ctx context.Context, db *pgxpool.Pool, user *UserSignIn) (*map[string]interface{}, error) {
-	authenticatedUser, err := GetUser(ctx, config.DB, user.Email)
+	authenticatedUser, err := GetUser(ctx, config.DB, user.Email, SELECT_USER)
 	if err != nil {
 		return nil, err;
 	}

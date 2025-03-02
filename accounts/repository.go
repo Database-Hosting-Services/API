@@ -65,9 +65,8 @@ func GetUserID(ctx context.Context, db pgx.Tx, user *User) error {
 	return nil
 }
 
-func GetUser(ctx context.Context, db *pgxpool.Pool, email string) (User, error) {
+func GetUser(ctx context.Context, db *pgxpool.Pool, email string, query string) (User, error) {
 	var user User
-	query := `SELECT id, oid, username, email, password, image FROM "users" WHERE email = $1`
 	err := db.QueryRow(ctx, query, email).Scan(
 		&user.ID,
 		&user.OID,
@@ -75,6 +74,8 @@ func GetUser(ctx context.Context, db *pgxpool.Pool, email string) (User, error) 
 		&user.Email,
 		&user.Password,
 		&user.Image,
+		&user.CreatedAt,
+		&user.LastLogin,
 	)
 	return user, err
 }
