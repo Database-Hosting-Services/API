@@ -54,22 +54,37 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]
 	return data, nil
 }
 
-func SignInUser(ctx context.Context, db *pgxpool.Pool, user *User) (*map[string]interface{}, error) {
-	token, err := token.CreateAccessToken(user, config.Env.AccessTokenExpiryHour)
+func SignInUser(ctx context.Context, db *pgxpool.Pool, user *UserSignIn) (*map[string]interface{}, error) {
+	authenticatedUser, err := GetUser(ctx, config.DB, user.Email)
+	if err != nil {
+		return nil, err;
+	}
+ 
+	if !CheckPasswordHash(user.Password, authenticatedUser.Password) {
+		return nil, errors.New("InCorrect Email or Password")
+	}
 
+	var UserTokenData = &User{
+		OID: authenticatedUser.OID,
+		Username: authenticatedUser.Username,
+	}
+ 
+	token, err := token.CreateAccessToken(UserTokenData, config.Env.AccessTokenExpiryHour)
+ 
 	if err != nil {
 		return nil, err
 	}
-
+ 
 	resp := map[string]interface{}{
 		"Data": map[string]interface{}{
-			"oid":      user.OID,
-			"username": user.Username,
-			"email":    user.Email,
-			"image":    user.Image,
+			"oid":      authenticatedUser.OID,
+			"username": authenticatedUser.Username,
+			"email":    authenticatedUser.Email,
+			"image":    authenticatedUser.Image,
 			"token":    token,
 		},
 	}
-
+ 
 	return &resp, nil
 }
+ 
