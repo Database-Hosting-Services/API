@@ -16,3 +16,7 @@ func NotFound(w http.ResponseWriter, message string, err error) {
 func InternalServerError(w http.ResponseWriter, message string, err error) {
 	CreateResponse(w, http.StatusInternalServerError, message, err, nil)
 }
+
+func UnAuthorized(w http.ResponseWriter, message string, err error) {
+	CreateResponse(w, http.StatusUnauthorized, message, err, nil)
+}

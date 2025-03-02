@@ -89,3 +89,42 @@ func GetIdFromToken(requestToken string) (string, error) {
 	}
 	return Id, nil
 }
+
+// return the user id embeded into the token
+func GetUserNameFromToken(requestToken string) (string, error) {
+	token, err := ParseToken(requestToken)
+	if err != nil {
+		return "", err
+	}
+	
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", fmt.Errorf("Invalid Token")
+	}
+	userName, ok := claims["username"].(string)
+	if !ok {
+		return "", fmt.Errorf("Invalid Token")
+	}
+	return userName, nil
+}
+
+func GetData(requestToken string, fields ...string) ([]interface{}, error) {
+	token, err := ParseToken(requestToken)
+	if err != nil {
+		return nil, err
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("Invalid Token")
+	}
+	
+	values := make([]interface{}, len(fields))
+	for i, k := range fields {
+		v, ok := claims[k]
+		if !ok {
+			return nil, fmt.Errorf("Invalid Token")
+		}
+		values[i] = v
+	}
+	return values, nil
+}
