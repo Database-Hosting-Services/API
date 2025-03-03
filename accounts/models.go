@@ -19,6 +19,11 @@ type UserSignIn struct {
 	Password string `json:"password"`
 }
 
+type UserVerify struct {
+	User
+	Code string `josn:"code"`
+}
+
 func (u *User) GetOId() string {
 	return u.OID
 }

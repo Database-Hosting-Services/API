@@ -10,7 +10,7 @@ import (
 // TestRedisClient tests basic Redis operations: Set, Get, Exists, and Delete.
 func TestRedisClient(t *testing.T) {
 	// Create a new Redis client.
-	client := caching.NewRedisClient("localhost:6379", "", 0)
+	client, err := caching.NewRedisClient("localhost:6379", "", 0)
 	defer client.Close()
 
 	// Test Set operation.

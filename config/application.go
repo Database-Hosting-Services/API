@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-
+	"DBHS/caching"
+	"gopkg.in/gomail.v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -22,10 +23,12 @@ type Environment struct {
 }
 
 var (
-	App		*Application
-	Mux 	*http.ServeMux
-	DB  	*pgxpool.Pool
-	Env 	*Environment	
+	App			*Application
+	Mux 		*http.ServeMux
+	DB  		*pgxpool.Pool
+	VerifyCache *caching.RedisClient
+	EmailSender *gomail.Dialer
+	Env 		*Environment	
 )
 
 func Init(infoLog, errorLog *log.Logger) {
@@ -60,6 +63,13 @@ func Init(infoLog, errorLog *log.Logger) {
 
 	infoLog.Println("Connected to PostgreSQL successfully! ✅")
 
+	// ---- redis connection ---- //
+	VerifyCache, err = caching.NewRedisClient(os.Getenv("REDIS_ADDR"), os.Getenv("REDIS_PASS"),0)
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+	infoLog.Println("Connected to Redis successfully! ✅")
+
 	AccessTokenSecret := os.Getenv("ACCESS_TOKEN_SECRET")
 	AccessTokenExpiryHour, err := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXPIRY_HOUR"))
 	if err != nil {
@@ -69,6 +79,12 @@ func Init(infoLog, errorLog *log.Logger) {
 	Env = &Environment{
 		AccessTokenExpiryHour: 	AccessTokenExpiryHour,
 		AccessTokenSecret: 		[]byte(AccessTokenSecret),
+	}
+
+	EmailSender = gomail.NewDialer("smtp.gmail.com", 587, "thunderdbhostingserver@gmail.com", os.Getenv("GMAIL_PASS"))
+	_, err = EmailSender.Dial()
+	if err != nil {
+		errorLog.Fatal(err)
 	}
 }
 

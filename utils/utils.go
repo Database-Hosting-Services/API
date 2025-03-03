@@ -4,12 +4,17 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"crypto/rand"
 
 	"github.com/google/uuid"
 )
 
 func GenerateOID() string {
 	return uuid.New().String() // 36 character
+}
+
+func GenerateVerficationCode() string {
+	return rand.Text()
 }
 
 // returns the authToken in the Authorization header

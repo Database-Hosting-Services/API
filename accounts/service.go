@@ -1,11 +1,13 @@
 package accounts
 
 import (
+	"DBHS/caching"
 	"DBHS/config"
 	"DBHS/utils"
 	"DBHS/utils/token"
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
@@ -97,4 +99,31 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, user *UserSignIn) (*map[s
 	}
 
 	return &resp, nil
+}
+
+func VerifyUser(ctx context.Context,db *pgxpool.Pool, cache *caching.RedisClient, user *UserVerify) (error) {
+	correctCode, err := cache.Get(user.Email)
+	if err != nil {
+		return err
+	}
+	if correctCode != user.Code {
+		return fmt.Errorf("Wrong code")
+	}
+
+	transaction, err := db.Begin(ctx) // we should replace this with a middleware
+	if err != nil {
+		return err
+	}
+	defer transaction.Rollback(ctx)
+	
+	if err := CreateUser(ctx, transaction, &user.User); err != nil {
+		return err
+	}
+
+	if err := transaction.Commit(ctx); err != nil {
+		return err
+	}
+
+	cache.Delete(user.Email)
+	return nil
 }

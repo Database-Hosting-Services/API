@@ -12,7 +12,7 @@ type RedisClient struct {
 }
 
 // NewRedisClient initializes and returns a new RedisClient instance.
-func NewRedisClient(addr, password string, db int) *RedisClient {
+func NewRedisClient(addr, password string, db int) (*RedisClient, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: password,
@@ -21,10 +21,10 @@ func NewRedisClient(addr, password string, db int) *RedisClient {
 
 	ctx := context.Background()
 	if err := rdb.Ping(ctx).Err(); err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return &RedisClient{Client: rdb}
+	return &RedisClient{Client: rdb}, nil
 }
 
 // Set sets a key-value pair in Redis with the given expiration.

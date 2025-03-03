@@ -67,6 +67,27 @@ func SignIn(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response.CreateResponse(w, http.StatusOK, "User signed in successfully", nil, resp)
+		response.OK(w, "User signed in successfully", resp)
+	}
+}
+
+func Verify(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var user UserVerify
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&user); err != nil {
+			response.BadRequest(w, "Invalid JSON body", err)
+			return
+		}
+
+		if err := VerifyUser(r.Context(), config.DB, config.VerifyCache, &user); err != nil {
+			if err.Error() == "Wrong code" {
+				response.BadRequest(w, "Wrong verification code", err)
+				return
+			}
+			response.InternalServerError(w,"",err)
+			return
+		}
+		response.Created(w, "User verified successfully",nil)
 	}
 }
