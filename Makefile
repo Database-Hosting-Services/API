@@ -14,11 +14,14 @@ format:
 	./$(SCRIPTS_DIR)/pre-commit
 
 commit: format
-	git add .
-	git commit -m "$(MSG)"
+	echo "\033[32mstagging changes...\033[0m"
+	@git add .
+	echo "\033[32mcommiting changes...\033[0m"
+	@git commit -m "$(MSG)"
 
 push: commit
-	git push
+	echo "\033[32mpushing to remote repo...\033[0m"
+	@git push
 
 clean:
 	rm -rf $(BUILD_DIR)/*
