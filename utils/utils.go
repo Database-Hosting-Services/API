@@ -2,9 +2,9 @@ package utils
 
 import (
 	"context"
+	"crypto/rand"
 	"net/http"
 	"strings"
-	"crypto/rand"
 
 	"github.com/google/uuid"
 )
@@ -14,7 +14,7 @@ func GenerateOID() string {
 }
 
 func GenerateVerficationCode() string {
-	return rand.Text()
+	return rand.Text()[:6]
 }
 
 // returns the authToken in the Authorization header
@@ -30,7 +30,7 @@ func ExtractToken(r *http.Request) string {
 
 func AddToContext(ctx context.Context, data map[string]interface{}) context.Context {
 	for k, v := range data {
-		ctx = context.WithValue(ctx, k , v)
+		ctx = context.WithValue(ctx, k, v)
 	}
 	return ctx
 }

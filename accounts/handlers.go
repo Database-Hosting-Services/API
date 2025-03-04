@@ -89,9 +89,9 @@ func Verify(app *config.Application) http.HandlerFunc {
 				return
 			}
 			response.InternalServerError(w, "Server Error, please try again later.", err)
-			return 
+			return
 		}
 		app.InfoLog.Println("User verified successfully", user.Username)
-		response.Created(w, "User verified successfully",data)
+		response.Created(w, "User verified successfully", data)
 	}
 }

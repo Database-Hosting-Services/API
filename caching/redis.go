@@ -58,7 +58,7 @@ func (r *RedisClient) Exists(key string) (bool, error) {
 	return exists > 0, nil
 }
 
-func (r *RedisClient) Eval(ctx context.Context, script string, args ...interface{}) (interface{}, error){
+func (r *RedisClient) Eval(ctx context.Context, script string, args ...interface{}) (interface{}, error) {
 	keys := make([]string, len(args))
 	for i, v := range args {
 		switch t := v.(type) {
@@ -70,9 +70,8 @@ func (r *RedisClient) Eval(ctx context.Context, script string, args ...interface
 			return nil, fmt.Errorf("Unknown type: %T", t)
 		}
 	}
-	return  r.Client.Eval(ctx, script, keys).Result()
+	return r.Client.Eval(ctx, script, keys).Result()
 }
-
 
 // Close closes the Redis client connection.
 func (r *RedisClient) Close() error {

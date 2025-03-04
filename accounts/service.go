@@ -60,7 +60,6 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (map[string]i
 }
 
 func SignInUser(ctx context.Context, db *pgxpool.Pool, user *UserSignIn) (map[string]interface{}, error) {
-
 	var authenticatedUser User
 	err := GetUser(ctx, db, user.Email, SELECT_USER_BY_Email, []interface{}{
 		&authenticatedUser.ID,
@@ -102,7 +101,7 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, user *UserSignIn) (map[st
 	return resp, nil
 }
 
-func VerifyUser(ctx context.Context,db *pgxpool.Pool, cache *caching.RedisClient, user *UserVerify) (map[string]interface{}, error) {
+func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserVerify) (map[string]interface{}, error) {
 	userJson, err := cache.Get(user.Email)
 	if err != nil {
 		return nil, err
@@ -159,6 +158,6 @@ func VerifyUser(ctx context.Context,db *pgxpool.Pool, cache *caching.RedisClient
 		"verified": user.Verified,
 		"token":    token,
 	}
-	
+
 	return data, nil
 }

@@ -1,15 +1,15 @@
 package config
 
 import (
+	"DBHS/caching"
 	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
+	"gopkg.in/gomail.v2"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
-	"DBHS/caching"
-	"gopkg.in/gomail.v2"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
 )
 
 type Application struct {
@@ -18,18 +18,18 @@ type Application struct {
 }
 
 type Environment struct {
-	AccessTokenExpiryHour 	int
-	AccessTokenSecret 		[]byte
-	VerifyCodeExpiryMinute	int
+	AccessTokenExpiryHour  int
+	AccessTokenSecret      []byte
+	VerifyCodeExpiryMinute int
 }
 
 var (
-	App			*Application
-	Mux 		*http.ServeMux
-	DB  		*pgxpool.Pool
+	App         *Application
+	Mux         *http.ServeMux
+	DB          *pgxpool.Pool
 	VerifyCache *caching.RedisClient
 	EmailSender *gomail.Dialer
-	Env 		*Environment	
+	Env         *Environment
 )
 
 func Init(infoLog, errorLog *log.Logger) {
@@ -65,7 +65,7 @@ func Init(infoLog, errorLog *log.Logger) {
 	infoLog.Println("Connected to PostgreSQL successfully! ✅")
 
 	// ---- redis connection ---- //
-	VerifyCache, err = caching.NewRedisClient(os.Getenv("REDIS_ADDR"), os.Getenv("REDIS_PASS"),0)
+	VerifyCache, err = caching.NewRedisClient(os.Getenv("REDIS_ADDR"), os.Getenv("REDIS_PASS"), 0)
 	if err != nil {
 		errorLog.Fatal(err)
 	}
@@ -82,8 +82,8 @@ func Init(infoLog, errorLog *log.Logger) {
 		errorLog.Fatal(err)
 	}
 	Env = &Environment{
-		AccessTokenExpiryHour: 	AccessTokenExpiryHour,
-		AccessTokenSecret: 		[]byte(AccessTokenSecret),
+		AccessTokenExpiryHour:  AccessTokenExpiryHour,
+		AccessTokenSecret:      []byte(AccessTokenSecret),
 		VerifyCodeExpiryMinute: VerifyCodeExpiryMinute,
 	}
 
