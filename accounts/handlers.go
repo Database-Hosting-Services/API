@@ -76,18 +76,22 @@ func Verify(app *config.Application) http.HandlerFunc {
 		var user UserVerify
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&user); err != nil {
+			app.ErrorLog.Println(err.Error())
 			response.BadRequest(w, "Invalid JSON body", err)
 			return
 		}
 
-		if err := VerifyUser(r.Context(), config.DB, config.VerifyCache, &user); err != nil {
-			if err.Error() == "Wrong code" {
-				response.BadRequest(w, "Wrong verification code", err)
+		data, err := VerifyUser(r.Context(), config.DB, config.VerifyCache, &user)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			if err.Error() == "Wrong verification code" {
+				response.BadRequest(w, err.Error(), err)
 				return
 			}
-			response.InternalServerError(w,"",err)
-			return
+			response.InternalServerError(w, "Server Error, please try again later.", err)
+			return 
 		}
-		response.Created(w, "User verified successfully",nil)
+		app.InfoLog.Println("User verified successfully", user.Username)
+		response.Created(w, "User verified successfully",data)
 	}
 }

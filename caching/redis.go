@@ -2,8 +2,11 @@ package caching
 
 import (
 	"context"
-	"github.com/redis/go-redis/v9"
+	"fmt"
+	"strconv"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 // RedisClient wraps the go-redis client.
@@ -54,6 +57,22 @@ func (r *RedisClient) Exists(key string) (bool, error) {
 	}
 	return exists > 0, nil
 }
+
+func (r *RedisClient) Eval(ctx context.Context, script string, args ...interface{}) (interface{}, error){
+	keys := make([]string, len(args))
+	for i, v := range args {
+		switch t := v.(type) {
+		case string:
+			keys[i] = v.(string)
+		case int:
+			keys[i] = strconv.Itoa(v.(int))
+		default:
+			return nil, fmt.Errorf("Unknown type: %T", t)
+		}
+	}
+	return  r.Client.Eval(ctx, script, keys).Result()
+}
+
 
 // Close closes the Redis client connection.
 func (r *RedisClient) Close() error {

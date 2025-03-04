@@ -20,6 +20,7 @@ type Application struct {
 type Environment struct {
 	AccessTokenExpiryHour 	int
 	AccessTokenSecret 		[]byte
+	VerifyCodeExpiryMinute	int
 }
 
 var (
@@ -76,9 +77,14 @@ func Init(infoLog, errorLog *log.Logger) {
 		errorLog.Fatal(err)
 	}
 
+	VerifyCodeExpiryMinute, err := strconv.Atoi(os.Getenv("VERIFY_CODE_EXPIRY_MINUTE"))
+	if err != nil {
+		errorLog.Fatal(err)
+	}
 	Env = &Environment{
 		AccessTokenExpiryHour: 	AccessTokenExpiryHour,
 		AccessTokenSecret: 		[]byte(AccessTokenSecret),
+		VerifyCodeExpiryMinute: VerifyCodeExpiryMinute,
 	}
 
 	EmailSender = gomail.NewDialer("smtp.gmail.com", 587, "thunderdbhostingserver@gmail.com", os.Getenv("GMAIL_PASS"))
