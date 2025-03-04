@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -59,9 +58,18 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (map[string]i
 	return data, nil
 }
 
-func SignInUser(ctx context.Context, db *pgxpool.Pool, user *UserSignIn) (map[string]interface{}, error) {
+func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserSignIn) (map[string]interface{}, error) {
+	exits, err := cache.Exists(user.Email)
+	if err != nil {
+		return nil, errors.New("invalid email or password")
+	}
+
+	if exits {
+		return serviceUserVerification(cache, user.Email, user.Password)
+	}
+
 	var authenticatedUser User
-	err := GetUser(ctx, db, user.Email, SELECT_USER_BY_Email, []interface{}{
+	err = GetUser(ctx, db, user.Email, SELECT_USER_BY_Email, []interface{}{
 		&authenticatedUser.ID,
 		&authenticatedUser.OID,
 		&authenticatedUser.Username,
@@ -77,7 +85,7 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, user *UserSignIn) (map[st
 	}
 
 	if !CheckPasswordHash(user.Password, authenticatedUser.Password) {
-		return nil, errors.New("incorrect email or password")
+		return nil, errors.New("InCorrect Email or Password")
 	}
 
 	UserTokenData := &User{
@@ -99,6 +107,27 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, user *UserSignIn) (map[st
 	}
 
 	return resp, nil
+}
+
+func serviceUserVerification(cache *caching.RedisClient, email, Password string) (map[string]interface{}, error) {
+	userData, err := cache.Get(email)
+	if err != nil {
+		return nil, errors.New("invalid email or password")
+	}
+
+	var user UserVerify
+	if err := json.Unmarshal([]byte(userData), &user); err != nil {
+		return nil, err
+	}
+
+	if !CheckPasswordHash(Password, user.Password) {
+		return nil, errors.New("InCorrect Email or Password")
+	}
+
+	// TODO: send the verification code to the user email
+	return map[string]interface{}{
+		"Verification": "The verification code has been sent to your email",
+	}, nil
 }
 
 func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserVerify) (map[string]interface{}, error) {

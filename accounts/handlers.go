@@ -57,17 +57,23 @@ func SignIn(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		resp, err := SignInUser(r.Context(), config.DB, &user)
+		resp, err := SignInUser(r.Context(), config.DB, config.VerifyCache, &user)
 		if err != nil {
 			if err.Error() == "no rows in result set" || err.Error() == "InCorrect Email or Password" {
 				response.BadRequest(w, "InCorrect Email or Password", nil)
 				return
 			}
+			app.InfoLog.Println(err.Error())
 			response.InternalServerError(w, "Server Error, please try again later.", err)
 			return
 		}
 
-		response.OK(w, "User signed in successfully", resp)
+		verification, ok := resp["Verification"].(string)
+		if ok {
+			response.OK(w, verification, nil)
+		} else {
+			response.OK(w, "User signed in successfully", resp)
+		}
 	}
 }
 
