@@ -3,9 +3,12 @@ package accounts
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/gomail.v2"
+	"os"
 	"regexp"
 )
 
@@ -68,4 +71,28 @@ func CheckPasswordHash(inputPassword, storedHash string) bool {
 	// Compare the password with the hash
 	err := bcrypt.CompareHashAndPassword(byteHash, bytePassword)
 	return err == nil
+}
+
+func SendMail(d *gomail.Dialer, from, to, code, Subject string) error {
+	m := gomail.NewMessage()
+
+	// Set headers
+	m.SetHeader("From", from)
+	m.SetHeader("To", to)
+	m.SetHeader("Subject", Subject)
+
+	data, err := os.ReadFile("../utils/mailTemplate.html")
+	if err != nil {
+		return fmt.Errorf("failed to read mail template: %w", err)
+	}
+
+	body := fmt.Sprintf(string(data), code)
+	m.SetBody("text/html", body)
+
+	// Send email using the provided dialer
+	if err := d.DialAndSend(m); err != nil {
+		return fmt.Errorf("failed to send verification email: %w", err)
+	}
+
+	return nil
 }

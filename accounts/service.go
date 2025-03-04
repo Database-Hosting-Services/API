@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -124,7 +126,7 @@ func serviceUserVerification(cache *caching.RedisClient, email, Password string)
 		return nil, errors.New("InCorrect Email or Password")
 	}
 
-	// TODO: send the verification code to the user email
+	SendMail(config.EmailSender, os.Getenv("GMAIL"), user.Email, user.Code, "Your Verification Code")
 	return map[string]interface{}{
 		"Verification": "The verification code has been sent to your email",
 	}, nil
