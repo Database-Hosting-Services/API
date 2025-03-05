@@ -101,3 +101,25 @@ func Verify(app *config.Application) http.HandlerFunc {
 		response.Created(w, "User verified successfully", data)
 	}
 }
+
+func resendCode(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var user UserSignIn
+		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+			response.BadRequest(w, "Invalid JSON body", err)
+			return
+		}
+
+		err := UpdateVerificationCode(config.VerifyCache, user)
+		if err != nil {
+			if err.Error() == "invalid email" {
+				response.BadRequest(w, "Invalid Email", err)
+				return
+			}
+			response.InternalServerError(w, "Server Error, please try again later.", err)
+			return
+		}
+		app.InfoLog.Println("Verification code sent successfully", user.Email)
+		response.OK(w, "Verification code sent successfully", nil)
+	}
+}

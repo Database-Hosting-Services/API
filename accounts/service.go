@@ -10,6 +10,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
@@ -63,7 +65,7 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (map[string]i
 func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserSignIn) (map[string]interface{}, error) {
 	exits, err := cache.Exists(user.Email)
 	if err != nil {
-		return nil, errors.New("invalid email or password")
+		return nil, errors.New("InCorrect email or password")
 	}
 
 	if exits {
@@ -130,6 +132,35 @@ func serviceUserVerification(cache *caching.RedisClient, email, Password string)
 	return map[string]interface{}{
 		"Verification": "The verification code has been sent to your email",
 	}, nil
+}
+
+func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
+	data, err := cache.Get(user.Email)
+	if err != nil {
+		return errors.New("invalid email")
+	}
+
+	var UserData UserVerify
+	if err := json.Unmarshal([]byte(data), &UserData); err != nil {
+		return err
+	}
+
+	NewCode := utils.GenerateVerficationCode()
+	UserData.Code = NewCode
+
+	expiryMinutes, err := strconv.Atoi(os.Getenv("VERIFY_CODE_EXPIRY_MINUTE"))
+	if err != nil {
+		return err
+	}
+
+	cache.Delete(user.Email)
+	cache.Delete(UserData.Username)
+
+	cache.Set(user.Email, UserData, time.Duration(expiryMinutes)*time.Minute)
+	cache.Set(UserData.Username, 1, time.Duration(expiryMinutes)*time.Minute)
+
+	SendMail(config.EmailSender, os.Getenv("GMAIL"), user.Email, NewCode, "Your Verification Code")
+	return nil
 }
 
 func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserVerify) (map[string]interface{}, error) {
