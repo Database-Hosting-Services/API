@@ -30,7 +30,7 @@ func signUp(app *config.Application) http.HandlerFunc {
 		}
 
 		if conflicField != "" {
-			response.BadRequest(w, fmt.Sprintf("Invalid input Data, %s must be unique", conflicField), nil)
+			response.BadRequest(w, fmt.Sprintf("Invalid input Data, this %s is already exists", conflicField), nil)
 			return
 		}
 

@@ -43,10 +43,11 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (map[string]i
 	}
 
 	token, err := token.CreateAccessToken(user, config.Env.AccessTokenExpiryHour)
-
 	if err != nil {
 		return nil, err
 	}
+
+	// send the verification code
 
 	data := map[string]interface{}{
 		"id":       user.OID, // sent to the clinte
