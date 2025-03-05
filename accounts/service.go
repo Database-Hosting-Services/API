@@ -153,9 +153,6 @@ func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
 		return err
 	}
 
-	cache.Delete(user.Email)
-	cache.Delete(UserData.Username)
-
 	cache.Set(user.Email, UserData, time.Duration(expiryMinutes)*time.Minute)
 	cache.Set(UserData.Username, 1, time.Duration(expiryMinutes)*time.Minute)
 
