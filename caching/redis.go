@@ -2,6 +2,7 @@ package caching
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -36,10 +37,33 @@ func (r *RedisClient) Set(key string, value interface{}, expiration time.Duratio
 	return r.Client.Set(ctx, key, value, expiration).Err()
 }
 
+// obj is the struct object from which the value for the key will be generated from in the format of json
+func (r *RedisClient) SetJson(key string, obj *interface{}, expiration time.Duration) error {
+	jsonData, err := json.Marshal(*obj)
+	if err != nil {
+		return err
+	}
+	ctx := context.Background()
+	return r.Client.Set(ctx, key, jsonData, expiration).Err()
+}
+
 // Get retrieves the value associated with the given key.
 func (r *RedisClient) Get(key string) (string, error) {
 	ctx := context.Background()
 	return r.Client.Get(ctx, key).Result()
+}
+
+// dest is a pointer to the struct object in which data will be read into
+func (r *RedisClient) GetJson(key string, dest *interface{}, expiration time.Duration) error {
+	ctx := context.Background()
+	jsonData, err := r.Client.Get(ctx, key).Result()
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal([]byte(jsonData), dest); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Delete deletes the value associated with the given key
