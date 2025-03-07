@@ -148,16 +148,12 @@ func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
 }
 
 func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserVerify) (map[string]interface{}, error) {
-	userJson, err := cache.Get(user.Email)
-	if err != nil {
-		return nil, err
-	}
-
+	
 	userCode := user.Code
-	if err := json.Unmarshal([]byte(userJson), &user); err != nil {
+	if err := cache.GetJson(user.Email, user); err != nil {
 		return nil, err
 	}
-
+	
 	if userCode != user.Code {
 		return nil, fmt.Errorf("Wrong verification code")
 	}

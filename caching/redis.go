@@ -54,7 +54,7 @@ func (r *RedisClient) Get(key string) (string, error) {
 }
 
 // dest is a pointer to the struct object in which data will be read into
-func (r *RedisClient) GetJson(key string, dest *interface{}, expiration time.Duration) error {
+func (r *RedisClient) GetJson(key string, dest interface{}) error {
 	ctx := context.Background()
 	jsonData, err := r.Client.Get(ctx, key).Result()
 	if err != nil {
