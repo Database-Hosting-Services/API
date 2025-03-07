@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 	"time"
-	"reflect"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -36,7 +36,7 @@ func NewRedisClient(addr, password string, db int) (*RedisClient, error) {
 // to set the key to a json object read from a struct object value should be a pointer to the struct.
 // Set uses the SetJson to do the marshal operation.
 func (r *RedisClient) Set(key string, value interface{}, expiration time.Duration) error {
-	if t := reflect.ValueOf(value); t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct{
+	if t := reflect.ValueOf(value); t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct {
 		return r.SetJson(key, value, expiration)
 	}
 	ctx := context.Background()
@@ -58,7 +58,7 @@ func (r *RedisClient) SetJson(key string, obj interface{}, expiration time.Durat
 // Note: that in this case the return values will be nil, error.
 // if the read value is a premetive type dest should be set to nil and the value will be returned.
 func (r *RedisClient) Get(key string, dest interface{}) (interface{}, error) {
-	if t := reflect.ValueOf(dest); t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct{
+	if t := reflect.ValueOf(dest); t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct {
 		return nil, r.GetJson(key, dest)
 	}
 	ctx := context.Background()

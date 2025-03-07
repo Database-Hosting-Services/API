@@ -152,7 +152,7 @@ func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
 }
 
 func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserVerify) (map[string]interface{}, error) {
-	
+
 	userCode := user.Code
 	if _, err := cache.Get(user.Email, user); err != nil {
 		return nil, err
