@@ -14,6 +14,10 @@ import (
 )
 
 func checkPasswordStrength(password string) error {
+	/*
+		The password should contains uppercase, lowercase , digits and special characters
+		special characters : [@#$%^&*!_]
+	*/
 	if len(password) < 8 {
 		return errors.New("password must be at least 8 characters long")
 	}
@@ -80,10 +84,6 @@ func checkUserExistsInCache(username, email string) (string, error) {
 		}
 	}
 	return "", nil
-}
-
-func storeUserDataInCache(user *User) {
-
 }
 
 func CheckPasswordHash(inputPassword, storedHash string) bool {
