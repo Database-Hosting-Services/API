@@ -32,7 +32,9 @@ func NewRedisClient(addr, password string, db int) (*RedisClient, error) {
 	return &RedisClient{Client: rdb}, nil
 }
 
-// Set sets a key-value pair in Redis with the given expiration.
+// Set sets a key-value pair in Redis with the given expiration time.
+// to set the key to a json object read from a struct object value should be a pointer to the struct.
+// Set uses the SetJson to do the marshal operation.
 func (r *RedisClient) Set(key string, value interface{}, expiration time.Duration) error {
 	if t := reflect.ValueOf(value); t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct{
 		return r.SetJson(key, value, expiration)
@@ -52,6 +54,9 @@ func (r *RedisClient) SetJson(key string, obj interface{}, expiration time.Durat
 }
 
 // Get retrieves the value associated with the given key.
+// if the read value is a json object and you want to read it into a struct object dest should be a pointer to that struct.
+// Note: that in this case the return values will be nil, error.
+// if the read value is a premetive type dest should be set to nil and the value will be returned.
 func (r *RedisClient) Get(key string, dest interface{}) (interface{}, error) {
 	if t := reflect.ValueOf(dest); t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct{
 		return nil, r.GetJson(key, dest)
