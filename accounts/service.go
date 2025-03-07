@@ -6,7 +6,6 @@ import (
 	"DBHS/utils"
 	"DBHS/utils/token"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -17,36 +16,49 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) error {
-	/*
-		store user's data in cache and
-		generate a verification code and send it to the user
-	*/
+func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (map[string]interface{}, error) {
+	transaction, err := db.Begin(ctx) // we should replace this with a middleware
+	if err != nil {
+		return nil, err
+	}
+	defer transaction.Rollback(ctx)
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return errors.New("failed to hash password")
+		return nil, errors.New("failed to hash password")
 	}
 
 	user.OID = utils.GenerateOID()
 	user.Password = string(hashedPassword)
 	user.Verified = false
 
-	// store user's data in cache
-	userJson, err := json.Marshal(user)
+	if err := CreateUser(ctx, transaction, user); err != nil {
+		return nil, err
+	}
+
+	err = GetUser(ctx, transaction, user.Email, SELECT_ID_FROM_USER_BY_EMAIL, []interface{}{&user.ID}...)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	config.VerifyCache.Set(user.Email, userJson, time.Minute*30)
-	config.VerifyCache.Set(user.Username, true, time.Minute*30)
+	token, err := token.CreateAccessToken(user, config.Env.AccessTokenExpiryHour)
 
-	// send the verification code
-	userVerficationCode := utils.GenerateVerficationCode()
-	if err = SendMail(config.EmailSender, os.Getenv("GMAIL"), user.Email, userVerficationCode, "Verification Code"); err != nil {
-		return err
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	data := map[string]interface{}{
+		"id":       user.OID, // sent to the clinte
+		"email":    user.Email,
+		"username": user.Username,
+		"verified": user.Verified,
+		"token":    token,
+	}
+
+	if err := transaction.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return data, nil
 }
 
 func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserSignIn) (map[string]interface{}, error) {
@@ -101,14 +113,10 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 }
 
 func SendUserVerificationCode(cache *caching.RedisClient, email, Password string) (map[string]interface{}, error) {
-	userData, err := cache.Get(email)
+	var user UserVerify
+	_, err := cache.Get(email, &user)
 	if err != nil {
 		return nil, errors.New("invalid email or password")
-	}
-
-	var user UserVerify
-	if err := json.Unmarshal([]byte(userData), &user); err != nil {
-		return nil, err
 	}
 
 	if !CheckPasswordHash(Password, user.Password) {
@@ -122,14 +130,10 @@ func SendUserVerificationCode(cache *caching.RedisClient, email, Password string
 }
 
 func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
-	data, err := cache.Get(user.Email)
+	var UserData UserVerify
+	_, err := cache.Get(user.Email, &UserData)
 	if err != nil {
 		return errors.New("invalid email")
-	}
-
-	var UserData UserVerify
-	if err := json.Unmarshal([]byte(data), &UserData); err != nil {
-		return err
 	}
 
 	NewCode := utils.GenerateVerficationCode()

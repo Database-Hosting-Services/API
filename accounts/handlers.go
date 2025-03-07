@@ -50,7 +50,7 @@ func signUp(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		err = SignupUser(context.Background(), config.DB, &user)
+		_, err = SignupUser(context.Background(), config.DB, &user)
 		if err != nil {
 			app.ErrorLog.Println(err.Error())
 			response.InternalServerError(w, "Server Error, please try again later.", err)
