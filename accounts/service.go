@@ -69,7 +69,7 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 	}
 
 	if exits {
-		return serviceUserVerification(cache, user.Email, user.Password)
+		return SendUserVerificationCode(cache, user.Email, user.Password)
 	}
 
 	var authenticatedUser User
@@ -113,7 +113,7 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 	return resp, nil
 }
 
-func serviceUserVerification(cache *caching.RedisClient, email, Password string) (map[string]interface{}, error) {
+func SendUserVerificationCode(cache *caching.RedisClient, email, Password string) (map[string]interface{}, error) {
 	userData, err := cache.Get(email)
 	if err != nil {
 		return nil, errors.New("invalid email or password")
