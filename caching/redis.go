@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+	"reflect"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -33,13 +34,16 @@ func NewRedisClient(addr, password string, db int) (*RedisClient, error) {
 
 // Set sets a key-value pair in Redis with the given expiration.
 func (r *RedisClient) Set(key string, value interface{}, expiration time.Duration) error {
+	if t := reflect.ValueOf(value); t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct{
+		return r.SetJson(key, value, expiration)
+	}
 	ctx := context.Background()
 	return r.Client.Set(ctx, key, value, expiration).Err()
 }
 
 // obj is the struct object from which the value for the key will be generated from in the format of json
-func (r *RedisClient) SetJson(key string, obj *interface{}, expiration time.Duration) error {
-	jsonData, err := json.Marshal(*obj)
+func (r *RedisClient) SetJson(key string, obj interface{}, expiration time.Duration) error {
+	jsonData, err := json.Marshal(obj)
 	if err != nil {
 		return err
 	}
@@ -48,7 +52,10 @@ func (r *RedisClient) SetJson(key string, obj *interface{}, expiration time.Dura
 }
 
 // Get retrieves the value associated with the given key.
-func (r *RedisClient) Get(key string) (string, error) {
+func (r *RedisClient) Get(key string, dest interface{}) (interface{}, error) {
+	if t := reflect.ValueOf(dest); t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct{
+		return nil, r.GetJson(key, dest)
+	}
 	ctx := context.Background()
 	return r.Client.Get(ctx, key).Result()
 }

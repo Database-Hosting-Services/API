@@ -150,10 +150,10 @@ func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
 func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserVerify) (map[string]interface{}, error) {
 	
 	userCode := user.Code
-	if err := cache.GetJson(user.Email, user); err != nil {
+	if _, err := cache.Get(user.Email, user); err != nil {
 		return nil, err
 	}
-	
+
 	if userCode != user.Code {
 		return nil, fmt.Errorf("Wrong verification code")
 	}
