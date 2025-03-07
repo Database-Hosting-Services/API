@@ -1,0 +1,57 @@
+basePath: /api/v1
+definitions:
+  response.Response:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is my API using Swagger with Mux.
+  title: My API
+  version: "1.0"
+paths:
+  /api/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Sign up user and send a verification code via email
+      parameters:
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      - description: Email
+        in: path
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: path
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Sign up user
+      tags:
+      - Users
+swagger: "2.0"

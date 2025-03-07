@@ -7,7 +7,14 @@ import (
 	"os"
 
 	"DBHS/config"
+	_ "DBHS/docs"
 )
+
+//@title My API
+//@version 1.0
+//@description This is my API using Swagger with Mux.
+//@host localhost:8080
+//@BasePath /api/v1
 
 func main() {
 	// ---- http server ---- //

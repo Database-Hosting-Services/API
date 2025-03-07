@@ -10,6 +10,17 @@ import (
 	"net/http"
 )
 
+// @Summary Sign up user
+// @Description Sign up user and send a verification code via email
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param username path string true "Username"
+// @Param email path string true "Email"
+// @Param password path string true "Password"
+// @Success 201 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Router /api/sign-up [post]
 func signUp(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user User
