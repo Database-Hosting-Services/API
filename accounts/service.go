@@ -17,50 +17,36 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) (map[string]interface{}, error) {
-	transaction, err := db.Begin(ctx) // we should replace this with a middleware
-	if err != nil {
-		return nil, err
-	}
-	defer transaction.Rollback(ctx)
-
+func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) error {
+	/*
+		store user's data in cache and
+		generate a verification code and send it to the user
+	*/
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, errors.New("failed to hash password")
+		return errors.New("failed to hash password")
 	}
 
 	user.OID = utils.GenerateOID()
 	user.Password = string(hashedPassword)
 	user.Verified = false
 
-	if err := CreateUser(ctx, transaction, user); err != nil {
-		return nil, err
+	// store user's data in cache
+	userJson, err := json.Marshal(user)
+	if err != nil {
+		return err
 	}
 
-	err = GetUser(ctx, transaction, user.Email, SELECT_ID_FROM_USER_BY_EMAIL, []interface{}{&user.ID}...)
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := token.CreateAccessToken(user, config.Env.AccessTokenExpiryHour)
-	if err != nil {
-		return nil, err
-	}
+	config.VerifyCache.Set(user.Email, userJson, time.Minute*30)
+	config.VerifyCache.Set(user.Username, true, time.Minute*30)
 
 	// send the verification code
-
-	data := map[string]interface{}{
-		"id":       user.OID, // sent to the clinte
-		"email":    user.Email,
-		"username": user.Username,
-		"verified": user.Verified,
-		"token":    token,
+	userVerficationCode := utils.GenerateVerficationCode()
+	if err = SendMail(config.EmailSender, os.Getenv("GMAIL"), user.Email, userVerficationCode, "Verification Code"); err != nil {
+		return err
 	}
 
-	if err := transaction.Commit(ctx); err != nil {
-		return nil, err
-	}
-	return data, nil
+	return nil
 }
 
 func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserSignIn) (map[string]interface{}, error) {
@@ -182,6 +168,9 @@ func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 		return nil, err
 	}
 	defer transaction.Rollback(ctx)
+
+	// set user as verified
+	user.Verified = true
 
 	if err := CreateUser(ctx, transaction, &user.User); err != nil {
 		return nil, err
