@@ -1,6 +1,7 @@
 package accounts
 
 import (
+	"DBHS/config"
 	"context"
 	"errors"
 	"fmt"
@@ -62,6 +63,27 @@ func checkUserExists(ctx context.Context, db *pgxpool.Pool, username, email stri
 		return "", err
 	}
 	return existingField, nil
+}
+
+func checkUserExistsInCache(username, email string) (string, error) {
+	/*
+		if email or username exists in the cache
+		this function will return (email, nil) or (username, null)
+	*/
+	for key, value := range map[string]string{"email": email, "username": username} {
+		exists, err := config.VerifyCache.Exists(value)
+		if err != nil {
+			return "", err
+		}
+		if exists {
+			return key, nil
+		}
+	}
+	return "", nil
+}
+
+func storeUserDataInCache(user *User) {
+
 }
 
 func CheckPasswordHash(inputPassword, storedHash string) bool {

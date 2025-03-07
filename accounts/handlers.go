@@ -5,6 +5,7 @@ import (
 	"DBHS/response"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -22,25 +23,41 @@ func signUp(app *config.Application) http.HandlerFunc {
 			return
 		}
 
+		field, err := checkUserExistsInCache(user.Username, user.Email)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Server Error", err)
+			return
+		}
+
+		if field != "" {
+			response.BadRequest(w,
+				"Invalid User",
+				errors.New(fmt.Sprintf("User with this %s already exists", field)),
+			)
+			return
+		}
+
 		// this return the field that exists in the database
-		conflicField, err := checkUserExists(r.Context(), config.DB, user.Username, user.Email) // we can make it more generic
+		field, err = checkUserExists(r.Context(), config.DB, user.Username, user.Email) // we can make it more generic
 		if err != nil {
 			response.BadRequest(w, "Invalid Input Data", err)
 			return
 		}
 
-		if conflicField != "" {
-			response.BadRequest(w, fmt.Sprintf("Invalid input Data, %s must be unique", conflicField), nil)
+		if field != "" {
+			response.BadRequest(w, fmt.Sprintf("Invalid input Data, this %s is already exists", field), nil)
 			return
 		}
 
-		data, err := SignupUser(context.Background(), config.DB, &user)
+		err = SignupUser(context.Background(), config.DB, &user)
 		if err != nil {
+			app.ErrorLog.Println(err.Error())
 			response.InternalServerError(w, "Server Error, please try again later.", err)
 			return
 		}
 
-		response.Created(w, "User signed up successfully", data)
+		response.Created(w, "User signed up successfully, check your email for verification", nil)
 	}
 }
 
