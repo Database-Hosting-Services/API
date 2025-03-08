@@ -19,13 +19,23 @@ func GenerateVerficationCode() string {
 
 // returns the authToken in the Authorization header
 func ExtractToken(r *http.Request) string {
-	authheader := r.Header.Get("Authorization")
-	header := strings.Split(authheader, " ")
-	if len(header) != 2 {
+	authHeader := strings.TrimSpace(r.Header.Get("Authorization"))
+	if authHeader == "" {
 		return ""
 	}
 
-	return header[1]
+	// Split into exactly 2 parts: [scheme] [token]
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 {
+		return ""
+	}
+
+	// Validate Bearer scheme
+	if strings.ToLower(parts[0]) != "bearer" {
+		return ""
+	}
+
+	return strings.TrimSpace(parts[1])
 }
 
 func AddToContext(ctx context.Context, data map[string]interface{}) context.Context {
