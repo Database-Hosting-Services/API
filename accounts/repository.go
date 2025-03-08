@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
@@ -56,4 +57,10 @@ func GetUser(ctx context.Context, db Querier, SearchField string, query string, 
 		return err
 	}
 	return nil
+}
+
+func UpdateUserPasswordInDatabase(ctx context.Context, db *pgxpool.Pool, SearchField, NewPassword string) error {
+	query := `UPDATE "users" SET password = $1 WHERE oid = $2`
+	_, err := db.Exec(ctx, query, NewPassword, SearchField)
+	return err
 }

@@ -24,6 +24,12 @@ type UserVerify struct {
 	Code string `josn:"code"`
 }
 
+type UpdatePasswordModel struct {
+	CurrentPassword string `json:"current_password"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirm_password"`
+}
+
 func (u *User) GetOId() string {
 	return u.OID
 }

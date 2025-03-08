@@ -75,12 +75,12 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 		return nil, errors.New("InCorrect Email or Password")
 	}
 
-	UserTokenData := &User{
+	UserTokenData := User{
 		OID:      authenticatedUser.OID,
 		Username: authenticatedUser.Username,
 	}
 
-	token, err := token.CreateAccessToken(UserTokenData, config.Env.AccessTokenExpiryHour)
+	token, err := token.CreateAccessToken(&UserTokenData, config.Env.AccessTokenExpiryHour)
 	if err != nil {
 		return nil, err
 	}
@@ -134,6 +134,29 @@ func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
 	cache.Set(UserData.Username, 1, time.Duration(expiryMinutes)*time.Minute)
 
 	SendMail(config.EmailSender, os.Getenv("GMAIL"), user.Email, NewCode, "Your Verification Code")
+	return nil
+}
+
+// r.Context(), config.DB, UpdatePasswordModel
+func UpdateUserPassword(ctx context.Context, db *pgxpool.Pool, UserPassword *UpdatePasswordModel) error {
+	if UserPassword.Password != UserPassword.ConfirmPassword {
+		return errors.New("passwords do not match")
+	}
+
+	UserId := ctx.Value("user-id").(string)
+	if UserId == "" {
+		return errors.New("Unauthorized")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(UserPassword.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.New("failed to hash password")
+	}
+
+	err = UpdateUserPasswordInDatabase(ctx, db, UserId, string(hashedPassword))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

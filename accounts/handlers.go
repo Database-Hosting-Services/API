@@ -140,3 +140,20 @@ func resendCode(app *config.Application) http.HandlerFunc {
 		response.OK(w, "Verification code sent successfully", nil)
 	}
 }
+
+func UpdatePassword(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var UserPassword UpdatePasswordModel
+		if err := json.NewDecoder(r.Body).Decode(&UserPassword); err != nil {
+			response.BadRequest(w, "Invalid JSON body", err)
+			return
+		}
+		err := UpdateUserPassword(r.Context(), config.DB, &UserPassword)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Server Error, please try again later.", err)
+			return
+		}
+		response.OK(w, "Password updated successfully", nil)
+	}
+}
