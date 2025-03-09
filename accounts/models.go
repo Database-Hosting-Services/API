@@ -19,7 +19,7 @@ type UserSignIn struct {
 	Password string `json:"password"`
 }
 
-type UserVerify struct {
+type UserUnVerified struct {
 	User
 	Code string `josn:"code"`
 }

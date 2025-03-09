@@ -12,7 +12,7 @@ import (
 
 func signUp(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var user User
+		var user UserUnVerified
 		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 			response.BadRequest(w, "Invalid Input", err)
 			return
@@ -96,7 +96,7 @@ func SignIn(app *config.Application) http.HandlerFunc {
 
 func Verify(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var user UserVerify
+		var user UserUnVerified
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&user); err != nil {
 			app.ErrorLog.Println(err.Error())

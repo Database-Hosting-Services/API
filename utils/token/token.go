@@ -93,7 +93,7 @@ func GetIdFromToken(requestToken string) (string, error) {
 	return Id, nil
 }
 
-// return the user id embeded into the token
+// return the user name embeded into the token
 func GetUserNameFromToken(requestToken string) (string, error) {
 	token, err := ParseToken(requestToken)
 	if err != nil {

@@ -16,7 +16,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) error {
+func SignupUser(ctx context.Context, db *pgxpool.Pool, user *UserUnVerified) error {
 	/*
 		store user's data in cache and
 		generate a verification code and send it to the user
@@ -26,17 +26,17 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) error {
 		return errors.New("failed to hash password")
 	}
 
+	user.Code = utils.GenerateVerficationCode()
 	user.OID = utils.GenerateOID()
 	user.Password = string(hashedPassword)
 	user.Verified = false
-
+	
 	// store user's data in cache
 	config.VerifyCache.Set(user.Email, user, time.Minute*30)
 	config.VerifyCache.Set(user.Username, true, time.Minute*30)
-
+	
 	// send the verification code
-	userVerficationCode := utils.GenerateVerficationCode()
-	if err = SendMail(config.EmailSender, os.Getenv("GMAIL"), user.Email, userVerficationCode, "Verification Code"); err != nil {
+	if err = SendMail(config.EmailSender, os.Getenv("GMAIL"), user.Email, user.Code, "Verification Code"); err != nil {
 		config.VerifyCache.Delete(user.Email)
 		config.VerifyCache.Delete(user.Username)
 		return err
@@ -97,7 +97,7 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 }
 
 func SendUserVerificationCode(cache *caching.RedisClient, email, Password string) (map[string]interface{}, error) {
-	var user UserVerify
+	var user UserUnVerified
 
 	_, err := cache.Get(email, &user)
 	if err != nil {
@@ -115,7 +115,7 @@ func SendUserVerificationCode(cache *caching.RedisClient, email, Password string
 }
 
 func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
-	var UserData UserVerify
+	var UserData UserUnVerified
 
 	_, err := cache.Get(user.Email, &user)
 	if err != nil {
@@ -160,7 +160,7 @@ func UpdateUserPassword(ctx context.Context, db *pgxpool.Pool, UserPassword *Upd
 	return nil
 }
 
-func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserVerify) (map[string]interface{}, error) {
+func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserUnVerified) (map[string]interface{}, error) {
 
 	userCode := user.Code
 	if _, err := cache.Get(user.Email, user); err != nil {
@@ -185,8 +185,7 @@ func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 		return nil, err
 	}
 
-	err = GetUser(ctx, transaction, user.Email, SELECT_ID_FROM_USER_BY_EMAIL, []interface{}{&user.ID}...)
-	if err != nil {
+	if err := GetUser(ctx, transaction, user.Email, SELECT_ID_FROM_USER_BY_EMAIL, []interface{}{&user.ID}...); err != nil {
 		return nil, err
 	}
 
