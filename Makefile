@@ -1,7 +1,5 @@
 include .env
 
-export $(shell sed 's/=.*//' .env)
-
 BUILD_DIR 	:= build
 SCRIPTS_DIR := scripts
 MSG ?= "Default commit message"
