@@ -24,10 +24,13 @@ func JwtAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			response.UnAuthorized(w, "Authorization faild", err)
 		}
 
-		ctx := utils.AddToContext(r.Context(), map[string]interface{}{
-			"user-id":  fields[0],
-			"username": fields[1],
-		})
-		r = r.WithContext(ctx)
+		if len(fields) >= 2 {
+			ctx := utils.AddToContext(r.Context(), map[string]interface{}{
+				"user-id":  fields[0],
+				"username": fields[1],
+			})
+			r = r.WithContext(ctx)
+		}
+		next.ServeHTTP(w, r)
 	}
 }

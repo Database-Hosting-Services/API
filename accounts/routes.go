@@ -14,9 +14,7 @@ func DefineURLs() {
 
 	config.Mux.Handle(
 		"POST /api/user/update-password",
-		middleware.JwtAuthMiddleware(
-			http.HandlerFunc(UpdatePassword(config.App)),
-		),
+		middleware.JwtAuthMiddleware(http.HandlerFunc(UpdatePassword(config.App))),
 	)
 
 }
