@@ -17,6 +17,9 @@ runserver: build run
 runRedisServer :
 	$(RUN_REDIS_SERVER_COMMAND)
 
+runDBServer :
+	$(RUN_DB_SERVER_COMMAND)
+
 format:
 	./$(SCRIPTS_DIR)/pre-commit
 
