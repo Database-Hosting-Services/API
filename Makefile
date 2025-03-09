@@ -1,3 +1,7 @@
+include .env
+
+export $(shell sed 's/=.*//' .env)
+
 BUILD_DIR 	:= build
 SCRIPTS_DIR := scripts
 MSG ?= "Default commit message"
@@ -9,6 +13,9 @@ run:
 	cd $(BUILD_DIR) && ./API
 
 runserver: build run
+
+runRedisServer :
+	$(RUN_REDIS_SERVER_COMMAND)
 
 format:
 	./$(SCRIPTS_DIR)/pre-commit
