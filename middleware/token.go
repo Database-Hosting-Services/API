@@ -17,11 +17,13 @@ func JwtAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		err := token.IsAuthorized(authToken)
 		if err != nil {
 			response.UnAuthorized(w, "Authorization faild", err)
+			return;
 		}
 
 		fields, err := token.GetData(authToken, "id", "username")
 		if err != nil {
 			response.UnAuthorized(w, "Authorization faild", err)
+			return;
 		}
 
 		if len(fields) >= 2 {
