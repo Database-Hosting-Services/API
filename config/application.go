@@ -45,6 +45,7 @@ func Init(infoLog, errorLog *log.Logger) {
 	}
 
 	Mux = http.NewServeMux()
+	Router = mux.NewRouter()
 
 	// ---- database connection ---- //
 	dbURL := os.Getenv("DATABASE_URL")
