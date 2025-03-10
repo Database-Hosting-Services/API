@@ -3,8 +3,9 @@ package accounts
 import (
 	"context"
 	"fmt"
+
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
@@ -28,6 +29,7 @@ func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
 // Both *pgxpool.Pool and pgx.Tx implement this interface through the QueryRow method.
 type Querier interface {
 	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
 /*
@@ -58,8 +60,8 @@ func GetUser(ctx context.Context, db Querier, SearchField string, query string, 
 	return nil
 }
 
-func UpdateUserPasswordInDatabase(ctx context.Context, db *pgxpool.Pool, SearchField, NewPassword string) error {
+func UpdateUserPasswordInDatabase(ctx context.Context, db Querier, OID, NewPassword string) error {
 	query := `UPDATE "users" SET password = $1 WHERE oid = $2`
-	_, err := db.Exec(ctx, query, NewPassword, SearchField)
+	_, err := db.Exec(ctx, query, NewPassword, OID)
 	return err
 }

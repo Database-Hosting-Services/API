@@ -1,19 +1,20 @@
 package accounts
 
 import (
-	"DBHS/caching"
-	"DBHS/config"
 	"DBHS/utils"
+	"DBHS/config"
+	"DBHS/caching"
 	"DBHS/utils/token"
-	"context"
-	"errors"
-	"fmt"
+	
 	"os"
-	"strconv"
+	"fmt"
 	"time"
+	"errors"
+	"strconv"
+	"context"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func SignupUser(ctx context.Context, db *pgxpool.Pool, user *UserUnVerified) error {
@@ -211,4 +212,81 @@ func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 	}
 
 	return data, nil
+}
+
+func ForgetPasswordService(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, email string) error {
+	// check if a user exist with this email
+	var user UserUnVerified
+	err := GetUser(ctx, db, email, SELECT_USER_BY_Email, []interface{}{
+		&user.ID,
+		&user.OID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.Image,
+		&user.CreatedAt,
+		&user.LastLogin,
+	}...)
+
+	if err != nil {
+		return fmt.Errorf("User does not exist")
+	}
+
+	code := utils.GenerateVerficationCode()
+	user.Code = code
+
+	if err := cache.Set("forget:"+user.Email, &user, time.Minute * time.Duration(config.Env.VerifyCodeExpiryMinute));
+		err != nil {
+		return err
+	}
+
+	if err := SendMail(config.EmailSender, os.Getenv("GMAIL"), email, code, "Verifacation Code");
+		err != nil {
+		cache.Delete("forget:"+user.Email)
+		return err
+	}
+	return nil
+}
+
+func ForgetPasswordVerifyService(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, resetForm *ResetPasswordForm) error {
+	var user UserUnVerified
+	if _, err := cache.Get("forget:"+resetForm.Email, &user); err != nil {
+		return err
+	}
+	if user.Code != resetForm.Code {
+		return fmt.Errorf("Wrong verification code")
+	}
+
+	if err := GetUser(ctx, db, resetForm.Email, SELECT_USER_BY_Email, []interface{}{
+		&user.ID,
+		&user.OID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.Image,
+		&user.CreatedAt,
+		&user.LastLogin,
+	}...); err != nil {
+		return err
+	}
+
+	transaction, err := db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer transaction.Rollback(ctx)
+
+	if err := UpdateUserPasswordInDatabase(ctx, transaction, user.OID, utils.HashedPassword(resetForm.Password)); err != nil {
+		return err
+	}
+
+	if err := cache.Delete("forget:"+resetForm.Email); err != nil {
+		return err
+	}
+
+	if err := transaction.Commit(ctx); err != nil {
+		cache.Set("forget:"+user.Email, &user, time.Minute * time.Duration(config.Env.VerifyCodeExpiryMinute))
+		return err
+	}
+	return nil
 }

@@ -163,3 +163,47 @@ func UpdateUser(app *config.Application) http.HandlerFunc {
 
 	}
 }
+
+func ForgetPassword(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var user User
+		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+			response.BadRequest(w, "Invalid JSON body", err)
+			return
+		}
+		err := ForgetPasswordService(r.Context(), config.DB, config.VerifyCache, user.Email)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			if err.Error() == "User does not exist" {
+				response.BadRequest(w,err.Error(),err)
+				return
+			}
+			response.InternalServerError(w, "Server Error, please try again later.", err)
+			return
+		}
+
+		response.OK(w, "Verifacation Code Sent", nil)
+	}
+}
+
+func ForgetPasswordVerify(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body ResetPasswordForm
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			response.BadRequest(w, "Invalid JSON body", err)
+			return
+		}
+
+		err := ForgetPasswordVerifyService(r.Context(), config.DB, config.VerifyCache, &body)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			if err.Error() == "Wrong verification code" {
+				response.BadRequest(w,err.Error(),err)
+				return
+			}
+			response.InternalServerError(w, "Server Error, please try again later.", err)
+			return
+		}
+		response.OK(w, "Password updated successfully", nil)
+	}
+}
