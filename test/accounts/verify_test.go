@@ -98,7 +98,7 @@ func CreateBody(payload map[string]interface{}) *bytes.Buffer {
 	return bytes.NewBuffer(JsonData)
 }
 
-func TestBasicVerify(t *testing.T) {
+func TestBasicVerifySuccess(t *testing.T) {
 	StartUp()
 	defer Cleanup()
 	app := &global.Application{
@@ -121,4 +121,69 @@ func TestBasicVerify(t *testing.T) {
 	handler := accounts.Verify(app)
 	handler(res, req)
 	assert.Equal(t, res.Code, http.StatusCreated)
+}
+
+func TestBasicVerifyFail(t *testing.T) {
+	StartUp()
+	defer Cleanup()
+	app := &global.Application{
+		InfoLog: log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime),
+		ErrorLog: log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	
+	user := GenerateUnVerifiedUser()
+	err := CacheUser(user)
+	if err != nil {
+		assert.Fail(t, err.Error())
+	}
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx,"POST", "http://localhost:8000/api/user/verify",CreateBody(map[string]interface{}{"email":user.Email, "code": utils.GenerateVerficationCode()}))
+	if err != nil {
+		assert.Fail(t, err.Error())
+	}
+
+	res := httptest.NewRecorder()
+	handler := accounts.Verify(app)
+	handler(res, req)
+	assert.NotEqual(t, res.Code, http.StatusCreated)
+}
+
+func TestCheckCommit(t *testing.T) {
+	StartUp()
+	defer Cleanup()
+	app := &global.Application{
+		InfoLog: log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime),
+		ErrorLog: log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	
+	user := GenerateUnVerifiedUser()
+	err := CacheUser(user)
+	if err != nil {
+		assert.Fail(t, err.Error())
+	}
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx,"POST", "http://localhost:8000/api/user/verify",CreateBody(map[string]interface{}{"email":user.Email, "code": user.Code}))
+	if err != nil {
+		assert.Fail(t, err.Error())
+	}
+
+	res := httptest.NewRecorder()
+	handler := accounts.Verify(app)
+	handler(res, req)
+	assert.Equal(t, res.Code, http.StatusCreated)
+	var userv2 accounts.User
+	err = accounts.GetUser(ctx, db,user.Email, accounts.SELECT_USER_BY_Email, []interface{}{
+		&userv2.ID,
+		&userv2.OID,
+		&userv2.Username,
+		&userv2.Email,
+		&userv2.Password,
+		&userv2.Image,
+		&userv2.CreatedAt,
+		&userv2.LastLogin,
+	}...)
+	assert.Nil(t, err)
+	assert.Equal(t, user.OID, userv2.OID)
+	assert.Equal(t, user.Email, userv2.Email)
+	assert.Equal(t, user.Username, userv2.Username)
 }
