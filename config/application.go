@@ -3,6 +3,7 @@ package config
 import (
 	"DBHS/caching"
 	"context"
+	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"gopkg.in/gomail.v2"
@@ -26,6 +27,7 @@ type Environment struct {
 var (
 	App         *Application
 	Mux         *http.ServeMux
+	Router      *mux.Router
 	DB          *pgxpool.Pool
 	VerifyCache *caching.RedisClient
 	EmailSender *gomail.Dialer

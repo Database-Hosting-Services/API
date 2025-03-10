@@ -157,3 +157,9 @@ func UpdatePassword(app *config.Application) http.HandlerFunc {
 		response.OK(w, "Password updated successfully", nil)
 	}
 }
+
+func UpdateUser(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
+}

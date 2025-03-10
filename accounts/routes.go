@@ -3,7 +3,6 @@ package accounts
 import (
 	"DBHS/config"
 	"DBHS/middleware"
-	"net/http"
 )
 
 func DefineURLs() {
@@ -12,9 +11,9 @@ func DefineURLs() {
 	config.Mux.HandleFunc("POST /api/user/verify", Verify(config.App))
 	config.Mux.HandleFunc("POST /api/user/resend-code", resendCode(config.App))
 
-	config.Mux.Handle(
-		"POST /api/user/update-password",
-		middleware.JwtAuthMiddleware(http.HandlerFunc(UpdatePassword(config.App))),
-	)
+	userProtected := config.Router.PathPrefix("/api/users").Subrouter()
+	userProtected.Use(middleware.JwtAuthMiddleware)
+	userProtected.HandleFunc("POST /update-password", UpdateUser(config.App))
+	userProtected.HandleFunc("PATCH /{id}", UpdateUser(config.App))
 
 }
