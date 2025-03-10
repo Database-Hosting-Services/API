@@ -29,7 +29,6 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *UserUnVerified) err
 	user.Code = utils.GenerateVerficationCode()
 	user.OID = utils.GenerateOID()
 	user.Password = string(hashedPassword)
-	user.Verified = false
 	
 	// store user's data in cache
 	config.VerifyCache.Set(user.Email, user, time.Minute*30)
@@ -177,9 +176,6 @@ func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 	}
 	defer transaction.Rollback(ctx)
 
-	// set user as verified
-	user.Verified = true
-
 	if err := CreateUser(ctx, transaction, &user.User); err != nil {
 		return nil, err
 	}
@@ -211,7 +207,6 @@ func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 		"id":       user.OID, // sent to the client
 		"email":    user.Email,
 		"username": user.Username,
-		"verified": user.Verified,
 		"token":    token,
 	}
 
