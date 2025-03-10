@@ -137,14 +137,13 @@ func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
 	return nil
 }
 
-// r.Context(), config.DB, UpdatePasswordModel
 func UpdateUserPassword(ctx context.Context, db *pgxpool.Pool, UserPassword *UpdatePasswordModel) error {
 	if UserPassword.Password != UserPassword.ConfirmPassword {
 		return errors.New("passwords do not match")
 	}
 
-	UserId := ctx.Value("user-id").(string)
-	if UserId == "" {
+	UserId, ok := ctx.Value("user-id").(string)
+	if !ok || UserId == "" {
 		return errors.New("Unauthorized")
 	}
 
