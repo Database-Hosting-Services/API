@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 )
 
 type Application struct {
@@ -74,19 +73,10 @@ func Init(infoLog, errorLog *log.Logger) {
 	infoLog.Println("Connected to Redis successfully! ✅")
 
 	AccessTokenSecret := os.Getenv("ACCESS_TOKEN_SECRET")
-	AccessTokenExpiryHour, err := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXPIRY_HOUR"))
-	if err != nil {
-		errorLog.Fatal(err)
-	}
-
-	VerifyCodeExpiryMinute, err := strconv.Atoi(os.Getenv("VERIFY_CODE_EXPIRY_MINUTE"))
-	if err != nil {
-		errorLog.Fatal(err)
-	}
 	Env = &Environment{
-		AccessTokenExpiryHour:  AccessTokenExpiryHour,
+		AccessTokenExpiryHour:  ACCESS_TOKEN_EXPIRY_HOUR,
 		AccessTokenSecret:      []byte(AccessTokenSecret),
-		VerifyCodeExpiryMinute: VerifyCodeExpiryMinute,
+		VerifyCodeExpiryMinute: VERIFY_CODE_EXPIRY_MINUTE,
 	}
 
 	EmailSender = gomail.NewDialer("smtp.gmail.com", 587, "thunderdbhostingserver@gmail.com", os.Getenv("GMAIL_PASS"))

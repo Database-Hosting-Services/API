@@ -8,8 +8,8 @@ import (
 )
 
 func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
-	query := `INSERT INTO "users" (oid, username, email, password, image, verified, created_at, last_login)
-	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	query := `INSERT INTO "users" (oid, username, email, password, image, created_at, last_login)
+	          VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
 	_, err := db.Exec(ctx, query,
 		user.OID,
@@ -17,7 +17,6 @@ func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
 		user.Email,
 		user.Password,
 		user.Image,
-		user.Verified,
 		user.CreatedAt,
 		user.LastLogin,
 	)

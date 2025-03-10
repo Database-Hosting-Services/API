@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func GenerateOID() string {
@@ -15,6 +16,14 @@ func GenerateOID() string {
 
 func GenerateVerficationCode() string {
 	return rand.Text()[:6]
+}
+
+func HashedPassword(password string) string {
+	hashed, err :=  bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return ""
+	}
+	return string(hashed)
 }
 
 // returns the authToken in the Authorization header

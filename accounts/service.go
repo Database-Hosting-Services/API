@@ -29,7 +29,6 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *UserUnVerified) err
 	user.Code = utils.GenerateVerficationCode()
 	user.OID = utils.GenerateOID()
 	user.Password = string(hashedPassword)
-	user.Verified = false
 	
 	// store user's data in cache
 	config.VerifyCache.Set(user.Email, user, time.Minute*30)
@@ -137,14 +136,13 @@ func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
 	return nil
 }
 
-// r.Context(), config.DB, UpdatePasswordModel
 func UpdateUserPassword(ctx context.Context, db *pgxpool.Pool, UserPassword *UpdatePasswordModel) error {
 	if UserPassword.Password != UserPassword.ConfirmPassword {
 		return errors.New("passwords do not match")
 	}
 
-	UserId := ctx.Value("user-id").(string)
-	if UserId == "" {
+	UserId, ok := ctx.Value("user-id").(string)
+	if !ok || UserId == "" {
 		return errors.New("Unauthorized")
 	}
 
@@ -178,9 +176,6 @@ func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 	}
 	defer transaction.Rollback(ctx)
 
-	// set user as verified
-	user.Verified = true
-
 	if err := CreateUser(ctx, transaction, &user.User); err != nil {
 		return nil, err
 	}
@@ -212,7 +207,6 @@ func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 		"id":       user.OID, // sent to the client
 		"email":    user.Email,
 		"username": user.Username,
-		"verified": user.Verified,
 		"token":    token,
 	}
 
