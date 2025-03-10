@@ -15,7 +15,7 @@ func DefineURLs() {
 
 	userProtected := config.Router.PathPrefix("/api/users").Subrouter()
 	userProtected.Use(middleware.JwtAuthMiddleware)
-	userProtected.HandleFunc("POST /update-password", UpdateUser(config.App))
+	userProtected.HandleFunc("POST /update-password", UpdatePassword(config.App))
 	userProtected.HandleFunc("PATCH /{id}", UpdateUser(config.App))
 
 }
