@@ -175,7 +175,7 @@ func ForgetPassword(app *config.Application) http.HandlerFunc {
 		if err != nil {
 			app.ErrorLog.Println(err.Error())
 			if err.Error() == "User does not exist" {
-				response.BadRequest(w,err.Error(),err)
+				response.BadRequest(w, err.Error(), err)
 				return
 			}
 			response.InternalServerError(w, "Server Error, please try again later.", err)
@@ -198,7 +198,7 @@ func ForgetPasswordVerify(app *config.Application) http.HandlerFunc {
 		if err != nil {
 			app.ErrorLog.Println(err.Error())
 			if err.Error() == "Wrong verification code" {
-				response.BadRequest(w,err.Error(),err)
+				response.BadRequest(w, err.Error(), err)
 				return
 			}
 			response.InternalServerError(w, "Server Error, please try again later.", err)

@@ -30,9 +30,9 @@ type UpdatePasswordModel struct {
 }
 
 type ResetPasswordForm struct {
-	Code 		string `json:"code"`
-	Password 	string `json:"password"`
-	Email		string `json:"email"`
+	Code     string `json:"code"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }
 
 func (u *User) GetOId() string {

@@ -19,7 +19,7 @@ func GenerateVerficationCode() string {
 }
 
 func HashedPassword(password string) string {
-	hashed, err :=  bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return ""
 	}

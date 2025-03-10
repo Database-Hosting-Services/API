@@ -1,20 +1,20 @@
 package accounts
 
 import (
-	"DBHS/utils"
-	"DBHS/config"
 	"DBHS/caching"
+	"DBHS/config"
+	"DBHS/utils"
 	"DBHS/utils/token"
-	
-	"os"
-	"fmt"
-	"time"
-	"errors"
-	"strconv"
-	"context"
 
-	"golang.org/x/crypto/bcrypt"
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func SignupUser(ctx context.Context, db *pgxpool.Pool, user *UserUnVerified) error {
@@ -30,11 +30,11 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *UserUnVerified) err
 	user.Code = utils.GenerateVerficationCode()
 	user.OID = utils.GenerateOID()
 	user.Password = string(hashedPassword)
-	
+
 	// store user's data in cache
 	config.VerifyCache.Set(user.Email, user, time.Minute*30)
 	config.VerifyCache.Set(user.Username, true, time.Minute*30)
-	
+
 	// send the verification code
 	if err = SendMail(config.EmailSender, os.Getenv("GMAIL"), user.Email, user.Code, "Verification Code"); err != nil {
 		config.VerifyCache.Delete(user.Email)
@@ -235,14 +235,12 @@ func ForgetPasswordService(ctx context.Context, db *pgxpool.Pool, cache *caching
 	code := utils.GenerateVerficationCode()
 	user.Code = code
 
-	if err := cache.Set("forget:"+user.Email, &user, time.Minute * time.Duration(config.Env.VerifyCodeExpiryMinute));
-		err != nil {
+	if err := cache.Set("forget:"+user.Email, &user, time.Minute*time.Duration(config.Env.VerifyCodeExpiryMinute)); err != nil {
 		return err
 	}
 
-	if err := SendMail(config.EmailSender, os.Getenv("GMAIL"), email, code, "Verifacation Code");
-		err != nil {
-		cache.Delete("forget:"+user.Email)
+	if err := SendMail(config.EmailSender, os.Getenv("GMAIL"), email, code, "Verifacation Code"); err != nil {
+		cache.Delete("forget:" + user.Email)
 		return err
 	}
 	return nil
@@ -280,12 +278,12 @@ func ForgetPasswordVerifyService(ctx context.Context, db *pgxpool.Pool, cache *c
 		return err
 	}
 
-	if err := cache.Delete("forget:"+resetForm.Email); err != nil {
+	if err := cache.Delete("forget:" + resetForm.Email); err != nil {
 		return err
 	}
 
 	if err := transaction.Commit(ctx); err != nil {
-		cache.Set("forget:"+user.Email, &user, time.Minute * time.Duration(config.Env.VerifyCodeExpiryMinute))
+		cache.Set("forget:"+user.Email, &user, time.Minute*time.Duration(config.Env.VerifyCodeExpiryMinute))
 		return err
 	}
 	return nil

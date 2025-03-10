@@ -1,21 +1,21 @@
 package accounts_test
 
 import (
-	"DBHS/utils"
-	"DBHS/caching"
 	"DBHS/accounts"
+	"DBHS/caching"
 	global "DBHS/config"
+	"DBHS/utils"
 
-	"os"
-	"log"
-	"time"
 	"bytes"
-	"testing"
 	"context"
-	"net/http"
-	"encoding/json"
 	"crypto/rand"
+	"encoding/json"
+	"log"
+	"net/http"
 	"net/http/httptest"
+	"os"
+	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
@@ -23,11 +23,9 @@ import (
 )
 
 var (
-	db 		*pgxpool.Pool
-	cache 	*caching.RedisClient
+	db    *pgxpool.Pool
+	cache *caching.RedisClient
 )
-
-
 
 func CacheUser(user *accounts.UserUnVerified) error {
 	err := cache.Set(user.Email, user, time.Minute*30)
@@ -46,13 +44,12 @@ func GenerateUnVerifiedUser() *accounts.UserUnVerified {
 		User: accounts.User{
 			Username: rand.Text()[0:10],
 			Password: utils.HashedPassword(rand.Text()[0:10]),
-			Email: rand.Text()[0:10]+ "@gmail.com",
+			Email:    rand.Text()[0:10] + "@gmail.com",
 		},
 		Code: utils.GenerateVerficationCode(),
 	}
 	return user
 }
-
 
 func Cleanup() {
 	_, err := db.Exec(context.Background(), "select truncate_all_tables();")
@@ -88,7 +85,7 @@ func StartUp() {
 	global.VerifyCache = cache
 
 	global.Env = &global.Environment{
-		AccessTokenExpiryHour: global.ACCESS_TOKEN_EXPIRY_HOUR,
+		AccessTokenExpiryHour:  global.ACCESS_TOKEN_EXPIRY_HOUR,
 		VerifyCodeExpiryMinute: global.VERIFY_CODE_EXPIRY_MINUTE,
 	}
 }
@@ -102,17 +99,17 @@ func TestBasicVerifySuccess(t *testing.T) {
 	StartUp()
 	defer Cleanup()
 	app := &global.Application{
-		InfoLog: log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime),
+		InfoLog:  log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime),
 		ErrorLog: log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile),
 	}
-	
+
 	user := GenerateUnVerifiedUser()
 	err := CacheUser(user)
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
 	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx,"POST", "http://localhost:8000/api/user/verify",CreateBody(map[string]interface{}{"email":user.Email, "code": user.Code}))
+	req, err := http.NewRequestWithContext(ctx, "POST", "http://localhost:8000/api/user/verify", CreateBody(map[string]interface{}{"email": user.Email, "code": user.Code}))
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
@@ -127,17 +124,17 @@ func TestBasicVerifyFail(t *testing.T) {
 	StartUp()
 	defer Cleanup()
 	app := &global.Application{
-		InfoLog: log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime),
+		InfoLog:  log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime),
 		ErrorLog: log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile),
 	}
-	
+
 	user := GenerateUnVerifiedUser()
 	err := CacheUser(user)
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
 	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx,"POST", "http://localhost:8000/api/user/verify",CreateBody(map[string]interface{}{"email":user.Email, "code": utils.GenerateVerficationCode()}))
+	req, err := http.NewRequestWithContext(ctx, "POST", "http://localhost:8000/api/user/verify", CreateBody(map[string]interface{}{"email": user.Email, "code": utils.GenerateVerficationCode()}))
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
@@ -152,17 +149,17 @@ func TestCheckCommit(t *testing.T) {
 	StartUp()
 	defer Cleanup()
 	app := &global.Application{
-		InfoLog: log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime),
+		InfoLog:  log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime),
 		ErrorLog: log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile),
 	}
-	
+
 	user := GenerateUnVerifiedUser()
 	err := CacheUser(user)
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
 	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx,"POST", "http://localhost:8000/api/user/verify",CreateBody(map[string]interface{}{"email":user.Email, "code": user.Code}))
+	req, err := http.NewRequestWithContext(ctx, "POST", "http://localhost:8000/api/user/verify", CreateBody(map[string]interface{}{"email": user.Email, "code": user.Code}))
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
@@ -172,7 +169,7 @@ func TestCheckCommit(t *testing.T) {
 	handler(res, req)
 	assert.Equal(t, res.Code, http.StatusCreated)
 	var userv2 accounts.User
-	err = accounts.GetUser(ctx, db,user.Email, accounts.SELECT_USER_BY_Email, []interface{}{
+	err = accounts.GetUser(ctx, db, user.Email, accounts.SELECT_USER_BY_Email, []interface{}{
 		&userv2.ID,
 		&userv2.OID,
 		&userv2.Username,
