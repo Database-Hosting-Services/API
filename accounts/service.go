@@ -68,6 +68,9 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 	}...)
 
 	if err != nil {
+		if err.Error() == "user with "+user.Email+" not found" {
+			return nil, errors.New("InCorrect Email or Password")
+		}
 		return nil, err
 	}
 
