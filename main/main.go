@@ -18,7 +18,7 @@ func main() {
 	config.Init(infoLog, errorLog)
 	defer config.CloseDB()
 
-	addr := flag.String("addr", "api-production-67e2.up.railway.app:8000", "HTTP network address")
+	addr := flag.String("addr", "api-production-67e2.up.railway.app", "HTTP network address")
 	flag.Parse()
 
 	defineURLs()
