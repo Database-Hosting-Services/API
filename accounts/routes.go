@@ -13,8 +13,8 @@ func DefineURLs() {
 func dynamicRoutes() {
 	userDynamic := config.Router.PathPrefix("/api/user").Subrouter()
 
-	userDynamic.HandleFunc("POST /api/user/sign-up", signUp(config.App))
-	userDynamic.HandleFunc("POST /api/user/sign-in", SignIn(config.App))
+	userDynamic.HandleFunc("POST /sign-up", signUp(config.App))
+	userDynamic.HandleFunc("POST /sign-in", SignIn(config.App))
 	userDynamic.HandleFunc("POST /verify", Verify(config.App))
 	userDynamic.HandleFunc("POST /resend-code", resendCode(config.App))
 	userDynamic.HandleFunc("POST /forget-password", ForgetPassword(config.App))
