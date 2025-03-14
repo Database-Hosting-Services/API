@@ -11,20 +11,20 @@ func DefineURLs() {
 }
 
 func dynamicRoutes() {
-	userDynamic := config.Router.PathPrefix("/api/user").Subrouter()
+    userDynamic := config.Router.PathPrefix("/api/user").Subrouter()
 
-	userDynamic.HandleFunc("POST /sign-up", signUp(config.App))
-	userDynamic.HandleFunc("POST /sign-in", SignIn(config.App))
-	userDynamic.HandleFunc("POST /verify", Verify(config.App))
-	userDynamic.HandleFunc("POST /resend-code", resendCode(config.App))
-	userDynamic.HandleFunc("POST /forget-password", ForgetPassword(config.App))
-	userDynamic.HandleFunc("POST /forget-password/verify", ForgetPasswordVerify(config.App))
+    userDynamic.HandleFunc("/sign-up", signUp(config.App)).Methods("POST")
+    userDynamic.HandleFunc("/sign-in", SignIn(config.App)).Methods("POST")
+    userDynamic.HandleFunc("/verify", Verify(config.App)).Methods("POST")
+    userDynamic.HandleFunc("/resend-code", resendCode(config.App)).Methods("POST")
+    userDynamic.HandleFunc("/forget-password", ForgetPassword(config.App)).Methods("POST")
+    userDynamic.HandleFunc("/forget-password/verify", ForgetPasswordVerify(config.App)).Methods("POST")
 }
 
 func protectedRoutes() {
-	userProtected := config.Router.PathPrefix("/api/users").Subrouter()
+    userProtected := config.Router.PathPrefix("/api/users").Subrouter()
 
-	userProtected.Use(middleware.JwtAuthMiddleware)
-	userProtected.HandleFunc("POST /update-password", UpdatePassword(config.App))
-	userProtected.HandleFunc("PATCH /{id}", UpdateUser(config.App))
+    userProtected.Use(middleware.JwtAuthMiddleware)
+    userProtected.HandleFunc("/update-password", UpdatePassword(config.App)).Methods("POST")
+    userProtected.HandleFunc("/{id}", UpdateUser(config.App)).Methods("PATCH")
 }
