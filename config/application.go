@@ -5,7 +5,6 @@ import (
 	"context"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
 	"gopkg.in/gomail.v2"
 	"log"
 	"net/http"
@@ -34,11 +33,6 @@ var (
 )
 
 func Init(infoLog, errorLog *log.Logger) {
-
-	// if err := godotenv.Load(); err != nil {
-	// 	errorLog.Fatal("Error loading .env file --> %s", err.Error())
-	// }
-
 	App = &Application{
 		ErrorLog: errorLog,
 		InfoLog:  infoLog,
