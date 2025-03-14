@@ -26,7 +26,7 @@ func main() {
 	server := &http.Server{
 		Addr:     *addr,
 		ErrorLog: errorLog,
-		Handler:  config.Mux,
+		Handler:  config.Router,
 	}
 
 	infoLog.Printf("starting server on :%s", *addr)
