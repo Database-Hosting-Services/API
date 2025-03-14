@@ -1,2 +1,2 @@
-apt-get update
-apt-get install -y make
+sudo apt update
+sudo apt install build-essential
