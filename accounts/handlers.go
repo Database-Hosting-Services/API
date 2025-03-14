@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 )
 
@@ -160,7 +161,61 @@ func UpdatePassword(app *config.Application) http.HandlerFunc {
 
 func UpdateUser(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		userOid := urlVariables["id"]
 
+		if userOid == "" {
+			response.BadRequest(w, "User Id is required", nil)
+			return
+		}
+
+		var requestData UpdateUserRequest
+		if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+			response.BadRequest(w, "Invalid Input Data", err)
+			return
+		}
+		defer r.Body.Close()
+
+		transaction, err := config.DB.Begin(r.Context())
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Server Error, please try again later.", err)
+			return
+		}
+
+		fieldsToUpdate, newValues, err := GetNonZeroFieldsFromStruct(&requestData)
+		if err != nil {
+			response.BadRequest(w, "Invalid Input Data", err)
+			return
+		}
+
+		query, err := BuildUserUpdateQuery(userOid, fieldsToUpdate)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Internal Server Error", err)
+			return
+		}
+
+		err = UpdateUserData(r.Context(), transaction, query, newValues)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Internal Server Error", err)
+			return
+		}
+
+		Data := make(map[string]interface{})
+
+		for idx := 0; idx < len(fieldsToUpdate); idx++ {
+			Data[fieldsToUpdate[idx]] = newValues[idx]
+		}
+
+		if err := transaction.Commit(r.Context()); err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Server Error, please try again later.", err)
+			return
+		}
+
+		response.Created(w, "User's data updated successfully", Data)
 	}
 }
 

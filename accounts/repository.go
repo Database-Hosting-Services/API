@@ -65,3 +65,8 @@ func UpdateUserPasswordInDatabase(ctx context.Context, db Querier, OID, NewPassw
 	_, err := db.Exec(ctx, query, NewPassword, OID)
 	return err
 }
+
+func UpdateUserDataInDatabase(ctx context.Context, db pgx.Tx, query string, args []interface{}) error {
+	_, err := db.Exec(ctx, query, args...)
+	return err
+}

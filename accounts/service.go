@@ -5,6 +5,7 @@ import (
 	"DBHS/config"
 	"DBHS/utils"
 	"DBHS/utils/token"
+	"github.com/jackc/pgx/v5"
 
 	"context"
 	"errors"
@@ -287,6 +288,13 @@ func ForgetPasswordVerifyService(ctx context.Context, db *pgxpool.Pool, cache *c
 
 	if err := transaction.Commit(ctx); err != nil {
 		cache.Set("forget:"+user.Email, &user, time.Minute*time.Duration(config.Env.VerifyCodeExpiryMinute))
+		return err
+	}
+	return nil
+}
+
+func UpdateUserData(ctx context.Context, db pgx.Tx, query string, args []interface{}) error {
+	if err := UpdateUserDataInDatabase(ctx, db, query, args); err != nil {
 		return err
 	}
 	return nil
