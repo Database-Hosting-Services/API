@@ -36,7 +36,7 @@ var (
 func Init(infoLog, errorLog *log.Logger) {
 
 	if err := godotenv.Load(); err != nil {
-		errorLog.Fatal("Error loading .env file")
+		errorLog.Fatal("Error loading .env file --> %s", err.Error())
 	}
 
 	App = &Application{
