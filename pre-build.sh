@@ -1,2 +1,2 @@
-sudo apt update
-sudo apt install build-essential
+apt update
+apt install build-essential
