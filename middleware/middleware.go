@@ -3,6 +3,7 @@ package middleware
 import (
 	"DBHS/response"
 	"net/http"
+	"strings"
 )
 
 func MethodsAllowed(methods ...string) func(http.Handler) http.Handler {
@@ -14,7 +15,7 @@ func MethodsAllowed(methods ...string) func(http.Handler) http.Handler {
 					return
 				}
 			}
-			response.MethodNotAllowed(w,"",nil)
+			response.MethodNotAllowed(w, strings.Join(methods, ","), "", nil)
 		})
 	}
 }
