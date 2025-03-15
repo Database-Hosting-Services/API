@@ -26,3 +26,7 @@ func MethodNotAllowed(w http.ResponseWriter, allowed string, message string, err
 		"Allow": allowed,
 	})
 }
+
+func TooManyRequests(w http.ResponseWriter, message string, err error) {
+	CreateResponse(w, http.StatusTooManyRequests, message, err, nil, nil)
+}
