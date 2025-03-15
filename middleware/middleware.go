@@ -5,14 +5,16 @@ import (
 	"net/http"
 )
 
-func Method(method string) func(http.Handler) http.Handler {
+func MethodsAllowed(methods ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler { 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.Method != method {
-				response.MethodNotAllowed(w,"",nil)
-				return
+			for _, method := range methods {
+				if r.Method == method {
+					next.ServeHTTP(w, r)
+					return
+				}
 			}
-			next.ServeHTTP(w, r)
+			response.MethodNotAllowed(w,"",nil)
 		})
 	}
 }
