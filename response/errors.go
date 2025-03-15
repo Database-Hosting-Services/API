@@ -20,3 +20,7 @@ func InternalServerError(w http.ResponseWriter, message string, err error) {
 func UnAuthorized(w http.ResponseWriter, message string, err error) {
 	CreateResponse(w, http.StatusUnauthorized, message, err, nil)
 }
+
+func MethodNotAllowed(w http.ResponseWriter, message string, err error) {
+	CreateResponse(w, http.StatusMethodNotAllowed,message, err, nil)
+}

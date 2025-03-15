@@ -3,6 +3,7 @@ package accounts
 import (
 	"DBHS/config"
 	"DBHS/middleware"
+	"net/http"
 )
 
 func DefineURLs() {
@@ -13,12 +14,14 @@ func DefineURLs() {
 func dynamicRoutes() {
     userDynamic := config.Router.PathPrefix("/api/user").Subrouter()
 
-    userDynamic.HandleFunc("/sign-up", signUp(config.App)).Methods("POST")
-    userDynamic.HandleFunc("/sign-in", SignIn(config.App)).Methods("POST")
-    userDynamic.HandleFunc("/verify", Verify(config.App)).Methods("POST")
-    userDynamic.HandleFunc("/resend-code", resendCode(config.App)).Methods("POST")
-    userDynamic.HandleFunc("/forget-password", ForgetPassword(config.App)).Methods("POST")
-    userDynamic.HandleFunc("/forget-password/verify", ForgetPasswordVerify(config.App)).Methods("POST")
+    postMiddleware := middleware.Method(http.MethodPost)
+    userDynamic.Use(postMiddleware)
+    userDynamic.HandleFunc("/sign-up", signUp(config.App))
+    userDynamic.HandleFunc("/sign-in", SignIn(config.App))
+    userDynamic.HandleFunc("/verify", Verify(config.App))
+    userDynamic.HandleFunc("/resend-code", resendCode(config.App))
+    userDynamic.HandleFunc("/forget-password", ForgetPassword(config.App))
+    userDynamic.HandleFunc("/forget-password/verify", ForgetPasswordVerify(config.App))
 }
 
 func protectedRoutes() {
