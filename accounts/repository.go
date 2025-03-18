@@ -60,13 +60,7 @@ func GetUser(ctx context.Context, db Querier, SearchField string, query string, 
 	return nil
 }
 
-func UpdateUserPasswordInDatabase(ctx context.Context, db Querier, OID, NewPassword string) error {
-	query := `UPDATE "users" SET password = $1 WHERE oid = $2`
-	_, err := db.Exec(ctx, query, NewPassword, OID)
-	return err
-}
-
-func UpdateUserDataInDatabase(ctx context.Context, db pgx.Tx, query string, args []interface{}) error {
-	_, err := db.Exec(ctx, query, args...)
+func UpdateDataInDatabase(ctx context.Context, db Querier, query string, dest ...interface{}) error {
+	_, err := db.Exec(ctx, query, dest...)
 	return err
 }

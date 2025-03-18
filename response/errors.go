@@ -22,7 +22,7 @@ func UnAuthorized(w http.ResponseWriter, message string, err error) {
 }
 
 func MethodNotAllowed(w http.ResponseWriter, allowed string, message string, err error) {
-	CreateResponse(w, http.StatusMethodNotAllowed,message, err, nil, map[string]string{
+	CreateResponse(w, http.StatusMethodNotAllowed, message, err, nil, map[string]string{
 		"Allow": allowed,
 	})
 }

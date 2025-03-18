@@ -7,7 +7,7 @@ import (
 )
 
 func MethodsAllowed(methods ...string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler { 
+	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			for _, method := range methods {
 				if r.Method == method {

@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"DBHS/utils/rateLimiter"
-	"net/http"
 	"DBHS/response"
+	"DBHS/utils/rateLimiter"
 	"errors"
+	"net/http"
 )
 
 func LimitMiddleware(next http.Handler) http.Handler {

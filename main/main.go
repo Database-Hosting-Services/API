@@ -31,9 +31,9 @@ func main() {
 		ErrorLog: errorLog,
 		Handler:  handler,
 	}
-	
+
 	infoLog.Printf("starting server on :%s", *addr)
-	
+
 	err := server.ListenAndServe()
 	errorLog.Fatal(err)
 }

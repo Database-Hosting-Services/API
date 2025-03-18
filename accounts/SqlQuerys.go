@@ -20,6 +20,7 @@ const (
 
 	return "OK"
 	`
+	UPDATE_USER_PASSWORD = `UPDATE "users" SET password = $1 WHERE oid = $2`
 )
 
 func BuildUserUpdateQuery(userOid string, updatedFields []string) (string, error) {
