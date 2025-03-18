@@ -41,7 +41,7 @@ func CreateResponse(w http.ResponseWriter, status int, message string, err error
 			Data:    data,
 		}
 	}
-	if message != "" && err != nil {
+	if message != "" {
 		response.Message = message
 	}
 	SendResponse(w, status, headers, response)
