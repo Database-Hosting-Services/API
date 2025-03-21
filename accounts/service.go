@@ -5,6 +5,7 @@ import (
 	"DBHS/config"
 	"DBHS/utils"
 	"DBHS/utils/token"
+	"github.com/jackc/pgx/v5"
 
 	"context"
 	"errors"
@@ -155,7 +156,8 @@ func UpdateUserPassword(ctx context.Context, db *pgxpool.Pool, UserPassword *Upd
 		return errors.New("failed to hash password")
 	}
 
-	err = UpdateUserPasswordInDatabase(ctx, db, UserId, string(hashedPassword))
+	err = UpdateDataInDatabase(ctx, db, UPDATE_USER_PASSWORD, string(hashedPassword), UserId)
+
 	if err != nil {
 		return err
 	}
@@ -277,7 +279,7 @@ func ForgetPasswordVerifyService(ctx context.Context, db *pgxpool.Pool, cache *c
 	}
 	defer transaction.Rollback(ctx)
 
-	if err := UpdateUserPasswordInDatabase(ctx, transaction, user.OID, utils.HashedPassword(resetForm.Password)); err != nil {
+	if err := UpdateDataInDatabase(ctx, transaction, UPDATE_USER_PASSWORD, user.OID, utils.HashedPassword(resetForm.Password)); err != nil {
 		return err
 	}
 
@@ -287,6 +289,13 @@ func ForgetPasswordVerifyService(ctx context.Context, db *pgxpool.Pool, cache *c
 
 	if err := transaction.Commit(ctx); err != nil {
 		cache.Set("forget:"+user.Email, &user, time.Minute*time.Duration(config.Env.VerifyCodeExpiryMinute))
+		return err
+	}
+	return nil
+}
+
+func UpdateUserData(ctx context.Context, db pgx.Tx, query string, args []interface{}) error {
+	if err := UpdateDataInDatabase(ctx, db, query, args...); err != nil {
 		return err
 	}
 	return nil

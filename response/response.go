@@ -7,7 +7,7 @@ import (
 
 type Response struct {
 	Status  int         `json:"status"`
-	Message string      `json:"message"`
+	Message string      `json:"message,omitempty"`	
 	Data    interface{} `json:"data,omitempty"`
 	Error   string      `json:"error,omitempty"`
 }
@@ -19,26 +19,30 @@ type Response struct {
 // Note : you can make the response.Data as map[string]interface{}
 // you can view accounts.service & accounts.handlers for more details
 
-func SendResponse(w http.ResponseWriter, status int, response *Response) {
+func SendResponse(w http.ResponseWriter, status int, headers map[string]string, response *Response) {
 	w.Header().Set("Content-Type", "application/json")
+	for k, v := range headers {
+		w.Header().Add(k, v)
+	}
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(response)
 }
 
-func CreateResponse(w http.ResponseWriter, status int, message string, err error, data interface{}) {
+func CreateResponse(w http.ResponseWriter, status int, message string, err error, data interface{}, headers map[string]string) {
 	var response *Response
 	if err != nil {
 		response = &Response{
 			Status:  status,
-			Message: message,
 			Error:   err.Error(),
 		}
 	} else {
 		response = &Response{
 			Status:  status,
-			Message: message,
 			Data:    data,
 		}
 	}
-	SendResponse(w, status, response)
+	if message != "" {
+		response.Message = message
+	}
+	SendResponse(w, status, headers, response)
 }

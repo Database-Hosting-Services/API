@@ -3,12 +3,14 @@ package config
 import (
 	"DBHS/caching"
 	"context"
-	"github.com/gorilla/mux"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"gopkg.in/gomail.v2"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
+	"gopkg.in/gomail.v2"
 )
 
 type Application struct {
@@ -33,6 +35,11 @@ var (
 )
 
 func Init(infoLog, errorLog *log.Logger) {
+
+	if err := godotenv.Load(); err != nil {
+		errorLog.Fatal("Error loading .env file --> %s", err.Error())
+	}
+
 	App = &Application{
 		ErrorLog: errorLog,
 		InfoLog:  infoLog,
