@@ -7,7 +7,7 @@ import (
 
 type Response struct {
 	Status  int         `json:"status"`
-	Message string      `json:"message,omitempty"`	
+	Message string      `json:"message,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
 	Error   string      `json:"error,omitempty"`
 }
@@ -32,13 +32,13 @@ func CreateResponse(w http.ResponseWriter, status int, message string, err error
 	var response *Response
 	if err != nil {
 		response = &Response{
-			Status:  status,
-			Error:   err.Error(),
+			Status: status,
+			Error:  err.Error(),
 		}
 	} else {
 		response = &Response{
-			Status:  status,
-			Data:    data,
+			Status: status,
+			Data:   data,
 		}
 	}
 	if message != "" {
