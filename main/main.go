@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"DBHS/config"
+	"DBHS/middleware"
 )
 
 func main() {
@@ -23,13 +24,16 @@ func main() {
 
 	defineURLs()
 
+	handler := middleware.LimitMiddleware(config.Router)
+
 	server := &http.Server{
 		Addr:     *addr,
 		ErrorLog: errorLog,
-		Handler:  config.Router,
+		Handler:  handler,
 	}
 
 	infoLog.Printf("starting server on :%s", *addr)
+
 	err := server.ListenAndServe()
 	errorLog.Fatal(err)
 }
