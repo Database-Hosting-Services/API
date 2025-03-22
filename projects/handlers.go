@@ -18,7 +18,7 @@ func CreateProject(app *config.Application) http.HandlerFunc {
 		has, err := CreateUserProject(r.Context(), config.DB, project.Name)
 		if err != nil {
 			app.ErrorLog.Println("Project creation failed:", err)
-			response.InternalServerError(w, "Could not create project", err)
+			response.BadRequest(w, "Project creation failed", err)
 			return
 		}
 
