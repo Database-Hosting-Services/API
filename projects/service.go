@@ -7,8 +7,8 @@ import (
 )
 
 func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname string) (bool, error) {
-	UserId, ok := ctx.Value("user-id").(string)
-	if !ok || UserId == "" {
+	UserId, ok := ctx.Value("user-id").(int)
+	if !ok || UserId == 0 {
 		return false, errors.New("Unauthorized")
 	}
 

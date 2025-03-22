@@ -22,16 +22,24 @@ func JwtAuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		fields, err := token.GetData(authToken, "id", "username")
+		fields, err := token.GetData(authToken, "id", "oid", "username")
 		if err != nil {
 			response.UnAuthorized(w, "Authorization failed", err)
 			return
 		}
 
-		if len(fields) >= 2 {
+		if len(fields) >= 3 {
+			idFloat, ok := fields[0].(float64)
+			if !ok {
+				response.UnAuthorized(w, "Invalid user ID type", fmt.Errorf("expected numeric user ID, got %T", fields[0]))
+				return
+			}
+
+			userID := int(idFloat)
 			ctx := utils.AddToContext(r.Context(), map[string]interface{}{
-				"user-oid":  fields[0],
-				"username": fields[1],
+				"user-id":   userID,
+				"user-oid":  fields[1],
+				"user-name": fields[2],
 			})
 			r = r.WithContext(ctx)
 		}

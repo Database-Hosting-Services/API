@@ -47,3 +47,7 @@ func (u *User) GetOId() string {
 func (u *User) GetUserName() string {
 	return u.Username
 }
+
+func (u *User) GetID() int {
+	return u.ID
+}

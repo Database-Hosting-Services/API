@@ -80,6 +80,7 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 	}
 
 	UserTokenData := User{
+		ID:       authenticatedUser.ID,
 		OID:      authenticatedUser.OID,
 		Username: authenticatedUser.Username,
 	}
