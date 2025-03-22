@@ -1,12 +1,23 @@
 package middleware
 
 import (
+	"DBHS/config"
 	"DBHS/response"
 	"DBHS/utils"
 	"DBHS/utils/token"
+	"context"
 	"fmt"
 	"net/http"
 )
+
+func GetUserByOid(ctx context.Context, oid string) (int, error) {
+	var id int
+	err := config.DB.QueryRow(ctx, `SELECT id FROM "users" WHERE oid = $1`, oid).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
 
 func JwtAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -22,24 +33,18 @@ func JwtAuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		fields, err := token.GetData(authToken, "id", "oid", "username")
+		fields, err := token.GetData(authToken, "oid", "username")
 		if err != nil {
 			response.UnAuthorized(w, "Authorization failed", err)
 			return
 		}
 
-		if len(fields) >= 3 {
-			idFloat, ok := fields[0].(float64)
-			if !ok {
-				response.UnAuthorized(w, "Invalid user ID type", fmt.Errorf("expected numeric user ID, got %T", fields[0]))
-				return
-			}
-
-			userID := int(idFloat)
+		if len(fields) >= 2 {
+			userID, _ := GetUserByOid(r.Context(), fields[0].(string))
 			ctx := utils.AddToContext(r.Context(), map[string]interface{}{
 				"user-id":   userID,
-				"user-oid":  fields[1],
-				"user-name": fields[2],
+				"user-oid":  fields[0],
+				"user-name": fields[1],
 			})
 			r = r.WithContext(ctx)
 		}

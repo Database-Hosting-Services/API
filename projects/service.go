@@ -22,5 +22,5 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname string
 		return false, errors.New("Project already exists")
 	}
 
-	return true, nil
+	return false, nil
 }
