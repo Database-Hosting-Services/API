@@ -30,7 +30,7 @@ func JwtAuthMiddleware(next http.Handler) http.Handler {
 
 		if len(fields) >= 2 {
 			ctx := utils.AddToContext(r.Context(), map[string]interface{}{
-				"user-id":  fields[0],
+				"user-oid":  fields[0],
 				"username": fields[1],
 			})
 			r = r.WithContext(ctx)

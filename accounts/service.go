@@ -146,8 +146,8 @@ func UpdateUserPassword(ctx context.Context, db *pgxpool.Pool, UserPassword *Upd
 		return errors.New("passwords do not match")
 	}
 
-	UserId, ok := ctx.Value("user-id").(string)
-	if !ok || UserId == "" {
+	UserOid, ok := ctx.Value("user-oid").(string)
+	if !ok || UserOid == "" {
 		return errors.New("Unauthorized")
 	}
 
@@ -156,7 +156,7 @@ func UpdateUserPassword(ctx context.Context, db *pgxpool.Pool, UserPassword *Upd
 		return errors.New("failed to hash password")
 	}
 
-	err = UpdateDataInDatabase(ctx, db, UPDATE_USER_PASSWORD, string(hashedPassword), UserId)
+	err = UpdateDataInDatabase(ctx, db, UPDATE_USER_PASSWORD, string(hashedPassword), UserOid)
 
 	if err != nil {
 		return err
