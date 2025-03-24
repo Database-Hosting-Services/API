@@ -1,11 +1,9 @@
 package projects
 
 import (
-	// "DBHS/config"
+	"DBHS/config"
 	"context"
 	"errors"
-
-	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
