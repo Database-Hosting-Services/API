@@ -1,10 +1,11 @@
 package projects
 
-
 import (
-    "regexp"
-    "strings"
+	"DBHS/config"
 	"errors"
+	"regexp"
+	"strings"
+	"time"
 )
 
 var validName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_$]*$`).MatchString
@@ -13,24 +14,36 @@ var reservedNames = []string{
 }
 
 func ValidatePostgresDatabaseName(name string) error {
-    if len(name) < 3 || len(name) > 63 {
-        return errors.New("database name must be between 3 and 63 characters")
-    }
-    
-    if !validName(name) {
-        return errors.New("database name must start with a letter or underscore and contain only letters, numbers, underscores, or $")
-    }
-    
-    nameLower := strings.ToLower(name)
-    for _, reserved := range reservedNames {
-        if nameLower == reserved {
-            return errors.New("database name is reserved: " + name)
-        }
-    }
-    
-    if strings.HasPrefix(nameLower, "pg_") {
-        return errors.New("database names starting with 'pg_' are reserved")
-    }
-    
-    return nil
+	if len(name) < 3 || len(name) > 63 {
+		return errors.New("database name must be between 3 and 63 characters")
+	}
+
+	if !validName(name) {
+		return errors.New("database name must start with a letter or underscore and contain only letters, numbers, underscores, or $")
+	}
+
+	nameLower := strings.ToLower(name)
+	for _, reserved := range reservedNames {
+		if nameLower == reserved {
+			return errors.New("database name is reserved: " + name)
+		}
+	}
+
+	if strings.HasPrefix(nameLower, "pg_") {
+		return errors.New("database names starting with 'pg_' are reserved")
+	}
+
+	return nil
+}
+
+func CreateDatabaseConfig(dbName string, userId int) DatabaseConfig {
+	return DatabaseConfig{
+		Host:      config.DBConfig.Host,
+		Port:      config.DBConfig.Port,
+		UserID:    userId,
+		Password:  config.DBConfig.Password,
+		DBName:    dbName,
+		SSLMode:   config.DBConfig.SSLMode,
+		CreatedAt: time.Now().Format(time.RFC3339), // default time format like "2006-01-02T15:04:05Z07:00"
+	}
 }

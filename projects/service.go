@@ -1,10 +1,11 @@
 package projects
 
 import (
-	"DBHS/config"
+	// "DBHS/config"
 	"context"
 	"errors"
 
+	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -30,9 +31,28 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname string
 		return false, err
 	}
 
-	_, err = config.AdminDB.Exec(ctx, "CREATE DATABASE " + projectname)
+	// Database Connection Config
+	projectDBConfig := CreateDatabaseConfig(projectname, UserId)
+
+	// Insert the new project Config into the database
+	err = InsertNewRecord(ctx, db, InsertDatabaseConfig,
+		projectDBConfig.Host,
+		projectDBConfig.Port,
+		projectDBConfig.UserID,
+		projectDBConfig.Password,
+		projectDBConfig.DBName,
+		projectDBConfig.SSLMode,
+		projectDBConfig.CreatedAt,
+	)
+
 	if err != nil {
 		return false, err
 	}
+
+	_, err = config.AdminDB.Exec(ctx, "CREATE DATABASE "+projectname)
+	if err != nil {
+		return false, err
+	}
+
 	return false, nil
 }

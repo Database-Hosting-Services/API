@@ -12,3 +12,14 @@ type Project struct {
 	APIURL      string `json:"api_url"`
 	APIKey      string `json:"api_key"`
 }
+
+type DatabaseConfig struct {
+	ID        int    `json:"id"`
+	Host      string `json:"host"`
+	Port      string `json:"port"`
+	UserID    int    `json:"user_id"`
+	Password  string `json:"password"`
+	DBName    string `json:"db_name"`
+	SSLMode   string `json:"ssl_mode"`
+	CreatedAt string `json:"created_at"`
+}

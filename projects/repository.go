@@ -17,3 +17,11 @@ func CheckDatabaseExists(ctx context.Context, db *pgxpool.Pool, query string, Se
 	}
 	return exists, nil
 }
+
+func InsertNewRecord(ctx context.Context, db *pgxpool.Pool, query string, values ...interface{}) error {
+	_, err := db.Exec(ctx, query, values...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
