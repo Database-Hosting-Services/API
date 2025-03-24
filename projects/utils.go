@@ -47,3 +47,26 @@ func CreateDatabaseConfig(dbName string, userId int) DatabaseConfig {
 		CreatedAt: time.Now().Format(time.RFC3339), // default time format like "2006-01-02T15:04:05Z07:00"
 	}
 }
+
+// TODO: support for generating API key
+func GenerateApiKey() (string) {
+    return ""
+}
+
+// TODO: support for generating API url
+func GenerateApiUrl(databaseConfig DatabaseConfig) string {
+    return "https://" + databaseConfig.Host + ":" + databaseConfig.Port + "/" + databaseConfig.DBName
+}
+
+func CreateDatabaseProjectData(oid, name, description, status string, ownerID int, databaseConfig DatabaseConfig) Project {
+    return Project{
+        Oid:         oid,
+        OwnerID:     ownerID,
+        Name:        name,
+        Description: description,
+        Status:      status,
+        APIURL:      GenerateApiUrl(databaseConfig),
+        APIKey:      GenerateApiKey(),
+        CreatedAt:   time.Now().Format(time.RFC3339),
+    }
+}

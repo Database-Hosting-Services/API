@@ -9,8 +9,8 @@ type Project struct {
 	Description string `json:"description"`
 	Status      string `json:"status"`
 	CreatedAt   string `json:"created_at"`
-	APIURL      string `json:"api_url"`
-	APIKey      string `json:"api_key"`
+	APIURL      string `json:"API_URL"`
+	APIKey      string `json:"API_key"`
 }
 
 type DatabaseConfig struct {
