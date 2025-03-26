@@ -49,24 +49,24 @@ func CreateDatabaseConfig(dbName string, userId int) DatabaseConfig {
 }
 
 // TODO: support for generating API key
-func GenerateApiKey() (string) {
-    return ""
+func GenerateApiKey() string {
+	return ""
 }
 
 // TODO: support for generating API url
 func GenerateApiUrl(databaseConfig DatabaseConfig) string {
-    return "https://" + databaseConfig.Host + ":" + databaseConfig.Port + "/" + databaseConfig.DBName
+	return "https://" + databaseConfig.Host + ":" + databaseConfig.Port + "/" + databaseConfig.DBName
 }
 
 func CreateDatabaseProjectData(oid, name, description, status string, ownerID int, databaseConfig DatabaseConfig) Project {
-    return Project{
-        Oid:         oid,
-        OwnerID:     ownerID,
-        Name:        name,
-        Description: description,
-        Status:      status,
-        APIURL:      GenerateApiUrl(databaseConfig),
-        APIKey:      GenerateApiKey(),
-        CreatedAt:   time.Now().Format(time.RFC3339),
-    }
+	return Project{
+		Oid:         oid,
+		OwnerID:     ownerID,
+		Name:        name,
+		Description: description,
+		Status:      status,
+		APIURL:      GenerateApiUrl(databaseConfig),
+		APIKey:      GenerateApiKey(),
+		CreatedAt:   time.Now().Format(time.RFC3339),
+	}
 }

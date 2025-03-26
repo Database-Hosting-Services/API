@@ -2,9 +2,9 @@ package projects
 
 import (
 	"DBHS/config"
+	"DBHS/utils"
 	"context"
 	"errors"
-	"DBHS/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -52,7 +52,7 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 
 	oid := utils.GenerateOID()
 	projectDBData := CreateDatabaseProjectData(oid, projectname, projectDescription, "active", UserId, projectDBConfig)
-	
+
 	// Insert the new project data into the database
 	err = InsertNewRecord(ctx, db, InsertDatabaseProjectData,
 		projectDBData.Oid,
@@ -71,7 +71,8 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 
 	// --------------------------- Create the Database -----------------------------------
 
-	_, err = config.AdminDB.Exec(ctx, "CREATE DATABASE " + projectname)
+	DBname := projectname + "_" + string(UserId)
+	_, err = config.AdminDB.Exec(ctx, "CREATE DATABASE "+DBname)
 	if err != nil {
 		return false, err
 	}
