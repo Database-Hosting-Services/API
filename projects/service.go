@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"strconv"
 )
 
 func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, projectDescription string) (bool, error) {
@@ -41,7 +42,7 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 	projectDBConfig := CreateDatabaseConfig(projectname, UserId)
 
 	// Insert the new project Config into the database using the transaction
-	_, err = tx.Exec(ctx, InsertDatabaseConfig,
+	err = InsertNewRecord(ctx, tx, InsertDatabaseConfig,
 		projectDBConfig.Host,
 		projectDBConfig.Port,
 		projectDBConfig.UserID,
@@ -61,7 +62,7 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 	projectDBData := CreateDatabaseProjectData(oid, projectname, projectDescription, "active", UserId, projectDBConfig)
 
 	// Insert the new project data into the database using the transaction
-	_, err = tx.Exec(ctx, InsertDatabaseProjectData,
+	err = InsertNewRecord(ctx, tx, InsertDatabaseProjectData,
 		projectDBData.Oid,
 		projectDBData.OwnerID,
 		projectDBData.Name,
@@ -83,8 +84,8 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 
 	// --------------------------- Create the Database -----------------------------------
 
-	DBname := projectname + "_" + string(UserId)
-	_, err = config.AdminDB.Exec(ctx, "CREATE DATABASE " + DBname)
+	DBname := projectname + "_" + strconv.Itoa(UserId)
+	_, err = config.AdminDB.Exec(ctx, "CREATE DATABASE "+DBname)
 	if err != nil {
 		return false, err
 	}

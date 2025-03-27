@@ -1,7 +1,9 @@
 package projects
 
 import (
+	"DBHS/utils"
 	"context"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -18,7 +20,7 @@ func CheckDatabaseExists(ctx context.Context, db *pgxpool.Pool, query string, Se
 	return exists, nil
 }
 
-func InsertNewRecord(ctx context.Context, db *pgxpool.Pool, query string, values ...interface{}) error {
+func InsertNewRecord(ctx context.Context, db utils.Querier, query string, values ...interface{}) error {
 	_, err := db.Exec(ctx, query, values...)
 	if err != nil {
 		return err
