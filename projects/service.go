@@ -30,11 +30,18 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 		return false, err
 	}
 
+	// Begin transaction
+	tx, err := db.Begin(ctx)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback(ctx)
+
 	// --------------------------- Database Connection Config ---------------------------
 	projectDBConfig := CreateDatabaseConfig(projectname, UserId)
 
-	// // Insert the new project Config into the database
-	err = InsertNewRecord(ctx, db, InsertDatabaseConfig,
+	// Insert the new project Config into the database using the transaction
+	_, err = tx.Exec(ctx, InsertDatabaseConfig,
 		projectDBConfig.Host,
 		projectDBConfig.Port,
 		projectDBConfig.UserID,
@@ -53,8 +60,8 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 	oid := utils.GenerateOID()
 	projectDBData := CreateDatabaseProjectData(oid, projectname, projectDescription, "active", UserId, projectDBConfig)
 
-	// Insert the new project data into the database
-	err = InsertNewRecord(ctx, db, InsertDatabaseProjectData,
+	// Insert the new project data into the database using the transaction
+	_, err = tx.Exec(ctx, InsertDatabaseProjectData,
 		projectDBData.Oid,
 		projectDBData.OwnerID,
 		projectDBData.Name,
@@ -69,10 +76,15 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 		return false, err
 	}
 
+	// Commit the transaction
+	if err = tx.Commit(ctx); err != nil {
+		return false, err
+	}
+
 	// --------------------------- Create the Database -----------------------------------
 
 	DBname := projectname + "_" + string(UserId)
-	_, err = config.AdminDB.Exec(ctx, "CREATE DATABASE "+DBname)
+	_, err = config.AdminDB.Exec(ctx, "CREATE DATABASE " + DBname)
 	if err != nil {
 		return false, err
 	}
