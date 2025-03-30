@@ -93,7 +93,7 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 	return false, nil
 }
 
-func getUserProjects(ctx context.Context, db *pgxpool.Pool, userId int) ([]*SafeReadProject, error) {
+func getUserProjects(ctx context.Context, db *pgxpool.Pool, userId int) ([]*SafeProjectData, error) {
 	projects, err := getUserProjectsFromDatabase(ctx, db, userId)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func getUserProjects(ctx context.Context, db *pgxpool.Pool, userId int) ([]*Safe
 	return projects, nil
 }
 
-func getUserSpecificProject(ctx context.Context, db *pgxpool.Pool, userId int, projectOid string) (*SafeReadProject, error) {
+func getUserSpecificProject(ctx context.Context, db *pgxpool.Pool, userId int, projectOid string) (*SafeProjectData, error) {
 	project, err := getUserSpecificProjectFromDatabase(ctx, db, userId, projectOid)
 	if err != nil {
 		return nil, err

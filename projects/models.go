@@ -15,7 +15,7 @@ type Project struct {
 	APIKey      string    `json:"API_key" db:"api_key"`
 }
 
-type SafeReadProject struct {
+type SafeProjectData struct {
 	Oid         string    `json:"oid" db:"oid"`
 	OwnerID     int       `json:"owner_id" db:"owner_id"`
 	Name        string    `json:"name" db:"name"`
