@@ -29,8 +29,8 @@ func InsertNewRecord(ctx context.Context, db utils.Querier, query string, values
 	return nil
 }
 
-func getUserProjectsFromDatabase(ctx context.Context, db *pgxpool.Pool, userId int) ([]*Project, error) {
-	var projects []*Project
+func getUserProjectsFromDatabase(ctx context.Context, db *pgxpool.Pool, userId int) ([]*SafeReadProject, error) {
+	var projects []*SafeReadProject
 	err := pgxscan.Select(
 		ctx, db, &projects,
 		RetrieveUserProjects,
@@ -43,8 +43,8 @@ func getUserProjectsFromDatabase(ctx context.Context, db *pgxpool.Pool, userId i
 	return projects, nil
 }
 
-func getUserSpecificProjectFromDatabase(ctx context.Context, db *pgxpool.Pool, userId int, projectOid string) (*Project, error) {
-	var project Project
+func getUserSpecificProjectFromDatabase(ctx context.Context, db *pgxpool.Pool, userId int, projectOid string) (*SafeReadProject, error) {
+	var project SafeReadProject
 	err := pgxscan.Get(ctx, db, &project, RetrieveUserSpecificProject, userId, projectOid)
 	if err != nil {
 		if err == pgx.ErrNoRows {
