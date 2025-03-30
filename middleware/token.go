@@ -6,13 +6,18 @@ import (
 	"DBHS/utils"
 	"DBHS/utils/token"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 )
 
 func GetUserByOid(ctx context.Context, oid string) (int, error) {
 	var id int
-	err := config.DB.QueryRow(ctx, `SELECT id FROM "users" WHERE oid = $1`, oid).Scan(&id)
+	err := config.DB.QueryRow(
+		ctx,
+		`SELECT id FROM "users" WHERE oid= $1`,
+		oid,
+	).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -40,7 +45,11 @@ func JwtAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		if len(fields) >= 2 {
-			userID, _ := GetUserByOid(r.Context(), fields[0].(string))
+			userID, err := GetUserByOid(r.Context(), fields[0].(string))
+			if err != nil {
+				response.UnAuthorized(w, "Authorization failed", errors.New("No user found for this token"))
+				return
+			}
 			ctx := utils.AddToContext(r.Context(), map[string]interface{}{
 				"user-id":   userID,
 				"user-oid":  fields[0],

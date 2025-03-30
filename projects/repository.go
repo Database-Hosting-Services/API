@@ -4,6 +4,7 @@ import (
 	"DBHS/utils"
 	"context"
 
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -26,4 +27,30 @@ func InsertNewRecord(ctx context.Context, db utils.Querier, query string, values
 		return err
 	}
 	return nil
+}
+
+func getUserProjectsFromDatabase(ctx context.Context, db *pgxpool.Pool, userId int) ([]*Project, error) {
+	var projects []*Project
+	err := pgxscan.Select(
+		ctx, db, &projects,
+		RetrieveUserProjects,
+		userId,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+	return projects, nil
+}
+
+func getUserSpecificProjectFromDatabase(ctx context.Context, db *pgxpool.Pool, userId int, projectOid string) (*Project, error) {
+	var project Project
+	err := pgxscan.Get(ctx, db, &project, RetrieveUserSpecificProject, userId, projectOid)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &project, nil
 }

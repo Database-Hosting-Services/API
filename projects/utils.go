@@ -67,6 +67,6 @@ func CreateDatabaseProjectData(oid, name, description, status string, ownerID in
 		Status:      status,
 		APIURL:      GenerateApiUrl(databaseConfig),
 		APIKey:      GenerateApiKey(),
-		CreatedAt:   time.Now().Format(time.RFC3339),
+		CreatedAt:   time.Time{}, //اعتمد ان اي تايم بيبقي من تايب time.Time احسن
 	}
 }

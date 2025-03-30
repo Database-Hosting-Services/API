@@ -3,6 +3,7 @@ package config
 import (
 	"DBHS/caching"
 	"context"
+	"github.com/jackc/pgx/v5"
 	"log"
 	"net/http"
 	"os"
@@ -98,6 +99,18 @@ func Init(infoLog, errorLog *log.Logger) {
 	config, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
 		errorLog.Fatalf("Unable to parse database URL: %v", err)
+	}
+
+	// this clear the cached prepared statement
+	//محدش يعدل فيها عشان انا اتبضنت من كتفم دي لغه
+	// there is an error occurs when you restart the server :
+	// ERROR: prepared statement "stmtcache_d40c25297f5a9db6d92b9594942d1217a18da17e46487cf5" already exists (SQLSTATE 42P05)
+	// it means that the prepared statement already exists and you cannot recache it
+	// so this function should remove all cached prepared statements when the server starts
+	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		// Clear any existing statements
+		_, err := conn.Exec(ctx, "DISCARD ALL")
+		return err
 	}
 
 	DB, err = pgxpool.NewWithConfig(context.Background(), config)
