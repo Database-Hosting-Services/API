@@ -9,32 +9,32 @@ import (
 	"strconv"
 )
 
-func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, projectDescription string) (bool, error) {
+func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, projectDescription string) (bool, error, SafeProjectData) {
 	UserId, ok := ctx.Value("user-id").(int)
 	if !ok || UserId == 0 {
-		return false, errors.New("Unauthorized")
+		return false, errors.New("Unauthorized"), DefaultProjectResponse
 	}
 
 	// Check if the project already exists
 	Has, err := CheckDatabaseExists(ctx, db, CheckUserHasProject, UserId, projectname)
 	if err != nil {
-		return false, err
+		return false, err, DefaultProjectResponse
 	}
 
 	if Has {
-		return false, errors.New("Project already exists")
+		return false, errors.New("Project already exists"), DefaultProjectResponse
 	}
 
 	// Check if the ProjectName is valid (must not be a reserved name and other validation)
 	err = ValidatePostgresDatabaseName(projectname)
 	if err != nil {
-		return false, err
+		return false, err, DefaultProjectResponse
 	}
 
 	// Begin transaction
 	tx, err := db.Begin(ctx)
 	if err != nil {
-		return false, err
+		return false, err, DefaultProjectResponse
 	}
 	defer tx.Rollback(ctx)
 
@@ -53,7 +53,7 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 	)
 
 	if err != nil {
-		return false, err
+		return false, err, DefaultProjectResponse
 	}
 
 	// --------------------------- Database Project Data --------------------------------
@@ -74,12 +74,12 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 	)
 
 	if err != nil {
-		return false, err
+		return false, err, DefaultProjectResponse
 	}
 
 	// Commit the transaction
 	if err = tx.Commit(ctx); err != nil {
-		return false, err
+		return false, err, DefaultProjectResponse
 	}
 
 	// --------------------------- Create the Database -----------------------------------
@@ -87,10 +87,10 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 	DBname := projectname + "_" + strconv.Itoa(UserId)
 	_, err = config.AdminDB.Exec(ctx, "CREATE DATABASE "+DBname)
 	if err != nil {
-		return false, err
+		return false, err, DefaultProjectResponse
 	}
 
-	return false, nil
+	return false, nil, projectDBData
 }
 
 func getUserProjects(ctx context.Context, db *pgxpool.Pool, userId int) ([]*SafeProjectData, error) {

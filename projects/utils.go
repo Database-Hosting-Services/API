@@ -58,8 +58,8 @@ func GenerateApiUrl(databaseConfig DatabaseConfig) string {
 	return "https://" + databaseConfig.Host + ":" + databaseConfig.Port + "/" + databaseConfig.DBName
 }
 
-func CreateDatabaseProjectData(oid, name, description, status string, ownerID int, databaseConfig DatabaseConfig) Project {
-	return Project{
+func CreateDatabaseProjectData(oid, name, description, status string, ownerID int, databaseConfig DatabaseConfig) SafeProjectData {
+	return SafeProjectData{
 		Oid:         oid,
 		OwnerID:     ownerID,
 		Name:        name,

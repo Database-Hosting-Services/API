@@ -17,10 +17,14 @@ func CreateProject(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		has, err := CreateUserProject(r.Context(), config.DB, project.Name, project.Description)
+		has, err, ProjectData := CreateUserProject(r.Context(), config.DB, project.Name, project.Description)
 		if err != nil {
 			app.ErrorLog.Println("Project creation failed:", err)
-			response.InternalServerError(w, "Internal Server Error", errors.New("Project creation failed"))
+			if err.Error() == "Project already exists" {
+				response.BadRequest(w, "Project already exists", errors.New("Project creation failed"))
+			} else {
+				response.InternalServerError(w, "Internal Server Error", errors.New("Project creation failed"))
+			}
 			return
 		}
 
@@ -29,7 +33,7 @@ func CreateProject(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response.Created(w, "Project Created", project)
+		response.Created(w, "Project Created Successfully", ProjectData)
 	}
 }
 

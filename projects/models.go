@@ -36,3 +36,5 @@ type DatabaseConfig struct {
 	SSLMode   string `json:"ssl_mode"`
 	CreatedAt string `json:"created_at"`
 }
+
+var DefaultProjectResponse = SafeProjectData{}
