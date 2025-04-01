@@ -5,6 +5,7 @@ import (
 	"DBHS/utils"
 	"context"
 	"errors"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"strconv"
 )
@@ -101,10 +102,17 @@ func getUserProjects(ctx context.Context, db *pgxpool.Pool, userId int) ([]*Safe
 	return projects, nil
 }
 
-func getUserSpecificProject(ctx context.Context, db *pgxpool.Pool, userId int, projectOid string) (*SafeProjectData, error) {
+func getUserSpecificProject(ctx context.Context, db utils.Querier, userId int, projectOid string) (*SafeProjectData, error) {
 	project, err := getUserSpecificProjectFromDatabase(ctx, db, userId, projectOid)
 	if err != nil {
 		return nil, err
 	}
 	return project, nil
+}
+
+func updateProjectData(ctx context.Context, transaction pgx.Tx, query string, values []interface{}) error {
+	if err := utils.UpdateDataInDatabase(ctx, transaction, query, values...); err != nil {
+		return err
+	}
+	return nil
 }

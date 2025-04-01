@@ -52,8 +52,3 @@ func GetUser(ctx context.Context, db utils.Querier, SearchField string, query st
 	}
 	return nil
 }
-
-func UpdateDataInDatabase(ctx context.Context, db utils.Querier, query string, dest ...interface{}) error {
-	_, err := db.Exec(ctx, query, dest...)
-	return err
-}

@@ -43,7 +43,7 @@ func getUserProjectsFromDatabase(ctx context.Context, db *pgxpool.Pool, userId i
 	return projects, nil
 }
 
-func getUserSpecificProjectFromDatabase(ctx context.Context, db *pgxpool.Pool, userId int, projectOid string) (*SafeProjectData, error) {
+func getUserSpecificProjectFromDatabase(ctx context.Context, db utils.Querier, userId int, projectOid string) (*SafeProjectData, error) {
 	var project SafeProjectData
 	err := pgxscan.Get(ctx, db, &project, RetrieveUserSpecificProject, userId, projectOid)
 	if err != nil {

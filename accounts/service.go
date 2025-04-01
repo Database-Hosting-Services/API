@@ -156,7 +156,7 @@ func UpdateUserPassword(ctx context.Context, db *pgxpool.Pool, UserPassword *Upd
 		return errors.New("failed to hash password")
 	}
 
-	err = UpdateDataInDatabase(ctx, db, UPDATE_USER_PASSWORD, string(hashedPassword), UserOid)
+	err = utils.UpdateDataInDatabase(ctx, db, UPDATE_USER_PASSWORD, string(hashedPassword), UserOid)
 
 	if err != nil {
 		return err
@@ -279,7 +279,7 @@ func ForgetPasswordVerifyService(ctx context.Context, db *pgxpool.Pool, cache *c
 	}
 	defer transaction.Rollback(ctx)
 
-	if err := UpdateDataInDatabase(ctx, transaction, UPDATE_USER_PASSWORD, user.OID, utils.HashedPassword(resetForm.Password)); err != nil {
+	if err := utils.UpdateDataInDatabase(ctx, transaction, UPDATE_USER_PASSWORD, user.OID, utils.HashedPassword(resetForm.Password)); err != nil {
 		return err
 	}
 
@@ -295,7 +295,7 @@ func ForgetPasswordVerifyService(ctx context.Context, db *pgxpool.Pool, cache *c
 }
 
 func UpdateUserData(ctx context.Context, db pgx.Tx, query string, args []interface{}) error {
-	if err := UpdateDataInDatabase(ctx, db, query, args...); err != nil {
+	if err := utils.UpdateDataInDatabase(ctx, db, query, args...); err != nil {
 		return err
 	}
 	return nil

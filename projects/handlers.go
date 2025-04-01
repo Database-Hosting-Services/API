@@ -3,6 +3,7 @@ package projects
 import (
 	"DBHS/config"
 	"DBHS/response"
+	"DBHS/utils"
 	"encoding/json"
 	"errors"
 	"github.com/gorilla/mux"
@@ -72,5 +73,67 @@ func getSpecificProject(app *config.Application) http.HandlerFunc {
 		}
 
 		response.OK(w, "Project Retrieved Successfully", data)
+	}
+}
+
+func updateProject(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userId := r.Context().Value("user-id").(int)
+		urlVariables := mux.Vars(r)
+
+		projectOid := urlVariables["project_id"]
+		if projectOid == "" {
+			response.BadRequest(w, "Project Id is required", nil)
+			return
+		}
+
+		var data updateProjectDataModel
+		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+			response.BadRequest(w, "Invalid Input", errors.New("The request body is empty"))
+			return
+		}
+		defer r.Body.Close()
+
+		fieldsToUpdate, Values, err := utils.GetNonZeroFieldsFromStruct(&data)
+		if err != nil {
+			response.BadRequest(w, "Invalid Input", err)
+			return
+		}
+
+		query, err := BuildProjectUpdateQuery(projectOid, fieldsToUpdate)
+		if err != nil {
+			app.ErrorLog.Println(err)
+			response.InternalServerError(w, "Internal Server Error", errors.New("error in generating the updating query"))
+			return
+		}
+
+		transaction, err := config.DB.Begin(r.Context())
+		if err != nil {
+			app.ErrorLog.Println(err)
+			response.InternalServerError(w, "Internal Server Error", errors.New("Cannot begin transaction"))
+			return
+		}
+
+		err = updateProjectData(r.Context(), transaction, query, Values)
+		if err != nil {
+			app.ErrorLog.Println(err)
+			response.InternalServerError(w, "Internal Server Error", errors.New("Cannot update project data"))
+			return
+		}
+
+		projectData, err := getUserSpecificProject(r.Context(), transaction, userId, projectOid)
+		if err != nil {
+			app.ErrorLog.Println(err)
+			response.InternalServerError(w, "Internal Server Error", nil)
+			return
+		}
+
+		if err := transaction.Commit(r.Context()); err != nil {
+			app.ErrorLog.Println(err)
+			response.InternalServerError(w, "Internal Server Error", errors.New("Cannot commit transaction"))
+			return
+		}
+
+		response.OK(w, "Project Retrieved Successfully", projectData)
 	}
 }

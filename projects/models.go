@@ -26,6 +26,12 @@ type SafeProjectData struct {
 	APIKey      string    `json:"API_key" db:"api_key"`
 }
 
+type updateProjectDataModel struct {
+	Name        string `json:"name" db:"name"`
+	Description string `json:"description" db:"description"`
+	Status      string `json:"status" db:"status"`
+}
+
 type DatabaseConfig struct {
 	ID        int    `json:"id"`
 	Host      string `json:"host"`
