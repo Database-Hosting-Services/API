@@ -23,6 +23,8 @@ func CreateProject(app *config.Application) http.HandlerFunc {
 			app.ErrorLog.Println("Project creation failed:", err)
 			if err.Error() == "Project already exists" {
 				response.BadRequest(w, "Project already exists", errors.New("Project creation failed"))
+			} else if err.Error() == "database name must start with a letter or underscore and contain only letters, numbers, underscores, or $" {
+				response.BadRequest(w, "database name must start with a letter or underscore and contain only letters, numbers, underscores, or $", errors.New("Project creation failed"))
 			} else {
 				response.InternalServerError(w, "Internal Server Error", errors.New("Project creation failed"))
 			}

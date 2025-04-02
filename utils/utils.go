@@ -99,3 +99,9 @@ func GetNonZeroFieldsFromStruct(data interface{}) ([]string, []interface{}, erro
 
 	return updatedFields, newValues, nil
 }
+
+// Fucntion to replce the whitespaces in the string with the underscore
+func ReplaceWhiteSpacesWithUnderscore(str string) string {
+	replaced := strings.ReplaceAll(str, " ", "_")
+	return replaced
+}

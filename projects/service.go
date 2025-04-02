@@ -5,9 +5,10 @@ import (
 	"DBHS/utils"
 	"context"
 	"errors"
+	"strconv"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"strconv"
 )
 
 func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, projectDescription string) (bool, error, SafeProjectData) {
@@ -15,6 +16,9 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 	if !ok || UserId == 0 {
 		return false, errors.New("Unauthorized"), DefaultProjectResponse
 	}
+
+	// Replace white spaces with underscores
+	projectname = utils.ReplaceWhiteSpacesWithUnderscore(projectname)
 
 	// Check if the project already exists
 	Has, err := CheckDatabaseExists(ctx, db, CheckUserHasProject, UserId, projectname)
@@ -78,16 +82,16 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 		return false, err, DefaultProjectResponse
 	}
 
-	// Commit the transaction
-	if err = tx.Commit(ctx); err != nil {
-		return false, err, DefaultProjectResponse
-	}
-
 	// --------------------------- Create the Database -----------------------------------
 
 	DBname := projectname + "_" + strconv.Itoa(UserId)
 	_, err = config.AdminDB.Exec(ctx, "CREATE DATABASE "+DBname)
 	if err != nil {
+		return false, err, DefaultProjectResponse
+	}
+
+	// Commit the transaction
+	if err = tx.Commit(ctx); err != nil {
 		return false, err, DefaultProjectResponse
 	}
 
