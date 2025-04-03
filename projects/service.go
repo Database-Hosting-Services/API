@@ -17,23 +17,18 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 		return false, errors.New("Unauthorized"), DefaultProjectResponse
 	}
 
+<<<<<<< HEAD
 	// Replace white spaces with underscores
 	projectname = utils.ReplaceWhiteSpacesWithUnderscore(projectname)
 
 	// Check if the project already exists
 	Has, err := CheckDatabaseExists(ctx, db, CheckUserHasProject, UserId, projectname)
+=======
+	// validate project data
+	err := validateProjectData(ctx, db, projectname, UserId)
+>>>>>>> 0524f1e (added project data valiation in project update endpoint)
 	if err != nil {
-		return false, err, DefaultProjectResponse
-	}
-
-	if Has {
-		return false, errors.New("Project already exists"), DefaultProjectResponse
-	}
-
-	// Check if the ProjectName is valid (must not be a reserved name and other validation)
-	err = ValidatePostgresDatabaseName(projectname)
-	if err != nil {
-		return false, err, DefaultProjectResponse
+		return false, err, SafeProjectData{}
 	}
 
 	// Begin transaction

@@ -130,6 +130,18 @@ func updateProject(app *config.Application) http.HandlerFunc {
 			return
 		}
 
+		// check if fields to update has a 'name'
+		// if it has then validate it
+		for idx, field := range fieldsToUpdate {
+			if field == "name" {
+				err := validateProjectData(r.Context(), config.DB, Values[idx].(string), userId)
+				if err != nil {
+					response.BadRequest(w, "Invalid Input Data", err)
+					return
+				}
+			}
+		}
+
 		query, err := BuildProjectUpdateQuery(projectOid, fieldsToUpdate)
 		if err != nil {
 			app.ErrorLog.Println(err)

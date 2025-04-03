@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func CheckDatabaseExists(ctx context.Context, db *pgxpool.Pool, query string, SearchField ...interface{}) (bool, error) {
+func CheckDatabaseExists(ctx context.Context, db utils.Querier, query string, SearchField ...interface{}) (bool, error) {
 	var exists bool
 	err := db.QueryRow(ctx, query, SearchField...).Scan(&exists)
 	if err != nil {

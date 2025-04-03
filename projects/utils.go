@@ -2,6 +2,8 @@ package projects
 
 import (
 	"DBHS/config"
+	"DBHS/utils"
+	"context"
 	"errors"
 	"regexp"
 	"strings"
@@ -33,6 +35,25 @@ func ValidatePostgresDatabaseName(name string) error {
 		return errors.New("database names starting with 'pg_' are reserved")
 	}
 
+	return nil
+}
+
+func validateProjectData(ctx context.Context, db utils.Querier, projectname string, UserId int) error {
+	// Check if the project already exists
+	Has, err := CheckDatabaseExists(ctx, db, CheckUserHasProject, UserId, projectname)
+	if err != nil {
+		return err
+	}
+
+	if Has {
+		return errors.New("Project already exists")
+	}
+
+	// Check if the ProjectName is valid (must not be a reserved name and other validation)
+	err = ValidatePostgresDatabaseName(projectname)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
