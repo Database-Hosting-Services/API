@@ -40,6 +40,34 @@ func CreateProject(app *config.Application) http.HandlerFunc {
 	}
 }
 
+func DeleteProject(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		projectOid := urlVariables["project_id"]
+		if projectOid == "" {
+			response.BadRequest(w, "Project Id is required", nil)
+			return
+		}
+
+		// Call the function to delete the project
+		err := DeleteUserProject(r.Context(), config.DB, projectOid)
+		if err != nil {
+			app.ErrorLog.Println("Project deletion failed:", err)
+
+			switch err.Error() {
+			case "Project not found":
+				response.NotFound(w, "Project not found", err)
+			case "Unauthorized":
+				response.UnAuthorized(w, "Unauthorized", err)
+			default:
+				response.InternalServerError(w, "Internal Server Error", errors.New("Project deletion failed"))
+			}
+			return
+		}
+		response.OK(w, "Project Deleted Successfully", nil)
+	}
+}
+
 // this function returns all projects which the use is the owner of these project
 // NOTE : in future plans this function will return also the projects which the user is a member in these projects
 func GetProjects(app *config.Application) http.HandlerFunc {

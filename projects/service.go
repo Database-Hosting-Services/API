@@ -98,6 +98,56 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 	return false, nil, projectDBData
 }
 
+// DeleteUserProject handles the business logic for deleting a project
+func DeleteUserProject(ctx context.Context, db *pgxpool.Pool, projectOID string) error {
+	// Get user ID from context to check if user is owner for this project
+	UserID, ok := ctx.Value("user-id").(int)
+	if !ok || UserID == 0 {
+		return errors.New("Unauthorized")
+	}
+
+	// ---------------------- Begin transaction ----------------------
+	tx, err := db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	// ---------------------- Get The Project Name ----------------------
+	project, err := getUserSpecificProject(ctx, tx, UserID, projectOID)
+	if err != nil {
+		return errors.New("Project not found")
+	}
+
+	projectName := project.Name
+
+	// ---------------------- Delete project data from projects table ----------------------
+	_, err = tx.Exec(ctx, "DELETE FROM projects WHERE oid = $1", projectOID)
+	if err != nil {
+		return err
+	}
+
+	// ---------------------- Delete database configuration ----------------------
+	_, err = tx.Exec(ctx, "DELETE FROM database_config WHERE db_name = $1 AND user_id = $2", projectName, UserID)
+	if err != nil {
+		return err
+	}
+
+	// ---------------------- Drop the actual database ----------------------
+	DBname := projectName + "_" + strconv.Itoa(UserID)
+	_, err = config.AdminDB.Exec(ctx, "DROP DATABASE IF EXISTS "+DBname)
+	if err != nil {
+		return err
+	}
+
+	// Commit the transaction
+	if err = tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func getUserProjects(ctx context.Context, db *pgxpool.Pool, userId int) ([]*SafeProjectData, error) {
 	projects, err := getUserProjectsFromDatabase(ctx, db, userId)
 	if err != nil {

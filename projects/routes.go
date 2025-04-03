@@ -13,4 +13,5 @@ func DefineURLs() {
 	router.HandleFunc("", GetProjects(config.App)).Methods("GET")
 	router.HandleFunc("/{project_id}", getSpecificProject(config.App)).Methods("GET")
 	router.HandleFunc("/{project_id}", updateProject(config.App)).Methods("PATCH")
+	router.HandleFunc("/{project_id}", DeleteProject(config.App)).Methods("DELETE")
 }
