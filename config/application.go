@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"runtime"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -47,11 +49,19 @@ var (
 	DBConfig    *DatabaseConfig
 )
 
+func loadEnv() {
+	_, filename, _, _ := runtime.Caller(0) // Gets current file path
+	rootDir := filepath.Dir(filepath.Dir(filename))
+	envPath := filepath.Join(rootDir, ".env")
+
+	if err := godotenv.Load(envPath); err != nil {
+		log.Fatal("Error loading .env: ", err)
+	}
+}
+
 func Init(infoLog, errorLog *log.Logger) {
 
-	if err := godotenv.Load("../.env"); err != nil {
-		errorLog.Fatal("Error loading .env file --> %s", err.Error())
-	}
+	loadEnv()
 
 	App = &Application{
 		ErrorLog: errorLog,
