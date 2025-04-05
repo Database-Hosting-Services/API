@@ -3,15 +3,22 @@ package projects
 import (
 	"DBHS/config"
 	"DBHS/middleware"
+	"net/http"
 )
 
 func DefineURLs() {
 	router := config.Router.PathPrefix("/api/projects").Subrouter()
 	router.Use(middleware.JwtAuthMiddleware)
 
-	router.HandleFunc("", CreateProject(config.App)).Methods("POST")
-	router.HandleFunc("", GetProjects(config.App)).Methods("GET")
-	router.HandleFunc("/{project_id}", getSpecificProject(config.App)).Methods("GET")
-	router.HandleFunc("/{project_id}", updateProject(config.App)).Methods("PATCH")
-	router.HandleFunc("/{project_id}", DeleteProject(config.App)).Methods("DELETE")
+
+	router.Handle("", middleware.Route(map[string]http.HandlerFunc{
+		http.MethodPost: CreateProject(config.App),
+		http.MethodGet: GetProjects(config.App),
+	}))
+	
+	router.Handle("/{project_id}", middleware.Route(map[string]http.HandlerFunc{
+		http.MethodGet: getSpecificProject(config.App),
+		http.MethodPatch: updateProject(config.App),
+		http.MethodDelete: DeleteProject(config.App),
+	}))
 }
