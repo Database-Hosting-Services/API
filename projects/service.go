@@ -79,6 +79,12 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 		return false, err, DefaultProjectResponse
 	}
 
+	// ---------------------- Create The Connection Pool ----------------------
+	_, err = config.PoolManager.GetPool(ctx, DBname)
+	if err != nil {
+		return false, err, DefaultProjectResponse
+	}
+
 	// Commit the transaction
 	if err = tx.Commit(ctx); err != nil {
 		return false, err, DefaultProjectResponse
@@ -128,6 +134,9 @@ func DeleteUserProject(ctx context.Context, db *pgxpool.Pool, projectOID string)
 	if err != nil {
 		return err
 	}
+
+	// ---------------------- Remove the connection pool ----------------------
+	config.PoolManager.ClosePool(DBname)
 
 	// Commit the transaction
 	if err = tx.Commit(ctx); err != nil {
