@@ -10,9 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
 	"os"
-	"reflect"
 	"regexp"
-	"strings"
 )
 
 func checkPasswordStrength(password string) error {
@@ -105,7 +103,7 @@ func SendMail(d *gomail.Dialer, from, to, code, Subject string) error {
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", Subject)
 
-	data, err := os.ReadFile("../utils/mailTemplate.html")
+	data, err := os.ReadFile("utils/mailTemplate.html")
 	if err != nil {
 		return fmt.Errorf("failed to read mail template: %w", err)
 	}
@@ -119,34 +117,4 @@ func SendMail(d *gomail.Dialer, from, to, code, Subject string) error {
 	}
 
 	return nil
-}
-
-// if you have request struct like UpdateUser or UpdatePassword
-// after decoding the request into the struct
-// you can fetch the non zero fields from the struct via this function
-// you can see the UpdateUser handler in accounts.handlers.go file
-func GetNonZeroFieldsFromStruct(data interface{}) ([]string, []interface{}, error) {
-	val := reflect.ValueOf(data).Elem()
-	typ := val.Type()
-
-	updatedFields := []string{}
-	newValues := []interface{}{}
-
-	// Iterate over the fields of the struct
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-		fieldName := typ.Field(i).Name
-
-		// Check if the field has a non-zero value (works with all premitive datatypes)
-		if !field.IsZero() {
-			updatedFields = append(updatedFields, strings.ToLower(fieldName))
-			newValues = append(newValues, field.Interface())
-		}
-	}
-
-	if len(updatedFields) == 0 {
-		return nil, nil, errors.New("no non-zero fields found")
-	}
-
-	return updatedFields, newValues, nil
 }

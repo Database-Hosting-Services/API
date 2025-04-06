@@ -3,6 +3,7 @@ package accounts
 import (
 	"DBHS/config"
 	"DBHS/response"
+	"DBHS/utils"
 	"context"
 	"encoding/json"
 	"errors"
@@ -183,7 +184,7 @@ func UpdateUser(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		fieldsToUpdate, newValues, err := GetNonZeroFieldsFromStruct(&requestData)
+		fieldsToUpdate, newValues, err := utils.GetNonZeroFieldsFromStruct(&requestData)
 		if err != nil {
 			response.BadRequest(w, "Invalid Input Data", err)
 			return
@@ -215,7 +216,7 @@ func UpdateUser(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response.Created(w, "User's data updated successfully", Data)
+		response.OK(w, "User's data updated successfully", Data)
 	}
 }
 

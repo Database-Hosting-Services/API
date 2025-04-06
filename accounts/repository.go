@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"DBHS/utils"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
@@ -25,13 +25,6 @@ func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
 	return err
 }
 
-// Querier defines an interface for executing a single-row query.
-// Both *pgxpool.Pool and pgx.Tx implement this interface through the QueryRow method.
-type Querier interface {
-	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
-	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
-}
-
 /*
 
 	GetUser executes a SQL query to retrieve a single user record based on a search field,
@@ -49,7 +42,7 @@ type Querier interface {
 
 */
 
-func GetUser(ctx context.Context, db Querier, SearchField string, query string, dest ...interface{}) error {
+func GetUser(ctx context.Context, db utils.Querier, SearchField string, query string, dest ...interface{}) error {
 	err := db.QueryRow(ctx, query, SearchField).Scan(dest...)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -58,9 +51,4 @@ func GetUser(ctx context.Context, db Querier, SearchField string, query string, 
 		return err
 	}
 	return nil
-}
-
-func UpdateDataInDatabase(ctx context.Context, db Querier, query string, dest ...interface{}) error {
-	_, err := db.Exec(ctx, query, dest...)
-	return err
 }

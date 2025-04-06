@@ -9,7 +9,7 @@ import (
 )
 
 type TokenClaims struct {
-	Id       string `json:"id"`
+	Oid      string `json:"oid"`
 	Username string `json:"username"`
 	jwt.RegisteredClaims
 }
@@ -24,8 +24,8 @@ type User interface {
 func CreateAccessToken(user User, expiry int) (string, error) {
 	exp := time.Now().Add(time.Hour * time.Duration(expiry)).Unix()
 	claims := TokenClaims{
-		Id:       user.GetOId(),      // user oid
-		Username: user.GetUserName(), // username
+		Oid:      user.GetOId(),
+		Username: user.GetUserName(),
 		RegisteredClaims: jwt.RegisteredClaims{ // time of expiry
 			ExpiresAt: &jwt.NumericDate{
 				Time: time.Unix(exp, 0),

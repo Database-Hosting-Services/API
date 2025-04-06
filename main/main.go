@@ -19,7 +19,7 @@ func main() {
 	config.Init(infoLog, errorLog)
 	defer config.CloseDB()
 
-	addr := flag.String("addr", ":8000", "HTTP network address")
+	addr := flag.String("addr", "0.0.0.0:8000", "HTTP network address")
 	flag.Parse()
 
 	defineURLs()
