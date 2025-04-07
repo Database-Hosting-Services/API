@@ -14,14 +14,27 @@ type Querier interface {
 	Query(ctx context.Context, query string, args ...interface{}) (pgx.Rows, error)
 }
 
-func GetProjcetFeild(ctx context.Context, projectId string, fieldName string, db Querier) (interface{}, error) {
-	query := fmt.Sprintf("SELECT %s FROM projects WHERE oid = $1", fieldName)
-	var res interface{}
-	err := db.QueryRow(ctx, query, projectId).Scan(&res)
+func GetProjcetNameID(ctx context.Context, projectId string, db Querier) (interface{}, interface{}, error) {
+	var name, id interface{}
+	err := db.QueryRow(ctx,"SELECT id, name FROM projects WHERE oid = $1", projectId).Scan(&id, &name)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return res, nil
+	return name, id, nil
 }
 
-func InsertNewTable()
+func InsertNewTable(ctx context.Context, table *Table, TableId *int, db Querier) error {
+	err := db.QueryRow(ctx, InsertNewTableRecordStmt, table.OID, table.Name, table.Description, table.ProjectID).Scan(TableId)
+	if err != nil {
+		return fmt.Errorf("failed to insert new table: %w", err)
+	}
+	return nil
+}
+
+func DeleteTableRecord(ctx context.Context, tableId int, db Querier) error {
+	_,err := db.Exec(ctx, DeleteTableRecordStmt, tableId)
+	if err != nil {
+		return fmt.Errorf("failed to delete table record: %w", err)
+	}
+	return nil
+}

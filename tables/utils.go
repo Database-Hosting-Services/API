@@ -29,7 +29,7 @@ func ParseTableIntoSQLCreate(table *ClientTable) (string, error) {
 	return createTableSQL, nil
 }
 
-func CreateTableSQL(ctx context.Context, table *ClientTable, tx pgx.Tx) (error) {
+func CreateTableIntoHostingServer(ctx context.Context, table *ClientTable, tx pgx.Tx) (error) {
 	DDLQuery, err := ParseTableIntoSQLCreate(table)
 	if err != nil {
 		return err
