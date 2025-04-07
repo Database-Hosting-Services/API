@@ -67,24 +67,21 @@ func ParseDatabaseURL(dbURL string) *DatabaseConfig {
 
 // ----------------------------------- Database Connection Pooling -----------------------------------
 
-// NewDBPoolManager creates a new instance of dbPoolManager with a base configuration.
-func NewDBPoolManager(baseConnString string) (*DBPoolManager, error) {
+// NewUserDbConfig creates a new instance of UserDbConfig with a base configuration.
+func NewUserDbConfig(baseConnString string) (*UserDbConfig, error) {
 	// Parse the base connection string to create a base configuration.
 	baseConfig, err := pgxpool.ParseConfig(baseConnString)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse base connection string: %w", err)
 	}
 
-	return &DBPoolManager{
+	return &UserDbConfig{
 		baseConfig: baseConfig,
 	}, nil
 }
 
 // GetPool creates a connection pool for the specified database.
-func (m *DBPoolManager) GetPool(ctx context.Context, dbName string) (*pgxpool.Pool, error) {
-	m.mutex.RLock()
-	defer m.mutex.RUnlock()
-
+func (m *UserDbConfig) GetConfig(ctx context.Context, dbName string) (*pgxpool.Pool, error) {
 	// Clone the base configuration for the database.
 	newConfig := m.baseConfig.Copy()
 	newConfig.ConnConfig.Database = dbName

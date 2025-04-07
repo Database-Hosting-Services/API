@@ -16,7 +16,6 @@ import (
 	"github.com/joho/godotenv"
 	"gopkg.in/gomail.v2"
 
-	"sync"
 )
 
 type Application struct {
@@ -40,9 +39,8 @@ type DatabaseConfig struct {
 	SSLMode      string // connection string controls how SSL/TLS encryption is used when connecting to the database
 }
 
-// DBPoolManager manages database connection pools
-type DBPoolManager struct {
-	mutex      sync.RWMutex
+// UserDbConfig manages database connection pools
+type UserDbConfig struct {
 	baseConfig *pgxpool.Config
 }
 
@@ -57,7 +55,7 @@ var (
 	Env         *Environment
 	DBConfig    *DatabaseConfig
 
-	PoolManager *DBPoolManager
+	ConfigManager *UserDbConfig
 )
 
 func loadEnv() {
@@ -112,12 +110,12 @@ func Init(infoLog, errorLog *log.Logger) {
 
 	// --------------------------------------- DataBase Pool Manager ----------------------------------------- //
 
-	PoolManager, err = NewDBPoolManager(adminConnStr)
+	ConfigManager, err = NewUserDbConfig(adminConnStr)
 	if err != nil {
-		errorLog.Fatalf("Unable to create DBPoolManager: %v", err)
+		errorLog.Fatalf("Unable to create UserDbConfig: %v", err)
 	}
 
-	infoLog.Println("DBPoolManager created successfully! ✅")
+	infoLog.Println("UserDbConfig created successfully! ✅")
 
 	// --------------------------------------- database connection ----------------------------------------- //
 	dbURL := os.Getenv("DATABASE_URL")
