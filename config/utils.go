@@ -76,30 +76,16 @@ func NewDBPoolManager(baseConnString string) (*DBPoolManager, error) {
 	}
 
 	return &DBPoolManager{
-		pools:      make(map[string]*pgxpool.Pool),
 		baseConfig: baseConfig,
 	}, nil
 }
 
-// getPool retrieves or creates a connection pool for the specified database.
+// GetPool creates a connection pool for the specified database.
 func (m *DBPoolManager) GetPool(ctx context.Context, dbName string) (*pgxpool.Pool, error) {
 	m.mutex.RLock()
-	pool, exists := m.pools[dbName]
-	m.mutex.RUnlock()
+	defer m.mutex.RUnlock()
 
-	if exists {
-		return pool, nil
-	}
-
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	// Double-check to ensure the pool wasn't created in the meantime.
-	if pool, exists = m.pools[dbName]; exists {
-		return pool, nil
-	}
-
-	// Clone the base configuration for the new database.
+	// Clone the base configuration for the database.
 	newConfig := m.baseConfig.Copy()
 	newConfig.ConnConfig.Database = dbName
 
@@ -109,28 +95,5 @@ func (m *DBPoolManager) GetPool(ctx context.Context, dbName string) (*pgxpool.Po
 		return nil, fmt.Errorf("unable to create connection pool for database %s: %w", dbName, err)
 	}
 
-	m.pools[dbName] = newPool
 	return newPool, nil
-}
-
-// closeAllPools closes all managed connection pools.
-func (m *DBPoolManager) CloseAllPools() {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	for dbName, pool := range m.pools {
-		pool.Close()
-		delete(m.pools, dbName)
-	}
-}
-
-// closePool closes the connection pool for the specified database.
-func (m *DBPoolManager) ClosePool(dbName string) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	if pool, exists := m.pools[dbName]; exists {
-		pool.Close()
-		delete(m.pools, dbName)
-	}
 }

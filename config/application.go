@@ -42,7 +42,6 @@ type DatabaseConfig struct {
 
 // DBPoolManager manages database connection pools
 type DBPoolManager struct {
-	pools      map[string]*pgxpool.Pool
 	mutex      sync.RWMutex
 	baseConfig *pgxpool.Config
 }
