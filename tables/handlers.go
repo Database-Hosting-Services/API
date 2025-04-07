@@ -46,6 +46,10 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 		}
 		// Call the service function to create the table
 		if err := CreateTable(r.Context(), projectId, &table, config.DB); err != nil {
+			if err.Error() == "Unauthorized" {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+			}
 			app.ErrorLog.Println("Table creation failed:", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

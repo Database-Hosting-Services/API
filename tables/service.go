@@ -14,9 +14,20 @@ func CreateTable(ctx context.Context, projectOID string, table *ClientTable, ser
 	if !ok || UserID == 0 {
 		return errors.New("Unauthorized")
 	}
+
+	// check if the user is the owner of the project
+	isOwner, err := CheckOwnership(ctx, projectOID, UserID, servDb)
+	if err != nil {
+		return err
+	}
+
+	if !isOwner {
+		return errors.New("Unauthorized")
+	}
+
 	config.App.InfoLog.Println(UserID)
 	// get the dbname to connect to
-	dbName, projectId, err := GetProjcetNameID(ctx, projectOID, servDb)
+	dbName, projectId, err := GetProjectNameID(ctx, projectOID, servDb)
 	if err != nil {
 		return err
 	}

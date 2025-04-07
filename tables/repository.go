@@ -14,7 +14,7 @@ type Querier interface {
 	Query(ctx context.Context, query string, args ...interface{}) (pgx.Rows, error)
 }
 
-func GetProjcetNameID(ctx context.Context, projectId string, db Querier) (interface{}, interface{}, error) {
+func GetProjectNameID(ctx context.Context, projectId string, db Querier) (interface{}, interface{}, error) {
 	var name, id interface{}
 	err := db.QueryRow(ctx,"SELECT id, name FROM projects WHERE oid = $1", projectId).Scan(&id, &name)
 	if err != nil {
@@ -37,4 +37,13 @@ func DeleteTableRecord(ctx context.Context, tableId int, db Querier) error {
 		return fmt.Errorf("failed to delete table record: %w", err)
 	}
 	return nil
+}
+
+func CheckOwnership(ctx context.Context, projectId string, userId int, db Querier) (bool, error) {
+	var count int
+	err := db.QueryRow(ctx, CheckOwnershipStmt, projectId, userId).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("failed to check ownership: %w", err)
+	}
+	return count > 0, nil
 }
