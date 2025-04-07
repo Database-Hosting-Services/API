@@ -14,7 +14,7 @@ type Querier interface {
 	Query(ctx context.Context, query string, args ...interface{}) (pgx.Rows, error)
 }
 
-func GetProjcetFeild(ctx context.Context, projectId int, fieldName string, db Querier) (interface{}, error) {
+func GetProjcetFeild(ctx context.Context, projectId string, fieldName string, db Querier) (interface{}, error) {
 	query := fmt.Sprintf("SELECT %s FROM projects WHERE oid = $1", fieldName)
 	var res interface{}
 	err := db.QueryRow(ctx, query, projectId).Scan(&res)
@@ -23,3 +23,5 @@ func GetProjcetFeild(ctx context.Context, projectId int, fieldName string, db Qu
 	}
 	return res, nil
 }
+
+func InsertNewTable()
