@@ -3,17 +3,19 @@ package config
 import (
 	"DBHS/caching"
 	"context"
-	"github.com/jackc/pgx/v5"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 
+	"github.com/jackc/pgx/v5"
+
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"gopkg.in/gomail.v2"
+
 )
 
 type Application struct {
@@ -37,6 +39,11 @@ type DatabaseConfig struct {
 	SSLMode      string // connection string controls how SSL/TLS encryption is used when connecting to the database
 }
 
+// UserDbConfig manages database connection pools
+type UserDbConfig struct {
+	baseConfig *pgxpool.Config
+}
+
 var (
 	App         *Application
 	Mux         *http.ServeMux
@@ -47,6 +54,8 @@ var (
 	EmailSender *gomail.Dialer
 	Env         *Environment
 	DBConfig    *DatabaseConfig
+
+	ConfigManager *UserDbConfig
 )
 
 func loadEnv() {
@@ -98,6 +107,15 @@ func Init(infoLog, errorLog *log.Logger) {
 	}
 
 	infoLog.Println("Connected to Admin PostgreSQL successfully! ✅")
+
+	// --------------------------------------- DataBase Pool Manager ----------------------------------------- //
+
+	ConfigManager, err = NewUserDbConfig(adminConnStr)
+	if err != nil {
+		errorLog.Fatalf("Unable to create UserDbConfig: %v", err)
+	}
+
+	infoLog.Println("UserDbConfig created successfully! ✅")
 
 	// --------------------------------------- database connection ----------------------------------------- //
 	dbURL := os.Getenv("DATABASE_URL")
@@ -165,4 +183,5 @@ func CloseDB() {
 		AdminDB.Close()
 		App.InfoLog.Println("Admin database connection closed. 🔌")
 	}
+	// config.CloseAllPools();
 }
