@@ -15,7 +15,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"gopkg.in/gomail.v2"
-
 )
 
 type Application struct {

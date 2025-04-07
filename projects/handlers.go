@@ -95,7 +95,7 @@ func getSpecificProject(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		data, err := getUserSpecificProject(r.Context(), config.DB, userId, projectOid)
+		data, err := GetUserSpecificProject(r.Context(), config.DB, userId, projectOid)
 		if err != nil {
 			app.ErrorLog.Println(err)
 			response.InternalServerError(w, "Internal Server Error", nil)
@@ -163,7 +163,7 @@ func updateProject(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		projectData, err := getUserSpecificProject(r.Context(), transaction, userId, projectOid)
+		projectData, err := GetUserSpecificProject(r.Context(), transaction, userId, projectOid)
 		if err != nil {
 			app.ErrorLog.Println(err)
 			response.InternalServerError(w, "Internal Server Error", nil)

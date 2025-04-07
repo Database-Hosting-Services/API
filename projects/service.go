@@ -103,7 +103,7 @@ func DeleteUserProject(ctx context.Context, db *pgxpool.Pool, projectOID string)
 	defer tx.Rollback(ctx)
 
 	// ---------------------- Get The Project Name ----------------------
-	project, err := getUserSpecificProject(ctx, tx, UserID, projectOID)
+	project, err := GetUserSpecificProject(ctx, tx, UserID, projectOID)
 	if err != nil {
 		return errors.New("Project not found")
 	}
@@ -145,7 +145,7 @@ func getUserProjects(ctx context.Context, db *pgxpool.Pool, userId int) ([]*Safe
 	return projects, nil
 }
 
-func getUserSpecificProject(ctx context.Context, db utils.Querier, userId int, projectOid string) (*SafeProjectData, error) {
+func GetUserSpecificProject(ctx context.Context, db utils.Querier, userId int, projectOid string) (*SafeProjectData, error) {
 	project, err := getUserSpecificProjectFromDatabase(ctx, db, userId, projectOid)
 	if err != nil {
 		return nil, err
