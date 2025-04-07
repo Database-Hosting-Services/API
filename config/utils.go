@@ -81,7 +81,7 @@ func NewUserDbConfig(baseConnString string) (*UserDbConfig, error) {
 }
 
 // GetPool creates a connection pool for the specified database.
-func (m *UserDbConfig) GetConfig(ctx context.Context, dbName string) (*pgxpool.Pool, error) {
+func (m *UserDbConfig) GetDbConnection(ctx context.Context, dbName string) (*pgxpool.Pool, error) {
 	// Clone the base configuration for the database.
 	newConfig := m.baseConfig.Copy()
 	newConfig.ConnConfig.Database = dbName
