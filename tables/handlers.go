@@ -19,7 +19,7 @@ import (
 			isUnique: "",
 			isNullable: "",
 			isPrimaryKey: "",
-			ForiegnKey: {
+			foriegnKey: {
 				tableName: "",
 				columnName: "",
 			},
@@ -34,6 +34,12 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 		// Parse the request body to populate the table struct
 		if err := json.NewDecoder(r.Body).Decode(&table); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// Validate the table struct
+		if !CheckForValidTable(&table) {
+			http.Error(w, "Invalid table definition", http.StatusBadRequest)
 			return
 		}
 
@@ -56,5 +62,26 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 		}
 		// Return a success response
 		response.Created(w, "Table created successfully", nil)
+	}
+}
+
+/*
+	"insert": {
+		"columns" : [
+
+		]
+	},
+	"update": {
+		"columns" : [
+		]
+	},
+	"delete": {
+		"columns" : [	
+		]
+	},
+*/
+
+func UpdateTableHandler(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 	}
 }

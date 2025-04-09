@@ -12,20 +12,20 @@ type Table struct {
 // TableData struct is the how the client will send the definition of the table to the server
 // and how the server will respond with the table definition
 type ClientTable struct {
-	TableName string `json:"table_name"`
+	TableName string `json:"tableName"`
 	Columns   []Column `json:"columns"`
 }
 
 type Column struct {
 	Name    string `json:"name"`
 	Type    string `json:"type"`
-	IsUnique bool   `json:"is_unique"`
-	IsNullable bool `json:"is_nullable"`
-	IsPrimaryKey bool `json:"is_primary_key"`
-	ForeignKey ForeignKey `json:"foreign_key"`
+	IsUnique bool   `json:"isUnique"`
+	IsNullable bool `json:"isNullable"`
+	IsPrimaryKey bool `json:"isPrimaryKey"`
+	ForeignKey ForeignKey `json:"foreignKey"`
 }
 
 type ForeignKey struct {
-	ColumnName string `json:"column_name"`
-	TableName string `json:"table_name"`
+	ColumnName string `json:"columnName"`
+	TableName string `json:"tableName"`
 }

@@ -3,6 +3,7 @@ package tables
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -34,9 +35,22 @@ func CreateTableIntoHostingServer(ctx context.Context, table *ClientTable, tx pg
 	if err != nil {
 		return err
 	}
+	log.Println(DDLQuery)
 	_, err = tx.Exec(ctx, DDLQuery)
 	if err != nil {
 		return fmt.Errorf("failed to create table: %w", err)
 	}
 	return nil
+}
+
+func CheckForValidTable(table *ClientTable) bool {
+	if table.TableName == "" || len(table.Columns) == 0 {
+		return false
+	}
+	for _, column := range table.Columns {
+		if column.Name == "" || column.Type == "" {
+			return false
+		}
+	}
+	return true
 }
