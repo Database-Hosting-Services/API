@@ -8,3 +8,7 @@ func GenerateIndexQuery(Index IndexData) string {
 	columns := strings.Join(Index.Columns, ", ")
 	return "CREATE INDEX " + Index.IndexName + " ON " + Index.TableName + " USING " + Index.IndexType + " (" + columns + ")"
 }
+
+func GenerateDeleteIndexQuery(indexName string) string {
+	return "DROP INDEX IF EXISTS " + indexName
+}

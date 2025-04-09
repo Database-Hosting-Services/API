@@ -14,7 +14,8 @@ var empty = map[string]http.HandlerFunc{
 
 // // prefix routes with: /projects/{project-id}/indexes/{index-oid}
 var single = map[string]http.HandlerFunc{
-	http.MethodGet: GetIndex(config.App),
+	http.MethodGet:    GetIndex(config.App),
+	http.MethodDelete: DeleteIndex(config.App),
 }
 
 func DefineURLs() {

@@ -38,3 +38,12 @@ func GetSpecificIndexFromDatabase(ctx context.Context, conn *pgxpool.Pool, index
 	}
 	return index
 }
+
+func DeleteIndexFromDatabase(ctx context.Context, conn *pgxpool.Pool, indexName string) error {
+	DELETE_INDEX := GenerateDeleteIndexQuery(indexName)
+	_, err := conn.Exec(ctx, DELETE_INDEX)
+	if err != nil {
+		return err
+	}
+	return nil
+}
