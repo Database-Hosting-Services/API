@@ -10,29 +10,12 @@ import (
 )
 
 func CreateTable(ctx context.Context, projectOID string, table *ClientTable, servDb *pgxpool.Pool) error {
-	UserID, ok := ctx.Value("user-id").(int)
-	if !ok || UserID == 0 {
+	userId, ok := ctx.Value("user-id").(int)
+	if !ok || userId == 0 {
 		return errors.New("Unauthorized")
 	}
 
-	// check if the user is the owner of the project
-	isOwner, err := CheckOwnership(ctx, projectOID, UserID, servDb)
-	if err != nil {
-		return err
-	}
-
-	if !isOwner {
-		return errors.New("Unauthorized")
-	}
-
-	config.App.InfoLog.Println(UserID)
-	// get the dbname to connect to
-	dbName, projectId, err := GetProjectNameID(ctx, projectOID, servDb)
-	if err != nil {
-		return err
-	}
-	// get the db connection
-	userDb, err := config.ConfigManager.GetDbConnection(ctx, utils.UserServerDbFromat(dbName.(string), UserID))
+	projectId, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return err
 	}
@@ -48,7 +31,7 @@ func CreateTable(ctx context.Context, projectOID string, table *ClientTable, ser
 	}
 	tableRecord := Table{
 		Name:      table.TableName,
-		ProjectID: projectId.(int64),
+		ProjectID: projectId,
 		OID:       utils.GenerateOID(),
 	}
 	var tableId int
@@ -61,5 +44,43 @@ func CreateTable(ctx context.Context, projectOID string, table *ClientTable, ser
 		return err
 	}
 	config.App.InfoLog.Printf("Table %s created successfully in project %s by user %s", table.TableName, projectOID, ctx.Value("user-name").(string))
+	return nil
+}
+
+
+func UpdateTable(ctx context.Context, projectOID string, tableOID string, updates *TableUpdate, servDb *pgxpool.Pool) error {
+	userId, ok := ctx.Value("user-id").(int)
+	if !ok || userId == 0 {
+		return errors.New("Unauthorized")
+	}
+
+	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb) 
+	if err != nil {
+		return err
+	}
+
+	tableName, err := GetTableName(ctx, tableOID, servDb)
+	if err != nil {
+		return err
+	}
+
+	// Call the service function to read the table
+	table, err := ReadTable(ctx, userDb)
+	if err != nil {
+		return err
+	}
+
+	tx, err := userDb.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	if err := ExecuteUpdate(tableName, table, updates, tx); err != nil {
+		return err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }

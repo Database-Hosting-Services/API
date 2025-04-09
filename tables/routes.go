@@ -17,7 +17,7 @@ import (
 
 func DefineURLs() {
 	router := config.Router.PathPrefix("/api/projects/{project_id}/tables").Subrouter()
-	router.Use(middleware.JwtAuthMiddleware)
+	router.Use(middleware.JwtAuthMiddleware, middleware.CheckOwnership)
 	
 	router.Handle("", middleware.MethodsAllowed(http.MethodPost)(CreateTableHandler(config.App)))
 	router.Handle("/{table_id}", middleware.Route( map[string]http.HandlerFunc{
