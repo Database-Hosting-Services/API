@@ -69,3 +69,28 @@ func ProjectIndexes(app *config.Application) http.HandlerFunc {
 		response.OK(w, "Indexes retrieved successfully", indexes)
 	}
 }
+
+func GetIndex(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		indexOid, projectOid := urlVariables["index_oid"], urlVariables["project_id"]
+		if indexOid == "" || projectOid == "" {
+			response.BadRequest(w, "Index Id and Project Id are required", nil)
+			return
+		}
+
+		index, err := GetSpecificIndex(r.Context(), config.DB, projectOid, indexOid)
+		if err != nil {
+			if err.Error() == "index not found" {
+				response.NotFound(w, "Index not found", nil)
+			} else if err.Error() == "unauthorized" {
+				response.UnAuthorized(w, "Unauthorized", nil)
+			} else {
+				response.InternalServerError(w, "Failed to get index", nil)
+			}
+			return
+		}
+
+		response.OK(w, "Index retrieved successfully", index)
+	}
+}

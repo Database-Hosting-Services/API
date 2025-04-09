@@ -12,9 +12,15 @@ var empty = map[string]http.HandlerFunc{
 	http.MethodGet:  ProjectIndexes(config.App),
 }
 
+// // prefix routes with: /projects/{project-id}/indexes/{index-oid}
+var single = map[string]http.HandlerFunc{
+	http.MethodGet: GetIndex(config.App),
+}
+
 func DefineURLs() {
 	router := config.Router.PathPrefix("/api/projects/{project_id}/indexes").Subrouter()
 	router.Use(middleware.JwtAuthMiddleware)
 
 	router.Handle("", middleware.Route(empty))
+	router.Handle("/{index_oid}", middleware.Route(single))
 }

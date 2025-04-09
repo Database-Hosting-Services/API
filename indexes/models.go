@@ -12,3 +12,10 @@ type RetrievedIndex struct {
 	IndexOid  string `json:"index_oid"`
 	IndexType string `json:"index_type"`
 }
+
+type SpecificIndex struct {
+	IndexName string `json:"index_name"`
+	IndexType string `json:"index_type"`
+}
+
+var DefaultSpecificIndex = SpecificIndex{}
