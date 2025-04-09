@@ -6,3 +6,9 @@ type IndexData struct {
 	Columns   []string `json:"columns"`
 	TableName string   `json:"table_name"`
 }
+
+type RetrievedIndex struct {
+	IndexName string `json:"index_name"`
+	IndexOid  string `json:"index_oid"`
+	IndexType string `json:"index_type"`
+}

@@ -49,3 +49,23 @@ func CreateIndex(app *config.Application) http.HandlerFunc {
 		response.Created(w, "Index created successfully", nil)
 	}
 }
+
+func ProjectIndexes(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		projectOid := urlVariables["project_id"]
+		if projectOid == "" {
+			response.BadRequest(w, "Project Id is required", nil)
+			return
+		}
+
+		indexes, err := GetIndexes(r.Context(), config.DB, projectOid)
+		if err != nil {
+			app.ErrorLog.Println("Failed to get indexes:", err)
+			response.InternalServerError(w, "Failed to get indexes", nil)
+			return
+		}
+
+		response.OK(w, "Indexes retrieved successfully", indexes)
+	}
+}

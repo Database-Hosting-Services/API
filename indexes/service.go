@@ -47,3 +47,41 @@ func CreateIndexInDatabase(ctx context.Context, db *pgxpool.Pool, projectOid str
 	conn.Close()
 	return nil
 }
+
+func GetIndexes(ctx context.Context, db *pgxpool.Pool, projectOid string) ([]RetrievedIndex, error) {
+	// Get user ID from context
+	UserID, ok := ctx.Value("user-id").(int)
+	if !ok || UserID == 0 {
+		return nil, errors.New("Unauthorized")
+	}
+
+	// ------------------------ Get the project database connection ------------------------
+	projectDB, err := projects.GetUserSpecificProject(ctx, db, UserID, projectOid)
+	if err != nil {
+		return nil, err
+	}
+
+	if projectDB == nil {
+		return nil, errors.New("project not found")
+	}
+
+	// ------------------------ Get The project connection Pool ------------------------
+
+	DBname := strings.ToLower(projectDB.Name) + "_" + strconv.Itoa(UserID)
+	conn, err := config.ConfigManager.GetDbConnection(ctx, DBname)
+	if err != nil {
+		return nil, err
+	}
+
+	// ------------------------ Get the indexes from the database ------------------------
+
+	indexes, err := GetProjectIndexes(ctx, conn)
+	if err != nil {
+		return nil, err
+	}
+
+	// ------------------------ Close the connection ------------------------
+
+	conn.Close()
+	return indexes, nil
+}
