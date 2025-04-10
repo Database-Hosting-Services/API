@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 func TestCreateTestUser(t *testing.T) {
 	email, username := setupUserTest(t)
 
-	err := CreateTestUser(app, email, username, "Test@123456")
+	_, err := CreateTestUser(app, email, username, "Test@123456")
 	if err != nil {
 		t.Fatalf("Failed to create test user: %v", err)
 	}

@@ -97,6 +97,10 @@ func getSpecificProject(app *config.Application) http.HandlerFunc {
 
 		data, err := GetUserSpecificProject(r.Context(), config.DB, userId, projectOid)
 		if err != nil {
+			if errors.Is(err, ErrorProjectNotFound) {
+				response.NotFound(w, "Project not found", nil)
+				return
+			}
 			app.ErrorLog.Println(err)
 			response.InternalServerError(w, "Internal Server Error", nil)
 			return
