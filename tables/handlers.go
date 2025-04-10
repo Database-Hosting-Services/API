@@ -5,6 +5,7 @@ import (
 	"DBHS/response"
 	"encoding/json"
 	"net/http"
+	"errors"
 
 	"github.com/gorilla/mux"
 )
@@ -52,7 +53,7 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 		}
 		// Call the service function to create the table
 		if err := CreateTable(r.Context(), projectId, &table, config.DB); err != nil {
-			if err.Error() == "Unauthorized" {
+			if errors.Is(err, response.ErrUnauthorized) {
 				response.UnAuthorized(w, "Unauthorized", nil)
 				return
 			}
@@ -104,7 +105,7 @@ func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 
 		// Call the service function to update the table
 		if err := UpdateTable(r.Context(), projectId, tableId, &updates, config.DB); err != nil {
-			if err.Error() == "Unauthorized" {
+			if errors.Is(err, response.ErrUnauthorized) {
 				response.UnAuthorized(w, "Unauthorized", nil)
 				return
 			}
@@ -114,5 +115,31 @@ func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 		}
 		// Return a success response
 		response.OK(w, "Table updated successfully", nil)
+	}
+}
+
+
+
+func DeleteTableHandler(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		projectId := urlVariables["project_id"]
+		tableId := urlVariables["table_id"]
+		if projectId == "" || tableId == "" {
+			response.BadRequest(w, "Project ID and Table ID are required", nil)
+			return
+		}
+		// Call the service function to delete the table
+		if err := DeletTable(r.Context(), projectId, tableId, config.DB); err != nil {
+			if errors.Is(err, response.ErrUnauthorized) {
+				response.UnAuthorized(w, "Unauthorized", nil)
+				return
+			}
+			app.ErrorLog.Println("Table deletion failed:", err)
+			response.InternalServerError(w, "Failed to delete table", err)
+			return
+		}
+		// Return a success response
+		response.OK(w, "Table deleted successfully", nil)
 	}
 }

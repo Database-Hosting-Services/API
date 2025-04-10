@@ -1,6 +1,14 @@
 package response
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+)
+
+
+var (
+	 ErrUnauthorized = errors.New("Unauthorized")
+)
 
 // you can use one of these frequently used response for more code readability
 //

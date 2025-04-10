@@ -28,7 +28,7 @@ func InsertNewTable(ctx context.Context, table *Table, TableId *int, db utils.Qu
 }
 
 func DeleteTableRecord(ctx context.Context, tableId int, db utils.Querier) error {
-	_,err := db.Exec(ctx, DeleteTableRecordStmt, tableId)
+	_,err := db.Exec(ctx, fmt.Sprintf(DeleteTableStmt, "id"), tableId)
 	if err != nil {
 		return fmt.Errorf("failed to delete table record: %w", err)
 	}
@@ -65,4 +65,20 @@ func GetTableName(ctx context.Context, tableOID string, db utils.Querier) (strin
 		return "", fmt.Errorf("failed to get table name: %w", err)
 	}
 	return tableName, nil
+}
+
+func DeleteTableFromHostingServer(ctx context.Context, tableName string, db utils.Querier) error {
+	_, err := db.Exec(ctx, DropTableStmt, tableName)
+	if err != nil {
+		return fmt.Errorf("failed to delete table from hosting server: %w", err)
+	}
+	return nil
+}
+
+func DeleteTableFromServerDb(ctx context.Context, tableOID string, db utils.Querier) error {
+	_, err := db.Exec(ctx, fmt.Sprintf(DeleteTableStmt, "oid"), tableOID)
+	if err != nil {
+		return fmt.Errorf("failed to delete table from server DB: %w", err)
+	}
+	return nil
 }

@@ -84,3 +84,51 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 
 	return nil
 }
+
+func DeletTable(ctx context.Context, projectOID , tableOID string, servDb *pgxpool.Pool) error {
+	userId, ok := ctx.Value("user-id").(int)
+	if !ok || userId == 0 {
+		return errors.New("Unauthorized")
+	}
+
+	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb) 
+	if err != nil {
+		return err
+	}
+
+	tableName, err := GetTableName(ctx, tableOID, servDb)
+	if err != nil {
+		return err
+	}
+	usertx, err := userDb.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer usertx.Rollback(ctx)
+
+	if err := DeleteTableFromHostingServer(ctx, tableOID, usertx); err != nil {
+		return err
+	}
+
+	servtx , err := servDb.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer servtx.Rollback(ctx)
+	if err := DeleteTableFromServerDb(ctx, tableOID, servtx); err != nil {
+		return err
+	}
+
+	if err := servtx.Commit(ctx); err != nil {
+		return err
+	}
+
+	if err := usertx.Commit(ctx); err != nil {
+		config.App.ErrorLog.Println("Failed to commit transaction:", err, "server db and user db are not in sync")
+		return err
+	}
+
+	config.App.InfoLog.Printf("Table %s deleted successfully in project %s by user %s", tableName, projectOID, ctx.Value("user-name").(string))
+
+	return nil
+}
