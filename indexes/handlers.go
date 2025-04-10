@@ -151,6 +151,8 @@ func UpdateIndexName(app *config.Application) http.HandlerFunc {
 				response.UnAuthorized(w, "Unauthorized", nil)
 			} else if strings.Contains(err.Error(), "index name is the same as the current name") {
 				response.BadRequest(w, "Index name is the same as the current name", nil)
+			} else if strings.Contains(err.Error(), "index already exists") {
+				response.BadRequest(w, "Index already exists", nil)
 			} else {
 				response.InternalServerError(w, "Failed to update index name", nil)
 			}

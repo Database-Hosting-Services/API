@@ -1,7 +1,13 @@
 package indexes
 
 import (
+	"DBHS/config"
+	"DBHS/projects"
 	"DBHS/utils"
+	"context"
+	"errors"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"strconv"
 	"strings"
 )
 
@@ -23,4 +29,30 @@ func GenerateDeleteIndexQuery(indexName string) string {
 // ALTER INDEX old_index_name RENAME TO new_index_name;
 func GenerateRenameIndexQuery(oldName string, newName string) string {
 	return "ALTER INDEX IF EXISTS " + oldName + " RENAME TO " + newName
+}
+
+func ProjectPoolConnection(ctx context.Context, db *pgxpool.Pool, UserID int, projectOid string) (*pgxpool.Pool, error) {
+	projectDB, err := projects.GetUserSpecificProject(ctx, db, UserID, projectOid)
+	if err != nil {
+		return nil, err
+	}
+
+	if projectDB == nil {
+		return nil, errors.New("project not found")
+	}
+
+	// ------------------------ Get The project connection Pool ------------------------
+
+	DBname := strings.ToLower(projectDB.Name) + "_" + strconv.Itoa(UserID)
+	conn, err := config.ConfigManager.GetDbConnection(ctx, DBname)
+	if err != nil {
+		return nil, err
+	}
+
+	// ------------------------ Check if the connection pool is already created ------------------------
+	if conn == nil {
+		return nil, errors.New("connection pool not found")
+	}
+
+	return conn, nil
 }

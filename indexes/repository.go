@@ -3,6 +3,8 @@ package indexes
 import (
 	"context"
 	"errors"
+	"strings"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -59,6 +61,9 @@ func UpdateIndexNameInDatabase(ctx context.Context, conn *pgxpool.Pool, oldName 
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return errors.New("index not found")
+		}
+		if strings.Contains(err.Error(), "already exists") {
+			return errors.New("index already exists")
 		}
 		return err
 	}

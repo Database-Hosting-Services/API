@@ -1,15 +1,9 @@
 package indexes
 
 import (
-	"DBHS/config"
-	"DBHS/projects"
 	"DBHS/utils"
 	"context"
 	"errors"
-	"fmt"
-	"strconv"
-	"strings"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -20,20 +14,8 @@ func CreateIndexInDatabase(ctx context.Context, db *pgxpool.Pool, projectOid str
 		return errors.New("Unauthorized")
 	}
 
-	// ------------------------ Get the project database connection ------------------------
-	projectDB, err := projects.GetUserSpecificProject(ctx, db, UserID, projectOid)
-	if err != nil {
-		return err
-	}
-
-	if projectDB == nil {
-		return errors.New("project not found")
-	}
-
-	// ------------------------ Get The project connection Pool ------------------------
-
-	DBname := strings.ToLower(projectDB.Name) + "_" + strconv.Itoa(UserID)
-	conn, err := config.ConfigManager.GetDbConnection(ctx, DBname)
+	// ------------------------ Get the project pool connection ------------------------
+	conn, err := ProjectPoolConnection(ctx, db, UserID, projectOid)
 	if err != nil {
 		return err
 	}
@@ -56,23 +38,12 @@ func GetIndexes(ctx context.Context, db *pgxpool.Pool, projectOid string) ([]Ret
 		return nil, errors.New("Unauthorized")
 	}
 
-	// ------------------------ Get the project database connection ------------------------
-	projectDB, err := projects.GetUserSpecificProject(ctx, db, UserID, projectOid)
+	// ------------------------ Get the project pool connection ------------------------
+	conn, err := ProjectPoolConnection(ctx, db, UserID, projectOid)
 	if err != nil {
 		return nil, err
 	}
 
-	if projectDB == nil {
-		return nil, errors.New("project not found")
-	}
-
-	// ------------------------ Get The project connection Pool ------------------------
-
-	DBname := strings.ToLower(projectDB.Name) + "_" + strconv.Itoa(UserID)
-	conn, err := config.ConfigManager.GetDbConnection(ctx, DBname)
-	if err != nil {
-		return nil, err
-	}
 	defer conn.Close()
 
 	// ------------------------ Get the indexes from the database ------------------------
@@ -92,22 +63,12 @@ func GetSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOi
 		return DefaultSpecificIndex, errors.New("Unauthorized")
 	}
 
-	// ------------------------ Get the project database connection ------------------------
-	projectDB, err := projects.GetUserSpecificProject(ctx, db, UserID, projectOid)
+	// ------------------------ Get the project pool connection ------------------------
+	conn, err := ProjectPoolConnection(ctx, db, UserID, projectOid)
 	if err != nil {
 		return DefaultSpecificIndex, err
 	}
 
-	if projectDB == nil {
-		return DefaultSpecificIndex, errors.New("project not found")
-	}
-
-	// ------------------------ Get The project connection Pool ------------------------
-	DBname := strings.ToLower(projectDB.Name) + "_" + strconv.Itoa(UserID)
-	conn, err := config.ConfigManager.GetDbConnection(ctx, DBname)
-	if err != nil {
-		return DefaultSpecificIndex, err
-	}
 	defer conn.Close()
 
 	// ------------------------ Get the index from the database ------------------------
@@ -128,23 +89,12 @@ func DeleteSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, inde
 		return errors.New("Unauthorized")
 	}
 
-	// ------------------------ Get the project database connection ------------------------
-	projectDB, err := projects.GetUserSpecificProject(ctx, db, UserID, projectOid)
+	// ------------------------ Get the project pool connection ------------------------
+	conn, err := ProjectPoolConnection(ctx, db, UserID, projectOid)
 	if err != nil {
 		return err
 	}
 
-	if projectDB == nil {
-		return errors.New("project not found")
-	}
-
-	// ------------------------ Get The project connection Pool ------------------------
-
-	DBname := strings.ToLower(projectDB.Name) + "_" + strconv.Itoa(UserID)
-	conn, err := config.ConfigManager.GetDbConnection(ctx, DBname)
-	if err != nil {
-		return err
-	}
 	defer conn.Close()
 
 	// ------------------------ Delete the index from the database ------------------------
@@ -169,23 +119,12 @@ func UpdateSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, inde
 		return errors.New("Unauthorized")
 	}
 
-	// ------------------------ Get the project database connection ------------------------
-	projectDB, err := projects.GetUserSpecificProject(ctx, db, UserID, projectOid)
+	// ------------------------ Get the project pool connection ------------------------
+	conn, err := ProjectPoolConnection(ctx, db, UserID, projectOid)
 	if err != nil {
 		return err
 	}
 
-	if projectDB == nil {
-		return errors.New("project not found")
-	}
-
-	// ------------------------ Get The project connection Pool ------------------------
-
-	DBname := strings.ToLower(projectDB.Name) + "_" + strconv.Itoa(UserID)
-	conn, err := config.ConfigManager.GetDbConnection(ctx, DBname)
-	if err != nil {
-		return err
-	}
 	defer conn.Close()
 
 	// ------------------------ Update the index in the database ------------------------
@@ -203,7 +142,6 @@ func UpdateSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, inde
 
 	err = UpdateIndexNameInDatabase(ctx, conn, indexData.IndexName, newName)
 	if err != nil {
-		fmt.Println("err:", err.Error())
 		return err
 	}
 
