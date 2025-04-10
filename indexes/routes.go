@@ -16,6 +16,7 @@ var empty = map[string]http.HandlerFunc{
 var single = map[string]http.HandlerFunc{
 	http.MethodGet:    GetIndex(config.App),
 	http.MethodDelete: DeleteIndex(config.App),
+	http.MethodPut:    UpdateIndexName(config.App),
 }
 
 func DefineURLs() {

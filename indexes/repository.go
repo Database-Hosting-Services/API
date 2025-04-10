@@ -2,6 +2,8 @@ package indexes
 
 import (
 	"context"
+	"errors"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -43,6 +45,21 @@ func DeleteIndexFromDatabase(ctx context.Context, conn *pgxpool.Pool, indexName 
 	DELETE_INDEX := GenerateDeleteIndexQuery(indexName)
 	_, err := conn.Exec(ctx, DELETE_INDEX)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return errors.New("index not found")
+		}
+		return err
+	}
+	return nil
+}
+
+func UpdateIndexNameInDatabase(ctx context.Context, conn *pgxpool.Pool, oldName string, newName string) error {
+	UPDATE_INDEX := GenerateRenameIndexQuery(oldName, newName)
+	_, err := conn.Exec(ctx, UPDATE_INDEX)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return errors.New("index not found")
+		}
 		return err
 	}
 	return nil

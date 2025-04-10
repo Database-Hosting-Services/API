@@ -121,3 +121,42 @@ func DeleteIndex(app *config.Application) http.HandlerFunc {
 		response.OK(w, "Index deleted successfully", nil)
 	}
 }
+
+func UpdateIndexName(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		indexOid, projectOid := urlVariables["index_oid"], urlVariables["project_id"]
+		if indexOid == "" || projectOid == "" {
+			response.BadRequest(w, "Index Id and Project Id are required", nil)
+			return
+		}
+
+		var indexData IndexData
+		if err := json.NewDecoder(r.Body).Decode(&indexData); err != nil {
+			response.BadRequest(w, "Invalid request body", nil)
+			return
+		}
+
+		if indexData.IndexName == "" {
+			response.BadRequest(w, "Index name is required", nil)
+			return
+		}
+
+		err := UpdateSpecificIndex(r.Context(), config.DB, projectOid, indexOid, indexData.IndexName)
+		if err != nil {
+			config.App.ErrorLog.Println("Failed to update index name:", err)
+			if strings.Contains(err.Error(), "index not found") {
+				response.NotFound(w, "Index not found", nil)
+			} else if strings.Contains(err.Error(), "unauthorized") {
+				response.UnAuthorized(w, "Unauthorized", nil)
+			} else if strings.Contains(err.Error(), "index name is the same as the current name") {
+				response.BadRequest(w, "Index name is the same as the current name", nil)
+			} else {
+				response.InternalServerError(w, "Failed to update index name", nil)
+			}
+			return
+		}
+
+		response.OK(w, "Index name updated successfully", nil)
+	}
+}
