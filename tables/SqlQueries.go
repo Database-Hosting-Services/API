@@ -6,6 +6,7 @@ const (
 	GetTableNameStmt = `SELECT name FROM "Ptable" WHERE oid = $1;`
 	DropTableStmt = `DROP TABLE IF EXISTS $1;`
 	DeleteTableStmt = `DELETE FROM "Ptable" WHERE %s = $1;`
+
 	ReadTableStmt = `SELECT 
 						c.column_name AS column_name,
 						c.data_type AS data_type,

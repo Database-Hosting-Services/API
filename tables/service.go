@@ -2,6 +2,7 @@ package tables
 
 import (
 	"DBHS/config"
+	"DBHS/response"
 	"DBHS/utils"
 	"context"
 	"errors"
@@ -65,7 +66,7 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 	}
 
 	// Call the service function to read the table
-	table, err := ReadTable(ctx, userDb)
+	table, err := ReadTableColumns(ctx, userDb)
 	if err != nil {
 		return err
 	}
@@ -131,4 +132,50 @@ func DeletTable(ctx context.Context, projectOID , tableOID string, servDb *pgxpo
 	config.App.InfoLog.Printf("Table %s deleted successfully in project %s by user %s", tableName, projectOID, ctx.Value("user-name").(string))
 
 	return nil
+}
+
+/*
+	the responce data will be in the form 
+	{
+		"columns": [ // array of columns names and types
+			{
+				"name": "value",
+				"type": "type"
+			}
+			...
+		] 
+		"rows": [
+			{
+				"column1_name": "value"
+				"column2_name": "value"
+				...
+			}	
+		]
+
+	}	
+
+*/
+
+func ReadTable(ctx context.Context, projectOID , tableOID string, parameters map[string][]string, servDb *pgxpool.Pool) (*Data, error) {
+	userId, ok := ctx.Value("user-id").(int)
+	if !ok || userId == 0 {
+		return nil, response.ErrUnauthorized
+	}
+
+	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb) 
+	if err != nil {
+		return nil, err
+	}
+
+	tableName, err := GetTableName(ctx, tableOID, servDb)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := ReadTableData(ctx, tableName, parameters, userDb)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

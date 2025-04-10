@@ -143,3 +143,36 @@ func DeleteTableHandler(app *config.Application) http.HandlerFunc {
 		response.OK(w, "Table deleted successfully", nil)
 	}
 }
+
+func ReadTableHandler(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// url variables
+		urlVariables := mux.Vars(r)
+		projectId := urlVariables["project_id"]
+		tableId := urlVariables["table_id"]
+		if projectId == "" || tableId == "" {
+			response.BadRequest(w, "Project ID and Table ID are required", nil)
+			return
+		}
+		// query parameters
+		parameters := r.URL.Query()
+		if parameters == nil || parameters["page"] == nil || parameters["limit"] == nil {
+			response.BadRequest(w, "Page and Limit are required", nil)
+			return
+		}
+
+		// Call the service function to read the table
+		data, err := ReadTable(r.Context(), projectId, tableId, parameters, config.DB)
+		if err != nil {
+			if errors.Is(err, response.ErrUnauthorized) {
+				response.UnAuthorized(w, "Unauthorized", nil)
+				return
+			}
+			app.ErrorLog.Println("Could not read table:", err)
+			response.InternalServerError(w, "Could not read table", err)
+			return
+		}
+
+		response.OK(w, "Table Read Succesfully", data)
+	}
+}

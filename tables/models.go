@@ -68,3 +68,12 @@ type DbColumn struct {
 	ReferencedTable *string `json:"referenced_table" db:"referenced_table"`
 	ReferencedColumn *string `json:"referenced_column" db:"referenced_column"`
 }
+
+type ShowColumn struct {
+	Name    string `json:"name"`
+	Type    string `json:"type"`
+}
+type Data struct {
+	Columns	[]ShowColumn			 `json:"columns"`
+	Rows	[]map[string]interface{} `json:"rows"`
+}
