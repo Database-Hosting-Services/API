@@ -4,7 +4,7 @@ const (
 	InsertNewTableRecordStmt = `INSERT INTO "Ptable" (oid, name, description, project_id) VALUES ($1, $2, $3, $4) RETURNING id;`
 	CheckOwnershipStmt = `SELECT COUNT(*) FROM "projects" WHERE oid = $1 AND owner_id = $2;`
 	GetTableNameStmt = `SELECT name FROM "Ptable" WHERE oid = $1;`
-	DropTableStmt = `DROP TABLE IF EXISTS $1;`
+	DropTableStmt = `DROP TABLE IF EXISTS %s;`
 	DeleteTableStmt = `DELETE FROM "Ptable" WHERE %s = $1;`
 
 	ReadTableStmt = `SELECT 

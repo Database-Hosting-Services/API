@@ -5,6 +5,7 @@ import (
 	"DBHS/utils"
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -71,7 +72,8 @@ func GetTableName(ctx context.Context, tableOID string, db utils.Querier) (strin
 }
 
 func DeleteTableFromHostingServer(ctx context.Context, tableName string, db utils.Querier) error {
-	_, err := db.Exec(ctx, DropTableStmt, tableName)
+	log.Println(fmt.Sprintf(DropTableStmt, tableName))
+	_, err := db.Exec(ctx, fmt.Sprintf(DropTableStmt, tableName))
 	if err != nil {
 		return fmt.Errorf("failed to delete table from hosting server: %w", err)
 	}

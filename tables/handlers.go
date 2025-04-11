@@ -51,8 +51,10 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 			response.BadRequest(w, "Project ID is required", nil)
 			return
 		}
+
 		// Call the service function to create the table
-		if err := CreateTable(r.Context(), projectId, &table, config.DB); err != nil {
+		tableOID, err := CreateTable(r.Context(), projectId, &table, config.DB)
+		if err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
 				response.UnAuthorized(w, "Unauthorized", nil)
 				return
@@ -62,7 +64,9 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 			return
 		}
 		// Return a success response
-		response.Created(w, "Table created successfully", nil)
+		response.Created(w, "Table created successfully", map[string]string{
+			"oid": tableOID,
+		})
 	}
 }
 

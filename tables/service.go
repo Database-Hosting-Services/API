@@ -10,25 +10,25 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func CreateTable(ctx context.Context, projectOID string, table *ClientTable, servDb *pgxpool.Pool) error {
+func CreateTable(ctx context.Context, projectOID string, table *ClientTable, servDb *pgxpool.Pool) (string, error) {
 	userId, ok := ctx.Value("user-id").(int)
 	if !ok || userId == 0 {
-		return errors.New("Unauthorized")
+		return "", errors.New("Unauthorized")
 	}
 
 	projectId, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
-		return err
+		return "", err
 	}
 	// create the table in the user db
 	tx, err := userDb.Begin(ctx)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer tx.Rollback(ctx)
 
 	if err := CreateTableIntoHostingServer(ctx, table, tx); err != nil {
-		return err
+		return "", err
 	}
 	tableRecord := Table{
 		Name:      table.TableName,
@@ -38,14 +38,14 @@ func CreateTable(ctx context.Context, projectOID string, table *ClientTable, ser
 	var tableId int
 	// insert table row into the tables table
 	if err := InsertNewTable(ctx, &tableRecord, &tableId, servDb); err != nil {
-		return err
+		return "", err
 	}
 	if err := tx.Commit(ctx); err != nil {
 		DeleteTableRecord(ctx, tableId, servDb)
-		return err
+		return "", err
 	}
 	config.App.InfoLog.Printf("Table %s created successfully in project %s by user %s", table.TableName, projectOID, ctx.Value("user-name").(string))
-	return nil
+	return tableRecord.OID, nil
 }
 
 
@@ -107,7 +107,7 @@ func DeletTable(ctx context.Context, projectOID , tableOID string, servDb *pgxpo
 	}
 	defer usertx.Rollback(ctx)
 
-	if err := DeleteTableFromHostingServer(ctx, tableOID, usertx); err != nil {
+	if err := DeleteTableFromHostingServer(ctx, tableName, usertx); err != nil {
 		return err
 	}
 
