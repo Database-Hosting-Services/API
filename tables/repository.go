@@ -5,13 +5,10 @@ import (
 	"DBHS/utils"
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/jmoiron/sqlx"
+	"github.com/georgysavva/scany/v2/pgxscan"
 )
 
 func GetProjectNameID(ctx context.Context, projectId string, db utils.Querier) (interface{}, interface{}, error) {
@@ -21,6 +18,16 @@ func GetProjectNameID(ctx context.Context, projectId string, db utils.Querier) (
 		return nil, nil, err
 	}
 	return name, id, nil
+}
+
+func GetAllTablesNameOid(ctx context.Context, projectId int64, db pgxscan.Querier) ([]ShortTable, error) {
+	var tables []ShortTable
+	err := pgxscan.Select(ctx, db, &tables,`SELECT oid, name FROM "Ptable" WHERE project_id = $1`, projectId)
+	if err != nil {
+		return nil, err
+	}
+
+	return tables, err
 }
 
 func InsertNewTable(ctx context.Context, table *Table, TableId *int, db utils.Querier) error {
@@ -48,10 +55,9 @@ func CheckOwnershipQuery(ctx context.Context, projectId string, userId int, db u
 	return count > 0, nil
 }
 
-func ReadTableColumns(ctx context.Context, db *pgxpool.Pool) (map[string]DbColumn, error) {
+func ReadTableColumns(ctx context.Context,tableName string, db pgxscan.Querier) (map[string]DbColumn, error) {
 	var columns []DbColumn
-	sqlxdb := sqlx.NewDb(stdlib.OpenDBFromPool(db), "pgx")
-	err := sqlxdb.SelectContext(ctx, &columns, ReadTableStmt)
+	err := pgxscan.Select(ctx,db, &columns, ReadTableStmt, tableName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read table: %w", err)
 	}
@@ -72,7 +78,6 @@ func GetTableName(ctx context.Context, tableOID string, db utils.Querier) (strin
 }
 
 func DeleteTableFromHostingServer(ctx context.Context, tableName string, db utils.Querier) error {
-	log.Println(fmt.Sprintf(DropTableStmt, tableName))
 	_, err := db.Exec(ctx, fmt.Sprintf(DropTableStmt, tableName))
 	if err != nil {
 		return fmt.Errorf("failed to delete table from hosting server: %w", err)

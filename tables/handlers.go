@@ -28,6 +28,29 @@ import (
 	]
 
 */
+// get all tables names and OID in the project
+func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		projectId := urlVariables["project_id"]
+		if projectId == "" {
+			response.BadRequest(w, "Project ID is required", nil)
+			return
+		}
+		data, err := GetAllTables(r.Context(), projectId, config.DB)
+		if err != nil {
+			if errors.Is(err, response.ErrUnauthorized) {
+				response.UnAuthorized(w, "Unauthorized", nil)
+				return
+			}
+			app.ErrorLog.Println("Tables reading failed:", err)
+			response.InternalServerError(w, "Failed to read tables", err)
+			return
+		}
+
+		response.OK(w, "", data)
+	}
+}
 
 // CreateTableHandler godoc
 // @Summary Create a new table
@@ -91,12 +114,14 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 
 		]
 	},
-	"update": {
-		"oldName": "oldName",
-		"columns": [
-			// Only include the changed parts
-		]
-	},
+	"update": [
+		{
+			"oldName": "oldName",
+			"columns": [
+				// Only include the changed parts
+			]
+		}
+	],
 	"delete": [
 		"columnName1",
 		"columnName2"

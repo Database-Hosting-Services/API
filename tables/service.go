@@ -10,6 +10,25 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) ([]ShortTable, error) {
+	userId, ok := ctx.Value("user-id").(int)
+	if !ok || userId == 0 {
+		return nil, errors.New("Unauthorized")
+	}
+
+	_, projectId, err := GetProjectNameID(ctx, projectOID, servDb)
+	if err != nil {
+		return nil, err
+	}
+
+	tables, err := GetAllTablesNameOid(ctx, projectId.(int64), servDb)
+	if err != nil {
+		return nil, err
+	}
+
+	return tables, nil
+}
+
 func CreateTable(ctx context.Context, projectOID string, table *ClientTable, servDb *pgxpool.Pool) (string, error) {
 	userId, ok := ctx.Value("user-id").(int)
 	if !ok || userId == 0 {
@@ -66,7 +85,7 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 	}
 
 	// Call the service function to read the table
-	table, err := ReadTableColumns(ctx, userDb)
+	table, err := ReadTableColumns(ctx,tableName, userDb)
 	if err != nil {
 		return err
 	}

@@ -9,6 +9,11 @@ type Table struct {
 	Description string `json:"description" db:"description"`
 }
 
+type ShortTable struct {
+	OID		  	string `json:"oid" db:"oid"`
+	Name 	  	string `json:"name" db:"name"`
+}
+
 // TableData struct is the how the client will send the definition of the table to the server
 // and how the server will respond with the table definition
 type ClientTable struct {
