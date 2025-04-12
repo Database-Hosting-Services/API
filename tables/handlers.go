@@ -28,7 +28,18 @@ import (
 	]
 
 */
-// get all tables names and OID in the project
+// GetAllTablesHanlder godoc
+// @Summary Get all tables in a project
+// @Description Get a list of all tables in the specified project
+// @Tags tables
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse{data=[]Table} "List of tables"
+// @Failure 400 {object} response.ErrorResponse "Project ID is required"
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Router /projects/{project_id}/tables [get]
 func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)

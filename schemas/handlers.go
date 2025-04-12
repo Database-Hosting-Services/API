@@ -3,10 +3,23 @@ package schemas
 import (
 	"DBHS/config"
 	"DBHS/response"
-	"github.com/gorilla/mux"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
+// GetDatabaseSchema godoc
+// @Summary Get database schema
+// @Description Get the database schema for a specific project
+// @Tags schemas
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse "Database schema retrieved successfully"
+// @Failure 400 {object} response.ErrorResponse "Project ID is required"
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Router /projects/{project_id}/schema [get]
 func GetDatabaseSchema(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// userId := r.Context().Value("user-id").(int)
@@ -22,6 +35,19 @@ func GetDatabaseSchema(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// GetDatabaseTableSchema godoc
+// @Summary Get table schema
+// @Description Get the schema for a specific table in a project
+// @Tags schemas
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param table_id path string true "Table ID"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse "Table schema retrieved successfully"
+// @Failure 400 {object} response.ErrorResponse "Project ID is required"
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Router /projects/{project_id}/tables/{table_id}/schema [get]
 func GetDatabaseTableSchema(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// userId := r.Context().Value("user-id").(int)
