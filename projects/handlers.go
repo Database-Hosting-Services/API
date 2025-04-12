@@ -6,10 +6,23 @@ import (
 	"DBHS/utils"
 	"encoding/json"
 	"errors"
-	"github.com/gorilla/mux"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
+// CreateProject godoc
+// @Summary Create a new project
+// @Description Create a new project with the provided details
+// @Tags projects
+// @Accept json
+// @Produce json
+// @Param project body projects.Project true "Project information"
+// @Success 201 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /projects [post]
 func CreateProject(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		project := Project{}

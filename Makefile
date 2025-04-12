@@ -29,6 +29,9 @@ push: commit
 	echo "\033[32mpushing to remote repo...\033[0m"
 	@git push
 
+generate-docs:
+	swag init -g main/main.go -o ./docs 
+
 clean:
 	rm -rf $(BUILD_DIR)/*
 

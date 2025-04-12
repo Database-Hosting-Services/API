@@ -4,8 +4,8 @@ import (
 	"DBHS/config"
 	"DBHS/response"
 	"encoding/json"
-	"net/http"
 	"errors"
+	"net/http"
 
 	"github.com/gorilla/mux"
 )
@@ -28,6 +28,21 @@ import (
 	]
 
 */
+
+// CreateTableHandler godoc
+// @Summary Create a new table
+// @Description Create a new table in the specified project
+// @Tags tables
+// @Accept json
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param table body ClientTable true "Table information"
+// @Security BearerAuth
+// @Success 201 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /projects/{project_id}/tables [post]
 func CreateTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Handler logic for creating a table
@@ -88,6 +103,21 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 	]
 */
 
+// UpdateTableHandler godoc
+// @Summary Update an existing table
+// @Description Update table structure by adding, modifying, or deleting columns
+// @Tags tables
+// @Accept json
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param table_id path string true "Table ID"
+// @Param updates body TableUpdate true "Table update information"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /projects/{project_id}/tables/{table_id} [put]
 func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -122,8 +152,19 @@ func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 	}
 }
 
-
-
+// DeleteTableHandler godoc
+// @Summary Delete a table
+// @Description Delete a table from the specified project
+// @Tags tables
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param table_id path string true "Table ID"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /projects/{project_id}/tables/{table_id} [delete]
 func DeleteTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
@@ -148,6 +189,24 @@ func DeleteTableHandler(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// ReadTableHandler godoc
+// @Summary Read table data
+// @Description Get table structure and data with pagination, filtering and sorting
+// @Tags tables
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param table_id path string true "Table ID"
+// @Param page query int true "Page number"
+// @Param limit query int true "Number of records per page"
+// @Param order_by query string false "Column to order by"
+// @Param order query string false "Sort order (asc or desc)"
+// @Param filter query string false "Filter condition (e.g. name=value)"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse{data=Data}
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /projects/{project_id}/tables/{table_id} [get]
 func ReadTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// url variables
