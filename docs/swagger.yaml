@@ -1,0 +1,355 @@
+basePath: /api
+definitions:
+  projects.Project:
+    properties:
+      API_URL:
+        type: string
+      API_key:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      oid:
+        type: string
+      owner_id:
+        type: integer
+      status:
+        type: string
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        example: Invalid request parameters
+        type: string
+      status:
+        example: 400
+        type: integer
+    type: object
+  response.SuccessResponse:
+    properties:
+      data: {}
+      message:
+        example: Operation successful
+        type: string
+      status:
+        example: 200
+        type: integer
+    type: object
+  tables.ClientTable:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/tables.Column'
+        type: array
+      tableName:
+        type: string
+    type: object
+  tables.Column:
+    properties:
+      foreignKey:
+        $ref: '#/definitions/tables.ForeignKey'
+      isNullable:
+        type: boolean
+      isPrimaryKey:
+        type: boolean
+      isUnique:
+        type: boolean
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  tables.ColumnCollection:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/tables.Column'
+        type: array
+    type: object
+  tables.Data:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/tables.ShowColumn'
+        type: array
+      rows:
+        items:
+          additionalProperties: true
+          type: object
+        type: array
+    type: object
+  tables.ForeignKey:
+    properties:
+      columnName:
+        type: string
+      tableName:
+        type: string
+    type: object
+  tables.ShowColumn:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  tables.TableUpdate:
+    properties:
+      delete:
+        items:
+          type: string
+        type: array
+      insert:
+        $ref: '#/definitions/tables.ColumnCollection'
+      update:
+        items:
+          $ref: '#/definitions/tables.UpdateColumn'
+        type: array
+    type: object
+  tables.UpdateColumn:
+    properties:
+      name:
+        type: string
+      update:
+        $ref: '#/definitions/tables.Column'
+    type: object
+info:
+  contact: {}
+  description: API for DBHS application
+  termsOfService: http://swagger.io/terms/
+  title: DBHS API
+  version: "1.0"
+paths:
+  /projects:
+    post:
+      consumes:
+      - application/json
+      description: Create a new project with the provided details
+      parameters:
+      - description: Project information
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/projects.Project'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a new project
+      tags:
+      - projects
+  /projects/{project_id}/tables:
+    post:
+      consumes:
+      - application/json
+      description: Create a new table in the specified project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table information
+        in: body
+        name: table
+        required: true
+        schema:
+          $ref: '#/definitions/tables.ClientTable'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new table
+      tags:
+      - tables
+  /projects/{project_id}/tables/{table_id}:
+    delete:
+      description: Delete a table from the specified project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a table
+      tags:
+      - tables
+    get:
+      description: Get table structure and data with pagination, filtering and sorting
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Number of records per page
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Column to order by
+        in: query
+        name: order_by
+        type: string
+      - description: Sort order (asc or desc)
+        in: query
+        name: order
+        type: string
+      - description: Filter condition (e.g. name=value)
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/tables.Data'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Read table data
+      tags:
+      - tables
+    put:
+      consumes:
+      - application/json
+      description: Update table structure by adding, modifying, or deleting columns
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      - description: Table update information
+        in: body
+        name: updates
+        required: true
+        schema:
+          $ref: '#/definitions/tables.TableUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an existing table
+      tags:
+      - tables
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and the JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

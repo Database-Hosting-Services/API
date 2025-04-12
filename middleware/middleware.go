@@ -1,11 +1,15 @@
 package middleware
 
 import (
+	"DBHS/config"
 	"DBHS/response"
+	"DBHS/utils"
 	"maps"
 	"net/http"
 	"slices"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 func MethodsAllowed(methods ...string) func(http.Handler) http.Handler {
@@ -30,5 +34,25 @@ func Route(hundlers map[string]http.HandlerFunc) http.Handler {
 			return
 		}
 		handler.ServeHTTP(w, r)
+	})
+}
+
+func CheckOwnership (next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		projectId := urlVariables["project_id"]
+		userId := r.Context().Value("user-id").(int)
+		ok, err := utils.CheckOwnershipQuery(r.Context(), projectId, userId, config.DB)
+		if err != nil {
+			response.InternalServerError(w, err.Error(), err)
+			return
+		}
+
+		if !ok {
+			response.UnAuthorized(w, "UnAuthorized", nil)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }

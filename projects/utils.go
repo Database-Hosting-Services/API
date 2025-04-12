@@ -14,6 +14,7 @@ var validName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_$]*$`).MatchString
 var reservedNames = []string{
 	"postgres", "template0", "template1", "admin", "public", "system", "information_schema", "template", "global", "test", "tmp", "temp",
 }
+var ErrorProjectNotFound = errors.New("Project not found")
 
 func ValidatePostgresDatabaseName(name string) error {
 	if len(name) < 3 || len(name) > 63 {
