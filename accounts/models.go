@@ -35,6 +35,11 @@ type ResetPasswordForm struct {
 	Email    string `json:"email"`
 }
 
+type UpdateUserRequest struct {
+	Username string `json:"username"`
+	Image    string `json:"image"`
+}
+
 func (u *User) GetOId() string {
 	return u.OID
 }

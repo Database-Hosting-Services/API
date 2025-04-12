@@ -1,0 +1,33 @@
+# .air.toml (place in your PROJECT ROOT directory)
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# Build from ./main but run from root
+cmd = "cd main && go build -o ../tmp/main . && cd .."
+bin = "./tmp/main"  # Binary path relative to root
+delay = 1000  # 1 second delay after changes
+
+# Watch ALL .go files (including subdirs)
+include_ext = ["go"]
+include_dir = ["main", "accounts", "build", "caching", "config",
+                "middleware", "projects", "response", "scripts",
+                "utils", "test", "tables"]
+exclude_dir = ["tmp", "vendor", "testdata", ".git"]
+
+kill_delay = "1s"
+stop_on_error = true  # Show errors immediately
+log = "air_errors.log"
+
+[log]
+time = true
+verbose = true  # DEBUG: See watched files
+silent = false
+
+[color]
+build = "yellow"
+runner = "green"
+watcher = "cyan"
+
+[misc]
+clean_on_exit = false
