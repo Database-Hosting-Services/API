@@ -6,14 +6,14 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
-	"runtime"
+	// "path/filepath"
+	// "runtime"
 
 	"github.com/jackc/pgx/v5"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 	"gopkg.in/gomail.v2"
 )
 
@@ -57,19 +57,19 @@ var (
 	ConfigManager *UserDbConfig
 )
 
-func loadEnv() {
-	_, filename, _, _ := runtime.Caller(0) // Gets current file path
-	rootDir := filepath.Dir(filepath.Dir(filename))
-	envPath := filepath.Join(rootDir, ".env")
+// func loadEnv() {
+// 	_, filename, _, _ := runtime.Caller(0) // Gets current file path
+// 	rootDir := filepath.Dir(filepath.Dir(filename))
+// 	envPath := filepath.Join(rootDir, ".env")
 
-	if err := godotenv.Load(envPath); err != nil {
-		log.Fatal("Error loading .env: ", err)
-	}
-}
+// 	if err := godotenv.Load(envPath); err != nil {
+// 		log.Fatal("Error loading .env: ", err)
+// 	}
+// }
 
 func Init(infoLog, errorLog *log.Logger) {
 
-	loadEnv()
+	// loadEnv()
 
 	App = &Application{
 		ErrorLog: errorLog,
