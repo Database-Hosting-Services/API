@@ -96,6 +96,7 @@ func ExecuteUpdate(tableName string, table map[string]DbColumn, updates *TableUp
 			if _, err := db.Exec(context.Background(), query); err != nil {
 				return fmt.Errorf("failed to update column: %w", err)
 			}
+			update.Name = update.Update.Name
 		}
 
 		if update.Update.Type != "" {
