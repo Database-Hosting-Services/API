@@ -6,13 +6,12 @@ import (
 	"net/http"
 	"os"
 
-
 	"DBHS/config"
 	"DBHS/docs" // Import generated docs
 	"DBHS/middleware"
 
-	_ "github.com/swaggo/swag"
 	"github.com/MarceloPetrucio/go-scalar-api-reference"
+	_ "github.com/swaggo/swag"
 )
 
 // @title DBHS API
@@ -50,16 +49,16 @@ func main() {
 
 	// Initialize Swagger documentation
 	// Add swagger endpoints to the router
-	config.Router.PathPrefix("/reference").HandlerFunc( func(w http.ResponseWriter, r *http.Request) {
+	config.Router.PathPrefix("/reference").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		htmlContent, err := scalar.ApiReferenceHTML(&scalar.Options{
 			// SpecURL: "https://generator3.swagger.io/openapi.json",// allow external URL or local path file
-			SpecURL: "./docs/swagger.json", 
+			SpecURL: "./docs/swagger.json",
 			CustomOptions: scalar.CustomOptions{
 				PageTitle: "Simple API",
 			},
 			DarkMode: true,
 		})
-		
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -71,10 +70,8 @@ func main() {
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(htmlContent))	
+		w.Write([]byte(htmlContent))
 	})
-
-
 
 	handler := middleware.LimitMiddleware(config.Router)
 
@@ -85,9 +82,7 @@ func main() {
 	}
 
 	infoLog.Printf("starting server on :%s", *addr)
-	infoLog.Printf("Swagger UI available at http://localhost%s/swagger/index.html", *addr)
-	infoLog.Printf("ReDoc UI available at http://localhost%s/redoc", *addr)
-	infoLog.Printf("Scalar UI available at http://localhost%s/scalar", *addr)
+	infoLog.Printf("Scalar UI available at http://%s/reference", *addr)
 
 	err := server.ListenAndServe()
 	errorLog.Fatal(err)

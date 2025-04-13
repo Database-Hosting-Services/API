@@ -15,14 +15,14 @@ import (
 
 // signUp godoc
 // @Summary Register a new user
-// @Description Register a new user with email and password
+// @Description Register a new user with username, email and password, sends verification code to email
 // @Tags accounts
 // @Accept json
 // @Produce json
-// @Param user body UserUnVerified true "User registration information"
-// @Success 201 {object} response.SuccessResponse "User signed up successfully"
-// @Failure 400 {object} response.ErrorResponse "Invalid input data or user already exists"
-// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Param user body SignUpUser true "User registration information"
+// @Success 201 {object} CreatedResponse "User signed up successfully, check your email for verification"
+// @Failure 400 {object} ErrorResponse "Invalid input data or user already exists"
+// @Failure 500 {object} ErrorResponse "Server error"
 // @Router /accounts/signup [post]
 func signUp(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -81,10 +81,10 @@ func signUp(app *config.Application) http.HandlerFunc {
 // @Tags accounts
 // @Accept json
 // @Produce json
-// @Param user body UserSignIn true "User login credentials"
-// @Success 200 {object} response.SuccessResponse "User signed in successfully"
-// @Failure 400 {object} response.ErrorResponse "Invalid credentials"
-// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Param user body UserCredentials true "User login credentials"
+// @Success 200 {object} LoginResponse "User signed in successfully with JWT token and user details"
+// @Failure 400 {object} ErrorResponse "Invalid credentials"
+// @Failure 500 {object} ErrorResponse "Server error"
 // @Router /accounts/signin [post]
 func SignIn(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -121,14 +121,14 @@ func SignIn(app *config.Application) http.HandlerFunc {
 
 // Verify godoc
 // @Summary Verify user account
-// @Description Verify a user account with verification code
+// @Description Verify a user account with verification code sent to email
 // @Tags accounts
 // @Accept json
 // @Produce json
-// @Param verification body UserUnVerified true "User verification information"
-// @Success 201 {object} response.SuccessResponse "User verified successfully"
-// @Failure 400 {object} response.ErrorResponse "Invalid verification code"
-// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Param verification body VerificationRequest true "User verification information with code"
+// @Success 201 {object} VerificationSuccessResponse "User verified successfully with JWT token"
+// @Failure 400 {object} ErrorResponse "Invalid verification code"
+// @Failure 500 {object} ErrorResponse "Server error"
 // @Router /accounts/verify [post]
 func Verify(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -161,10 +161,10 @@ func Verify(app *config.Application) http.HandlerFunc {
 // @Tags accounts
 // @Accept json
 // @Produce json
-// @Param user body UserSignIn true "User email information"
-// @Success 200 {object} response.SuccessResponse "Verification code sent successfully"
-// @Failure 400 {object} response.ErrorResponse "Invalid email"
-// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Param user body EmailRequest true "User email information"
+// @Success 200 {object} SuccessMessageResponse "Verification code sent successfully"
+// @Failure 400 {object} ErrorResponse "Invalid email"
+// @Failure 500 {object} ErrorResponse "Server error"
 // @Router /accounts/resend-code [post]
 func resendCode(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -194,11 +194,12 @@ func resendCode(app *config.Application) http.HandlerFunc {
 // @Tags accounts
 // @Accept json
 // @Produce json
-// @Param password body UpdatePasswordModel true "Password update information"
+// @Param password body PasswordUpdateRequest true "Password update information"
 // @Security BearerAuth
-// @Success 200 {object} response.SuccessResponse "Password updated successfully"
-// @Failure 400 {object} response.ErrorResponse "Invalid input"
-// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Success 200 {object} SuccessMessageResponse "Password updated successfully"
+// @Failure 400 {object} ErrorResponse "Invalid input"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 500 {object} ErrorResponse "Server error"
 // @Router /accounts/password [put]
 func UpdatePassword(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -219,16 +220,17 @@ func UpdatePassword(app *config.Application) http.HandlerFunc {
 
 // UpdateUser godoc
 // @Summary Update user information
-// @Description Update user profile information
+// @Description Update user profile information such as username and image
 // @Tags accounts
 // @Accept json
 // @Produce json
 // @Param id path string true "User ID"
-// @Param user body UpdateUserRequest true "User information to update"
+// @Param user body ProfileUpdateRequest true "User information to update"
 // @Security BearerAuth
-// @Success 200 {object} response.SuccessResponse "User's data updated successfully"
-// @Failure 400 {object} response.ErrorResponse "Invalid input data"
-// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Success 200 {object} ProfileUpdateResponse "User's data updated successfully"
+// @Failure 400 {object} ErrorResponse "Invalid input data"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 500 {object} ErrorResponse "Server error"
 // @Router /accounts/{id} [put]
 func UpdateUser(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -296,10 +298,10 @@ func UpdateUser(app *config.Application) http.HandlerFunc {
 // @Tags accounts
 // @Accept json
 // @Produce json
-// @Param user body User true "User email information"
-// @Success 200 {object} response.SuccessResponse "Verification code sent"
-// @Failure 400 {object} response.ErrorResponse "User does not exist"
-// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Param user body EmailRequest true "User email information"
+// @Success 200 {object} SuccessMessageResponse "Verification code sent"
+// @Failure 400 {object} ErrorResponse "User does not exist"
+// @Failure 500 {object} ErrorResponse "Server error"
 // @Router /accounts/forgot-password [post]
 func ForgetPassword(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -329,10 +331,10 @@ func ForgetPassword(app *config.Application) http.HandlerFunc {
 // @Tags accounts
 // @Accept json
 // @Produce json
-// @Param reset body ResetPasswordForm true "Password reset information with verification code"
-// @Success 200 {object} response.SuccessResponse "Password reset successfully"
-// @Failure 400 {object} response.ErrorResponse "Invalid code or password"
-// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Param reset body PasswordResetRequest true "Password reset information with verification code"
+// @Success 200 {object} SuccessMessageResponse "Password reset successfully"
+// @Failure 400 {object} ErrorResponse "Invalid code or password"
+// @Failure 500 {object} ErrorResponse "Server error"
 // @Router /accounts/reset-password [post]
 func ForgetPasswordVerify(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

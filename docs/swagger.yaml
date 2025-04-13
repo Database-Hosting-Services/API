@@ -1,75 +1,162 @@
 basePath: /api
 definitions:
-  accounts.ResetPasswordForm:
+  accounts.CreatedResponse:
     properties:
-      code:
-        type: string
-      email:
-        type: string
-      password:
+      data: {}
+      message:
+        example: User signed up successfully, check your email for verification
         type: string
     type: object
-  accounts.UpdatePasswordModel:
+  accounts.EmailRequest:
+    properties:
+      email:
+        example: ragnar@email.com
+        type: string
+    required:
+    - email
+    type: object
+  accounts.ErrorResponse:
+    properties:
+      error:
+        example: Invalid request parameters
+        type: string
+    type: object
+  accounts.LoginResponse:
+    properties:
+      data:
+        properties:
+          email:
+            example: ragnar@email.com
+            type: string
+          image:
+            example: profile_image.jpg
+            type: string
+          oid:
+            example: user-id-123
+            type: string
+          token:
+            example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            type: string
+          username:
+            example: ragnar
+            type: string
+        type: object
+      message:
+        example: User signed in successfully
+        type: string
+    type: object
+  accounts.PasswordResetRequest:
+    properties:
+      code:
+        example: "123456"
+        type: string
+      email:
+        example: ragnar@email.com
+        type: string
+      password:
+        example: NewPassword123!
+        type: string
+    required:
+    - code
+    - email
+    - password
+    type: object
+  accounts.PasswordUpdateRequest:
     properties:
       confirm_password:
+        example: NewPassword123!
         type: string
       current_password:
+        example: OldPassword123!
         type: string
       password:
+        example: NewPassword123!
         type: string
+    required:
+    - confirm_password
+    - current_password
+    - password
     type: object
-  accounts.UpdateUserRequest:
+  accounts.ProfileUpdateRequest:
     properties:
       image:
+        example: profile_image_url.jpg
         type: string
       username:
+        example: new_ragnar
         type: string
     type: object
-  accounts.User:
+  accounts.ProfileUpdateResponse:
     properties:
-      created_at:
+      data:
+        properties:
+          image:
+            example: profile_image_url.jpg
+            type: string
+          username:
+            example: new_ragnar
+            type: string
+        type: object
+      message:
+        example: User's data updated successfully
         type: string
+    type: object
+  accounts.SignUpUser:
+    properties:
       email:
-        type: string
-      id:
-        type: integer
-      image:
-        type: string
-      last_login:
-        type: string
-      oid:
+        example: ragnar@email.com
         type: string
       password:
+        example: Password123!
         type: string
       username:
+        example: ragnar
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  accounts.SuccessMessageResponse:
+    properties:
+      message:
+        example: Operation completed successfully
         type: string
     type: object
-  accounts.UserSignIn:
+  accounts.UserCredentials:
     properties:
       email:
+        example: ragnar@email.com
         type: string
       password:
+        example: Password123!
         type: string
+    required:
+    - email
+    - password
     type: object
-  accounts.UserUnVerified:
+  accounts.VerificationRequest:
     properties:
       code:
-        type: string
-      created_at:
+        example: "123456"
         type: string
       email:
+        example: ragnar@email.com
         type: string
-      id:
-        type: integer
-      image:
-        type: string
-      last_login:
-        type: string
-      oid:
-        type: string
-      password:
-        type: string
-      username:
+    required:
+    - code
+    - email
+    type: object
+  accounts.VerificationSuccessResponse:
+    properties:
+      data:
+        properties:
+          token:
+            example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            type: string
+        type: object
+      message:
+        example: User verified successfully
         type: string
     type: object
   projects.Project:
@@ -107,9 +194,6 @@ definitions:
       error:
         example: Invalid request parameters
         type: string
-      status:
-        example: 400
-        type: integer
     type: object
   response.SuccessResponse:
     properties:
@@ -117,9 +201,6 @@ definitions:
       message:
         example: Operation successful
         type: string
-      status:
-        example: 200
-        type: integer
     type: object
   tables.ClientTable:
     properties:
@@ -222,7 +303,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update user profile information
+      description: Update user profile information such as username and image
       parameters:
       - description: User ID
         in: path
@@ -234,22 +315,26 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/accounts.UpdateUserRequest'
+          $ref: '#/definitions/accounts.ProfileUpdateRequest'
       produces:
       - application/json
       responses:
         "200":
           description: User's data updated successfully
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            $ref: '#/definitions/accounts.ProfileUpdateResponse'
         "400":
           description: Invalid input data
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/accounts.ErrorResponse'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update user information
@@ -266,22 +351,22 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/accounts.User'
+          $ref: '#/definitions/accounts.EmailRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Verification code sent
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            $ref: '#/definitions/accounts.SuccessMessageResponse'
         "400":
           description: User does not exist
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
       summary: Initiate password reset
       tags:
       - accounts
@@ -296,22 +381,26 @@ paths:
         name: password
         required: true
         schema:
-          $ref: '#/definitions/accounts.UpdatePasswordModel'
+          $ref: '#/definitions/accounts.PasswordUpdateRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Password updated successfully
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            $ref: '#/definitions/accounts.SuccessMessageResponse'
         "400":
           description: Invalid input
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/accounts.ErrorResponse'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update user password
@@ -328,22 +417,22 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/accounts.UserSignIn'
+          $ref: '#/definitions/accounts.EmailRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Verification code sent successfully
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            $ref: '#/definitions/accounts.SuccessMessageResponse'
         "400":
           description: Invalid email
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
       summary: Resend verification code
       tags:
       - accounts
@@ -358,22 +447,22 @@ paths:
         name: reset
         required: true
         schema:
-          $ref: '#/definitions/accounts.ResetPasswordForm'
+          $ref: '#/definitions/accounts.PasswordResetRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Password reset successfully
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            $ref: '#/definitions/accounts.SuccessMessageResponse'
         "400":
           description: Invalid code or password
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
       summary: Verify and reset password
       tags:
       - accounts
@@ -388,22 +477,22 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/accounts.UserSignIn'
+          $ref: '#/definitions/accounts.UserCredentials'
       produces:
       - application/json
       responses:
         "200":
-          description: User signed in successfully
+          description: User signed in successfully with JWT token and user details
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            $ref: '#/definitions/accounts.LoginResponse'
         "400":
           description: Invalid credentials
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
       summary: User login
       tags:
       - accounts
@@ -411,29 +500,30 @@ paths:
     post:
       consumes:
       - application/json
-      description: Register a new user with email and password
+      description: Register a new user with username, email and password, sends verification
+        code to email
       parameters:
       - description: User registration information
         in: body
         name: user
         required: true
         schema:
-          $ref: '#/definitions/accounts.UserUnVerified'
+          $ref: '#/definitions/accounts.SignUpUser'
       produces:
       - application/json
       responses:
         "201":
-          description: User signed up successfully
+          description: User signed up successfully, check your email for verification
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            $ref: '#/definitions/accounts.CreatedResponse'
         "400":
           description: Invalid input data or user already exists
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
       summary: Register a new user
       tags:
       - accounts
@@ -441,29 +531,29 @@ paths:
     post:
       consumes:
       - application/json
-      description: Verify a user account with verification code
+      description: Verify a user account with verification code sent to email
       parameters:
-      - description: User verification information
+      - description: User verification information with code
         in: body
         name: verification
         required: true
         schema:
-          $ref: '#/definitions/accounts.UserUnVerified'
+          $ref: '#/definitions/accounts.VerificationRequest'
       produces:
       - application/json
       responses:
         "201":
-          description: User verified successfully
+          description: User verified successfully with JWT token
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            $ref: '#/definitions/accounts.VerificationSuccessResponse'
         "400":
           description: Invalid verification code
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse'
       summary: Verify user account
       tags:
       - accounts

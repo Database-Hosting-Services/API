@@ -4,7 +4,7 @@ tmp_dir = "tmp"
 
 [build]
 # Build from ./main but run from root
-cmd = "cd main && go build -o ../tmp/main . && cd .."
+cmd = "swag init -g main/main.go -o ./docs && cd main && go build -o ../tmp/main . && cd .."
 bin = "./tmp/main"  # Binary path relative to root
 delay = 1000  # 1 second delay after changes
 
