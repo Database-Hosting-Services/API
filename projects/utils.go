@@ -66,7 +66,7 @@ func CreateDatabaseConfig(dbName string, userId int) DatabaseConfig {
 		Password:  config.DBConfig.Password,
 		DBName:    dbName,
 		SSLMode:   config.DBConfig.SSLMode,
-		CreatedAt: time.Now().Format(time.RFC3339), // default time format like "2006-01-02T15:04:05Z07:00"
+		CreatedAt: time.Time{}, // default time format like "2006-01-02T15:04:05Z07:00"
 	}
 }
 

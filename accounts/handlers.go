@@ -117,7 +117,6 @@ func Verify(app *config.Application) http.HandlerFunc {
 			response.InternalServerError(w, "Server Error, please try again later.", err)
 			return
 		}
-		app.InfoLog.Println("User verified successfully", user.Username)
 		response.Created(w, "User verified successfully", data)
 	}
 }
@@ -239,7 +238,7 @@ func ForgetPassword(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response.OK(w, "Verifacation Code Sent", nil)
+		response.OK(w, "Verification Code Sent", nil)
 	}
 }
 

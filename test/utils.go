@@ -13,6 +13,13 @@ import (
 	"time"
 )
 
+// Common response structure
+type APIResponse struct {
+	Status  int                    `json:"status"`
+	Message string                 `json:"message"`
+	Data    map[string]interface{} `json:"data,omitempty"`
+}
+
 func setupUserTest(t *testing.T) (email, username string) {
 	t.Helper()
 	timestamp := time.Now().Unix()

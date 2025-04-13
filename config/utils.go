@@ -92,5 +92,11 @@ func (m *UserDbConfig) GetDbConnection(ctx context.Context, dbName string) (*pgx
 		return nil, fmt.Errorf("unable to create connection pool for database %s: %w", dbName, err)
 	}
 
+	// ping the database
+	err = newPool.Ping(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to ping database %s: %w", dbName, err)
+	}
+
 	return newPool, nil
 }
