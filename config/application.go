@@ -170,6 +170,11 @@ func Init(infoLog, errorLog *log.Logger) {
 	if err != nil {
 		errorLog.Fatal(err)
 	}
+
+	PgTypes = make(map[uint32]string)
+	if err := LoadTypeMap(context.Background(), DB); err != nil {
+		errorLog.Fatal(err)
+	}
 }
 
 func CloseDB() {

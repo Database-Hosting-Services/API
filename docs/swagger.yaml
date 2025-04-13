@@ -1,0 +1,950 @@
+basePath: /api
+definitions:
+  accounts.ResetPasswordForm:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  accounts.UpdatePasswordModel:
+    properties:
+      confirm_password:
+        type: string
+      current_password:
+        type: string
+      password:
+        type: string
+    type: object
+  accounts.UpdateUserRequest:
+    properties:
+      image:
+        type: string
+      username:
+        type: string
+    type: object
+  accounts.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      image:
+        type: string
+      last_login:
+        type: string
+      oid:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  accounts.UserSignIn:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  accounts.UserUnVerified:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      image:
+        type: string
+      last_login:
+        type: string
+      oid:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  projects.Project:
+    properties:
+      API_URL:
+        type: string
+      API_key:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      oid:
+        type: string
+      owner_id:
+        type: integer
+      status:
+        type: string
+    type: object
+  projects.updateProjectDataModel:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        example: Invalid request parameters
+        type: string
+      status:
+        example: 400
+        type: integer
+    type: object
+  response.SuccessResponse:
+    properties:
+      data: {}
+      message:
+        example: Operation successful
+        type: string
+      status:
+        example: 200
+        type: integer
+    type: object
+  tables.ClientTable:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/tables.Column'
+        type: array
+      tableName:
+        type: string
+    type: object
+  tables.Column:
+    properties:
+      foreignKey:
+        $ref: '#/definitions/tables.ForeignKey'
+      isNullable:
+        type: boolean
+      isPrimaryKey:
+        type: boolean
+      isUnique:
+        type: boolean
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  tables.ColumnCollection:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/tables.Column'
+        type: array
+    type: object
+  tables.Data:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/tables.ShowColumn'
+        type: array
+      rows:
+        items:
+          additionalProperties: true
+          type: object
+        type: array
+    type: object
+  tables.ForeignKey:
+    properties:
+      columnName:
+        type: string
+      tableName:
+        type: string
+    type: object
+  tables.ShowColumn:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  tables.Table:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      oid:
+        type: string
+      project_id:
+        type: integer
+    type: object
+  tables.TableUpdate:
+    properties:
+      delete:
+        items:
+          type: string
+        type: array
+      insert:
+        $ref: '#/definitions/tables.ColumnCollection'
+      update:
+        items:
+          $ref: '#/definitions/tables.UpdateColumn'
+        type: array
+    type: object
+  tables.UpdateColumn:
+    properties:
+      name:
+        type: string
+      update:
+        $ref: '#/definitions/tables.Column'
+    type: object
+info:
+  contact: {}
+  description: API for DBHS application
+  termsOfService: http://swagger.io/terms/
+  title: DBHS API
+  version: "1.0"
+paths:
+  /accounts/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update user profile information
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User information to update
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User's data updated successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid input data
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user information
+      tags:
+      - accounts
+  /accounts/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Send a verification code to reset password
+      parameters:
+      - description: User email information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Verification code sent
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: User does not exist
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Initiate password reset
+      tags:
+      - accounts
+  /accounts/password:
+    put:
+      consumes:
+      - application/json
+      description: Update the password for an authenticated user
+      parameters:
+      - description: Password update information
+        in: body
+        name: password
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UpdatePasswordModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password updated successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user password
+      tags:
+      - accounts
+  /accounts/resend-code:
+    post:
+      consumes:
+      - application/json
+      description: Resend verification code to user email
+      parameters:
+      - description: User email information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UserSignIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Verification code sent successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid email
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Resend verification code
+      tags:
+      - accounts
+  /accounts/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Verify code and reset user password
+      parameters:
+      - description: Password reset information with verification code
+        in: body
+        name: reset
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.ResetPasswordForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid code or password
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Verify and reset password
+      tags:
+      - accounts
+  /accounts/signin:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with email and password
+      parameters:
+      - description: User login credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UserSignIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User signed in successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: User login
+      tags:
+      - accounts
+  /accounts/signup:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email and password
+      parameters:
+      - description: User registration information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UserUnVerified'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User signed up successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid input data or user already exists
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - accounts
+  /accounts/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify a user account with verification code
+      parameters:
+      - description: User verification information
+        in: body
+        name: verification
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UserUnVerified'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User verified successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid verification code
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Verify user account
+      tags:
+      - accounts
+  /projects:
+    get:
+      description: Get all projects owned by the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Projects retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/projects.Project'
+                  type: array
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all user projects
+      tags:
+      - projects
+    post:
+      consumes:
+      - application/json
+      description: Create a new project with the provided details
+      parameters:
+      - description: Project information
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/projects.Project'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a new project
+      tags:
+      - projects
+  /projects/{project_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a project by its ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Project deleted successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Project not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a project
+      tags:
+      - projects
+    get:
+      description: Get details of a specific project by its ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Project retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/projects.Project'
+              type: object
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Project not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a specific project
+      tags:
+      - projects
+    put:
+      consumes:
+      - application/json
+      description: Update a project's details by its ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Project update information
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/projects.updateProjectDataModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Project updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/projects.Project'
+              type: object
+        "400":
+          description: Invalid input or Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a project
+      tags:
+      - projects
+  /projects/{project_id}/schema:
+    get:
+      description: Get the database schema for a specific project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Database schema retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get database schema
+      tags:
+      - schemas
+  /projects/{project_id}/tables:
+    get:
+      description: Get a list of all tables in the specified project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of tables
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/tables.Table'
+                  type: array
+              type: object
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all tables in a project
+      tags:
+      - tables
+    post:
+      consumes:
+      - application/json
+      description: Create a new table in the specified project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table information
+        in: body
+        name: table
+        required: true
+        schema:
+          $ref: '#/definitions/tables.ClientTable'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new table
+      tags:
+      - tables
+  /projects/{project_id}/tables/{table_id}:
+    delete:
+      description: Delete a table from the specified project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a table
+      tags:
+      - tables
+    get:
+      description: Get table structure and data with pagination, filtering and sorting
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Number of records per page
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Column to order by
+        in: query
+        name: order_by
+        type: string
+      - description: Sort order (asc or desc)
+        in: query
+        name: order
+        type: string
+      - description: Filter condition (e.g. name=value)
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/tables.Data'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Read table data
+      tags:
+      - tables
+    put:
+      consumes:
+      - application/json
+      description: Update table structure by adding, modifying, or deleting columns
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      - description: Table update information
+        in: body
+        name: updates
+        required: true
+        schema:
+          $ref: '#/definitions/tables.TableUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an existing table
+      tags:
+      - tables
+  /projects/{project_id}/tables/{table_id}/schema:
+    get:
+      description: Get the schema for a specific table in a project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Table schema retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get table schema
+      tags:
+      - schemas
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and the JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
