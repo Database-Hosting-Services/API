@@ -39,7 +39,7 @@ import (
 // @Failure 400 {object} response.ErrorResponse "Project ID is required"
 // @Failure 401 {object} response.ErrorResponse "Unauthorized"
 // @Failure 500 {object} response.ErrorResponse "Internal server error"
-// @Router /projects/{project_id}/tables [get]
+// @Router /api/projects/{project_id}/tables [get]
 func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
@@ -76,7 +76,7 @@ func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /projects/{project_id}/tables [post]
+// @Router /api/projects/{project_id}/tables [post]
 func CreateTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Handler logic for creating a table
@@ -153,7 +153,7 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /projects/{project_id}/tables/{table_id} [put]
+// @Router /api/projects/{project_id}/tables/{table_id} [put]
 func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -200,7 +200,7 @@ func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /projects/{project_id}/tables/{table_id} [delete]
+// @Router /api/projects/{project_id}/tables/{table_id} [delete]
 func DeleteTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
@@ -242,7 +242,7 @@ func DeleteTableHandler(app *config.Application) http.HandlerFunc {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /projects/{project_id}/tables/{table_id} [get]
+// @Router /api/projects/{project_id}/tables/{table_id} [get]
 func ReadTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// url variables

@@ -23,7 +23,7 @@ import (
 // @Success 201 {object} response.SuccessResponse "User signed up successfully"
 // @Failure 400 {object} response.ErrorResponse "Invalid input data or user already exists"
 // @Failure 500 {object} response.ErrorResponse "Server error"
-// @Router /accounts/signup [post]
+// @Router /api/user/sign-up [post]
 func signUp(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user UserUnVerified
@@ -85,7 +85,7 @@ func signUp(app *config.Application) http.HandlerFunc {
 // @Success 200 {object} response.SuccessResponse "User signed in successfully"
 // @Failure 400 {object} response.ErrorResponse "Invalid credentials"
 // @Failure 500 {object} response.ErrorResponse "Server error"
-// @Router /accounts/signin [post]
+// @Router /api/user/sign-in [post]
 func SignIn(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user UserSignIn
@@ -129,7 +129,7 @@ func SignIn(app *config.Application) http.HandlerFunc {
 // @Success 201 {object} response.SuccessResponse "User verified successfully"
 // @Failure 400 {object} response.ErrorResponse "Invalid verification code"
 // @Failure 500 {object} response.ErrorResponse "Server error"
-// @Router /accounts/verify [post]
+// @Router /api/user/verify [post]
 func Verify(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user UserUnVerified
@@ -165,7 +165,7 @@ func Verify(app *config.Application) http.HandlerFunc {
 // @Success 200 {object} response.SuccessResponse "Verification code sent successfully"
 // @Failure 400 {object} response.ErrorResponse "Invalid email"
 // @Failure 500 {object} response.ErrorResponse "Server error"
-// @Router /accounts/resend-code [post]
+// @Router /api/user/resend-code [post]
 func resendCode(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user UserSignIn
@@ -199,7 +199,7 @@ func resendCode(app *config.Application) http.HandlerFunc {
 // @Success 200 {object} response.SuccessResponse "Password updated successfully"
 // @Failure 400 {object} response.ErrorResponse "Invalid input"
 // @Failure 500 {object} response.ErrorResponse "Server error"
-// @Router /accounts/password [put]
+// @Router /api/users/update-password [post]
 func UpdatePassword(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var UserPassword UpdatePasswordModel
@@ -229,7 +229,7 @@ func UpdatePassword(app *config.Application) http.HandlerFunc {
 // @Success 200 {object} response.SuccessResponse "User's data updated successfully"
 // @Failure 400 {object} response.ErrorResponse "Invalid input data"
 // @Failure 500 {object} response.ErrorResponse "Server error"
-// @Router /accounts/{id} [put]
+// @Router /api/users/{id} [patch]
 func UpdateUser(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
@@ -300,7 +300,7 @@ func UpdateUser(app *config.Application) http.HandlerFunc {
 // @Success 200 {object} response.SuccessResponse "Verification code sent"
 // @Failure 400 {object} response.ErrorResponse "User does not exist"
 // @Failure 500 {object} response.ErrorResponse "Server error"
-// @Router /accounts/forgot-password [post]
+// @Router /api/user/forget-password [post]
 func ForgetPassword(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user User
@@ -333,7 +333,7 @@ func ForgetPassword(app *config.Application) http.HandlerFunc {
 // @Success 200 {object} response.SuccessResponse "Password reset successfully"
 // @Failure 400 {object} response.ErrorResponse "Invalid code or password"
 // @Failure 500 {object} response.ErrorResponse "Server error"
-// @Router /accounts/reset-password [post]
+// @Router /api/user/forget-password/verify [post]
 func ForgetPasswordVerify(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body ResetPasswordForm

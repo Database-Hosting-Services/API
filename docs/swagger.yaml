@@ -218,256 +218,7 @@ info:
   title: DBHS API
   version: "1.0"
 paths:
-  /accounts/{id}:
-    put:
-      consumes:
-      - application/json
-      description: Update user profile information
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: User information to update
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.UpdateUserRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: User's data updated successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Invalid input data
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Update user information
-      tags:
-      - accounts
-  /accounts/forgot-password:
-    post:
-      consumes:
-      - application/json
-      description: Send a verification code to reset password
-      parameters:
-      - description: User email information
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.User'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Verification code sent
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: User does not exist
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Initiate password reset
-      tags:
-      - accounts
-  /accounts/password:
-    put:
-      consumes:
-      - application/json
-      description: Update the password for an authenticated user
-      parameters:
-      - description: Password update information
-        in: body
-        name: password
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.UpdatePasswordModel'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Password updated successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Invalid input
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Update user password
-      tags:
-      - accounts
-  /accounts/resend-code:
-    post:
-      consumes:
-      - application/json
-      description: Resend verification code to user email
-      parameters:
-      - description: User email information
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.UserSignIn'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Verification code sent successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Invalid email
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Resend verification code
-      tags:
-      - accounts
-  /accounts/reset-password:
-    post:
-      consumes:
-      - application/json
-      description: Verify code and reset user password
-      parameters:
-      - description: Password reset information with verification code
-        in: body
-        name: reset
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.ResetPasswordForm'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Password reset successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Invalid code or password
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Verify and reset password
-      tags:
-      - accounts
-  /accounts/signin:
-    post:
-      consumes:
-      - application/json
-      description: Authenticate user with email and password
-      parameters:
-      - description: User login credentials
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.UserSignIn'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: User signed in successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Invalid credentials
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: User login
-      tags:
-      - accounts
-  /accounts/signup:
-    post:
-      consumes:
-      - application/json
-      description: Register a new user with email and password
-      parameters:
-      - description: User registration information
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.UserUnVerified'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: User signed up successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Invalid input data or user already exists
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Register a new user
-      tags:
-      - accounts
-  /accounts/verify:
-    post:
-      consumes:
-      - application/json
-      description: Verify a user account with verification code
-      parameters:
-      - description: User verification information
-        in: body
-        name: verification
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.UserUnVerified'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: User verified successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Invalid verification code
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Verify user account
-      tags:
-      - accounts
-  /projects:
+  /api/projects:
     get:
       description: Get all projects owned by the authenticated user
       produces:
@@ -523,10 +274,83 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Create a new project
       tags:
       - projects
-  /projects/{project_id}:
+  /api/projects/{project-id}/schema/tables:
+    get:
+      description: Get the database schema for a specific project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Database schema retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get database schema
+      tags:
+      - schemas
+  /api/projects/{project-id}/schema/tables/{table-id}:
+    get:
+      description: Get the schema for a specific table in a project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project-id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Table schema retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get table schema
+      tags:
+      - schemas
+  /api/projects/{project_id}:
     delete:
       consumes:
       - application/json
@@ -602,7 +426,7 @@ paths:
       summary: Get a specific project
       tags:
       - projects
-    put:
+    patch:
       consumes:
       - application/json
       description: Update a project's details by its ID
@@ -643,40 +467,7 @@ paths:
       summary: Update a project
       tags:
       - projects
-  /projects/{project_id}/schema:
-    get:
-      description: Get the database schema for a specific project
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Database schema retrieved successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Project ID is required
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get database schema
-      tags:
-      - schemas
-  /projects/{project_id}/tables:
+  /api/projects/{project_id}/tables:
     get:
       description: Get a list of all tables in the specified project
       parameters:
@@ -756,7 +547,7 @@ paths:
       summary: Create a new table
       tags:
       - tables
-  /projects/{project_id}/tables/{table_id}:
+  /api/projects/{project_id}/tables/{table_id}:
     delete:
       description: Delete a table from the specified project
       parameters:
@@ -903,44 +694,255 @@ paths:
       summary: Update an existing table
       tags:
       - tables
-  /projects/{project_id}/tables/{table_id}/schema:
-    get:
-      description: Get the schema for a specific table in a project
+  /api/user/forget-password:
+    post:
+      consumes:
+      - application/json
+      description: Send a verification code to reset password
       parameters:
-      - description: Project ID
-        in: path
-        name: project_id
+      - description: User email information
+        in: body
+        name: user
         required: true
-        type: string
-      - description: Table ID
-        in: path
-        name: table_id
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/accounts.User'
       produces:
       - application/json
       responses:
         "200":
-          description: Table schema retrieved successfully
+          description: Verification code sent
           schema:
             $ref: '#/definitions/response.SuccessResponse'
         "400":
-          description: Project ID is required
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
+          description: User does not exist
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
-          description: Internal server error
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Initiate password reset
+      tags:
+      - accounts
+  /api/user/forget-password/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify code and reset user password
+      parameters:
+      - description: Password reset information with verification code
+        in: body
+        name: reset
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.ResetPasswordForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid code or password
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Verify and reset password
+      tags:
+      - accounts
+  /api/user/resend-code:
+    post:
+      consumes:
+      - application/json
+      description: Resend verification code to user email
+      parameters:
+      - description: User email information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UserSignIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Verification code sent successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid email
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Resend verification code
+      tags:
+      - accounts
+  /api/user/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with email and password
+      parameters:
+      - description: User login credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UserSignIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User signed in successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: User login
+      tags:
+      - accounts
+  /api/user/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email and password
+      parameters:
+      - description: User registration information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UserUnVerified'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User signed up successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid input data or user already exists
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - accounts
+  /api/user/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify a user account with verification code
+      parameters:
+      - description: User verification information
+        in: body
+        name: verification
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UserUnVerified'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User verified successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid verification code
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Verify user account
+      tags:
+      - accounts
+  /api/users/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update user profile information
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User information to update
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User's data updated successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid input data
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get table schema
+      summary: Update user information
       tags:
-      - schemas
+      - accounts
+  /api/users/update-password:
+    post:
+      consumes:
+      - application/json
+      description: Update the password for an authenticated user
+      parameters:
+      - description: Password update information
+        in: body
+        name: password
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UpdatePasswordModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password updated successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user password
+      tags:
+      - accounts
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and the JWT token.
