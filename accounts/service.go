@@ -5,6 +5,8 @@ import (
 	"DBHS/config"
 	"DBHS/utils"
 	"DBHS/utils/token"
+	"github.com/jackc/pgx/v5"
+
 	"context"
 	"errors"
 	"fmt"
@@ -16,7 +18,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) error {
+func SignupUser(ctx context.Context, db *pgxpool.Pool, user *UserUnVerified) error {
 	/*
 		store user's data in cache and
 		generate a verification code and send it to the user
@@ -26,17 +28,16 @@ func SignupUser(ctx context.Context, db *pgxpool.Pool, user *User) error {
 		return errors.New("failed to hash password")
 	}
 
+	user.Code = utils.GenerateVerficationCode()
 	user.OID = utils.GenerateOID()
 	user.Password = string(hashedPassword)
-	user.Verified = false
 
 	// store user's data in cache
 	config.VerifyCache.Set(user.Email, user, time.Minute*30)
 	config.VerifyCache.Set(user.Username, true, time.Minute*30)
 
 	// send the verification code
-	userVerficationCode := utils.GenerateVerficationCode()
-	if err = SendMail(config.EmailSender, os.Getenv("GMAIL"), user.Email, userVerficationCode, "Verification Code"); err != nil {
+	if err = SendMail(config.EmailSender, os.Getenv("GMAIL"), user.Email, user.Code, "Verification Code"); err != nil {
 		config.VerifyCache.Delete(user.Email)
 		config.VerifyCache.Delete(user.Username)
 		return err
@@ -68,6 +69,9 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 	}...)
 
 	if err != nil {
+		if err.Error() == "user with "+user.Email+" not found" {
+			return nil, errors.New("InCorrect Email or Password")
+		}
 		return nil, err
 	}
 
@@ -75,12 +79,12 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 		return nil, errors.New("InCorrect Email or Password")
 	}
 
-	UserTokenData := &User{
+	UserTokenData := User{
 		OID:      authenticatedUser.OID,
 		Username: authenticatedUser.Username,
 	}
 
-	token, err := token.CreateAccessToken(UserTokenData, config.Env.AccessTokenExpiryHour)
+	token, err := token.CreateAccessToken(&UserTokenData, config.Env.AccessTokenExpiryHour)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +101,7 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 }
 
 func SendUserVerificationCode(cache *caching.RedisClient, email, Password string) (map[string]interface{}, error) {
-	var user UserVerify
+	var user UserUnVerified
 
 	_, err := cache.Get(email, &user)
 	if err != nil {
@@ -115,7 +119,7 @@ func SendUserVerificationCode(cache *caching.RedisClient, email, Password string
 }
 
 func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
-	var UserData UserVerify
+	var UserData UserUnVerified
 
 	_, err := cache.Get(user.Email, &user)
 	if err != nil {
@@ -137,7 +141,30 @@ func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
 	return nil
 }
 
-func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserVerify) (map[string]interface{}, error) {
+func UpdateUserPassword(ctx context.Context, db *pgxpool.Pool, UserPassword *UpdatePasswordModel) error {
+	if UserPassword.Password != UserPassword.ConfirmPassword {
+		return errors.New("passwords do not match")
+	}
+
+	UserOid, ok := ctx.Value("user-oid").(string)
+	if !ok || UserOid == "" {
+		return errors.New("Unauthorized")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(UserPassword.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.New("failed to hash password")
+	}
+
+	err = utils.UpdateDataInDatabase(ctx, db, UPDATE_USER_PASSWORD, string(hashedPassword), UserOid)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, user *UserUnVerified) (map[string]interface{}, error) {
 
 	userCode := user.Code
 	if _, err := cache.Get(user.Email, user); err != nil {
@@ -155,15 +182,11 @@ func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 	}
 	defer transaction.Rollback(ctx)
 
-	// set user as verified
-	user.Verified = true
-
 	if err := CreateUser(ctx, transaction, &user.User); err != nil {
 		return nil, err
 	}
 
-	err = GetUser(ctx, transaction, user.Email, SELECT_ID_FROM_USER_BY_EMAIL, []interface{}{&user.ID}...)
-	if err != nil {
+	if err := GetUser(ctx, transaction, user.Email, SELECT_ID_FROM_USER_BY_EMAIL, []interface{}{&user.ID}...); err != nil {
 		return nil, err
 	}
 
@@ -190,9 +213,90 @@ func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 		"id":       user.OID, // sent to the client
 		"email":    user.Email,
 		"username": user.Username,
-		"verified": user.Verified,
 		"token":    token,
 	}
 
 	return data, nil
+}
+
+func ForgetPasswordService(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, email string) error {
+	// check if a user exist with this email
+	var user UserUnVerified
+	err := GetUser(ctx, db, email, SELECT_USER_BY_Email, []interface{}{
+		&user.ID,
+		&user.OID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.Image,
+		&user.CreatedAt,
+		&user.LastLogin,
+	}...)
+
+	if err != nil {
+		return fmt.Errorf("User does not exist")
+	}
+
+	code := utils.GenerateVerficationCode()
+	user.Code = code
+
+	if err := cache.Set("forget:"+user.Email, &user, time.Minute*time.Duration(config.Env.VerifyCodeExpiryMinute)); err != nil {
+		return err
+	}
+
+	if err := SendMail(config.EmailSender, os.Getenv("GMAIL"), email, code, "Verifacation Code"); err != nil {
+		cache.Delete("forget:" + user.Email)
+		return err
+	}
+	return nil
+}
+
+func ForgetPasswordVerifyService(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, resetForm *ResetPasswordForm) error {
+	var user UserUnVerified
+	if _, err := cache.Get("forget:"+resetForm.Email, &user); err != nil {
+		return err
+	}
+	if user.Code != resetForm.Code {
+		return fmt.Errorf("Wrong verification code")
+	}
+
+	if err := GetUser(ctx, db, resetForm.Email, SELECT_USER_BY_Email, []interface{}{
+		&user.ID,
+		&user.OID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.Image,
+		&user.CreatedAt,
+		&user.LastLogin,
+	}...); err != nil {
+		return err
+	}
+
+	transaction, err := db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer transaction.Rollback(ctx)
+
+	if err := utils.UpdateDataInDatabase(ctx, transaction, UPDATE_USER_PASSWORD, user.OID, utils.HashedPassword(resetForm.Password)); err != nil {
+		return err
+	}
+
+	if err := cache.Delete("forget:" + resetForm.Email); err != nil {
+		return err
+	}
+
+	if err := transaction.Commit(ctx); err != nil {
+		cache.Set("forget:"+user.Email, &user, time.Minute*time.Duration(config.Env.VerifyCodeExpiryMinute))
+		return err
+	}
+	return nil
+}
+
+func UpdateUserData(ctx context.Context, db pgx.Tx, query string, args []interface{}) error {
+	if err := utils.UpdateDataInDatabase(ctx, db, query, args...); err != nil {
+		return err
+	}
+	return nil
 }

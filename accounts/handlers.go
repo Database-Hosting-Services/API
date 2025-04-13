@@ -3,27 +3,30 @@ package accounts
 import (
 	"DBHS/config"
 	"DBHS/response"
+	"DBHS/utils"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
-// @Summary Sign up user
-// @Description Sign up user and send a verification code via email
-// @Tags Users
+// signUp godoc
+// @Summary Register a new user
+// @Description Register a new user with email and password
+// @Tags accounts
 // @Accept json
 // @Produce json
-// @Param username path string true "Username"
-// @Param email path string true "Email"
-// @Param password path string true "Password"
-// @Success 201 {object} response.Response
-// @Failure 400 {object} response.Response
-// @Router /api/sign-up [post]
+// @Param user body UserUnVerified true "User registration information"
+// @Success 201 {object} response.SuccessResponse "User signed up successfully"
+// @Failure 400 {object} response.ErrorResponse "Invalid input data or user already exists"
+// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Router /accounts/signup [post]
 func signUp(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var user User
+		var user UserUnVerified
 		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 			response.BadRequest(w, "Invalid Input", err)
 			return
@@ -72,6 +75,17 @@ func signUp(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// SignIn godoc
+// @Summary User login
+// @Description Authenticate user with email and password
+// @Tags accounts
+// @Accept json
+// @Produce json
+// @Param user body UserSignIn true "User login credentials"
+// @Success 200 {object} response.SuccessResponse "User signed in successfully"
+// @Failure 400 {object} response.ErrorResponse "Invalid credentials"
+// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Router /accounts/signin [post]
 func SignIn(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user UserSignIn
@@ -105,9 +119,20 @@ func SignIn(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// Verify godoc
+// @Summary Verify user account
+// @Description Verify a user account with verification code
+// @Tags accounts
+// @Accept json
+// @Produce json
+// @Param verification body UserUnVerified true "User verification information"
+// @Success 201 {object} response.SuccessResponse "User verified successfully"
+// @Failure 400 {object} response.ErrorResponse "Invalid verification code"
+// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Router /accounts/verify [post]
 func Verify(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var user UserVerify
+		var user UserUnVerified
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&user); err != nil {
 			app.ErrorLog.Println(err.Error())
@@ -130,6 +155,17 @@ func Verify(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// resendCode godoc
+// @Summary Resend verification code
+// @Description Resend verification code to user email
+// @Tags accounts
+// @Accept json
+// @Produce json
+// @Param user body UserSignIn true "User email information"
+// @Success 200 {object} response.SuccessResponse "Verification code sent successfully"
+// @Failure 400 {object} response.ErrorResponse "Invalid email"
+// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Router /accounts/resend-code [post]
 func resendCode(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user UserSignIn
@@ -149,5 +185,173 @@ func resendCode(app *config.Application) http.HandlerFunc {
 		}
 		app.InfoLog.Println("Verification code sent successfully", user.Email)
 		response.OK(w, "Verification code sent successfully", nil)
+	}
+}
+
+// UpdatePassword godoc
+// @Summary Update user password
+// @Description Update the password for an authenticated user
+// @Tags accounts
+// @Accept json
+// @Produce json
+// @Param password body UpdatePasswordModel true "Password update information"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse "Password updated successfully"
+// @Failure 400 {object} response.ErrorResponse "Invalid input"
+// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Router /accounts/password [put]
+func UpdatePassword(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var UserPassword UpdatePasswordModel
+		if err := json.NewDecoder(r.Body).Decode(&UserPassword); err != nil {
+			response.BadRequest(w, "Invalid JSON body", err)
+			return
+		}
+		err := UpdateUserPassword(r.Context(), config.DB, &UserPassword)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Server Error, please try again later.", err)
+			return
+		}
+		response.OK(w, "Password updated successfully", nil)
+	}
+}
+
+// UpdateUser godoc
+// @Summary Update user information
+// @Description Update user profile information
+// @Tags accounts
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Param user body UpdateUserRequest true "User information to update"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse "User's data updated successfully"
+// @Failure 400 {object} response.ErrorResponse "Invalid input data"
+// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Router /accounts/{id} [put]
+func UpdateUser(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		userOid := urlVariables["id"]
+
+		if userOid == "" {
+			response.BadRequest(w, "User Id is required", nil)
+			return
+		}
+
+		var requestData UpdateUserRequest
+		if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+			response.BadRequest(w, "Invalid Input Data", err)
+			return
+		}
+		defer r.Body.Close()
+
+		transaction, err := config.DB.Begin(r.Context())
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Server Error, please try again later.", err)
+			return
+		}
+
+		fieldsToUpdate, newValues, err := utils.GetNonZeroFieldsFromStruct(&requestData)
+		if err != nil {
+			response.BadRequest(w, "Invalid Input Data", err)
+			return
+		}
+
+		query, err := BuildUserUpdateQuery(userOid, fieldsToUpdate)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Internal Server Error", err)
+			return
+		}
+
+		err = UpdateUserData(r.Context(), transaction, query, newValues)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Internal Server Error", err)
+			return
+		}
+
+		Data := make(map[string]interface{})
+
+		for idx := 0; idx < len(fieldsToUpdate); idx++ {
+			Data[fieldsToUpdate[idx]] = newValues[idx]
+		}
+
+		if err := transaction.Commit(r.Context()); err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Server Error, please try again later.", err)
+			return
+		}
+
+		response.OK(w, "User's data updated successfully", Data)
+	}
+}
+
+// ForgetPassword godoc
+// @Summary Initiate password reset
+// @Description Send a verification code to reset password
+// @Tags accounts
+// @Accept json
+// @Produce json
+// @Param user body User true "User email information"
+// @Success 200 {object} response.SuccessResponse "Verification code sent"
+// @Failure 400 {object} response.ErrorResponse "User does not exist"
+// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Router /accounts/forgot-password [post]
+func ForgetPassword(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var user User
+		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+			response.BadRequest(w, "Invalid JSON body", err)
+			return
+		}
+		err := ForgetPasswordService(r.Context(), config.DB, config.VerifyCache, user.Email)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			if err.Error() == "User does not exist" {
+				response.BadRequest(w, err.Error(), err)
+				return
+			}
+			response.InternalServerError(w, "Server Error, please try again later.", err)
+			return
+		}
+
+		response.OK(w, "Verifacation Code Sent", nil)
+	}
+}
+
+// ForgetPasswordVerify godoc
+// @Summary Verify and reset password
+// @Description Verify code and reset user password
+// @Tags accounts
+// @Accept json
+// @Produce json
+// @Param reset body ResetPasswordForm true "Password reset information with verification code"
+// @Success 200 {object} response.SuccessResponse "Password reset successfully"
+// @Failure 400 {object} response.ErrorResponse "Invalid code or password"
+// @Failure 500 {object} response.ErrorResponse "Server error"
+// @Router /accounts/reset-password [post]
+func ForgetPasswordVerify(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body ResetPasswordForm
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			response.BadRequest(w, "Invalid JSON body", err)
+			return
+		}
+
+		err := ForgetPasswordVerifyService(r.Context(), config.DB, config.VerifyCache, &body)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			if err.Error() == "Wrong verification code" {
+				response.BadRequest(w, err.Error(), err)
+				return
+			}
+			response.InternalServerError(w, "Server Error, please try again later.", err)
+			return
+		}
+		response.OK(w, "Password updated successfully", nil)
 	}
 }

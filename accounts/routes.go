@@ -1,10 +1,34 @@
 package accounts
 
-import "DBHS/config"
+import (
+	"DBHS/config"
+	"DBHS/middleware"
+	"net/http"
+)
 
 func DefineURLs() {
-	config.Mux.HandleFunc("POST /api/user/sign-up", signUp(config.App))
-	config.Mux.HandleFunc("POST /api/user/sign-in", SignIn(config.App))
-	config.Mux.HandleFunc("POST /api/user/verify", Verify(config.App))
-	config.Mux.HandleFunc("POST /api/user/resend-code", resendCode(config.App))
+	dynamicRoutes()
+	protectedRoutes()
+}
+
+func dynamicRoutes() {
+	userDynamic := config.Router.PathPrefix("/api/user").Subrouter()
+	// global middleware
+	userDynamic.Use(middleware.MethodsAllowed(http.MethodPost))
+
+	userDynamic.Handle("/sign-up", signUp(config.App))
+	userDynamic.Handle("/sign-in", SignIn(config.App))
+	userDynamic.Handle("/verify", Verify(config.App))
+	userDynamic.Handle("/resend-code", resendCode(config.App))
+	userDynamic.Handle("/forget-password", ForgetPassword(config.App))
+	userDynamic.Handle("/forget-password/verify", ForgetPasswordVerify(config.App))
+}
+
+func protectedRoutes() {
+	userProtected := config.Router.PathPrefix("/api/users").Subrouter()
+	// global middleware
+	userProtected.Use(middleware.JwtAuthMiddleware)
+
+	userProtected.Handle("/update-password", middleware.MethodsAllowed(http.MethodPost)(UpdatePassword(config.App)))
+	userProtected.Handle("/{id}", middleware.MethodsAllowed(http.MethodPatch)(UpdateUser(config.App)))
 }

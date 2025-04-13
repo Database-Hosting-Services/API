@@ -103,7 +103,7 @@ func SendMail(d *gomail.Dialer, from, to, code, Subject string) error {
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", Subject)
 
-	data, err := os.ReadFile("../utils/mailTemplate.html")
+	data, err := os.ReadFile("../templates/mailTemplate.html") // test this template path
 	if err != nil {
 		return fmt.Errorf("failed to read mail template: %w", err)
 	}

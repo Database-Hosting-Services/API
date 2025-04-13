@@ -10,6 +10,12 @@ run:
 
 runserver: build run
 
+runRedisServer :
+	$(RUN_REDIS_SERVER_COMMAND)
+
+runDBServer :
+	$(RUN_DB_SERVER_COMMAND)
+
 format:
 	./$(SCRIPTS_DIR)/pre-commit
 
@@ -22,6 +28,9 @@ commit: format
 push: commit
 	echo "\033[32mpushing to remote repo...\033[0m"
 	@git push
+
+generate-docs:
+	swag init -g main/main.go -o ./docs 
 
 clean:
 	rm -rf $(BUILD_DIR)/*

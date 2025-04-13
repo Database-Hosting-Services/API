@@ -3,12 +3,14 @@ package accounts
 import (
 	"context"
 	"fmt"
+
+	"DBHS/utils"
 	"github.com/jackc/pgx/v5"
 )
 
 func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
-	query := `INSERT INTO "users" (oid, username, email, password, image, verified, created_at, last_login)
-	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	query := `INSERT INTO "users" (oid, username, email, password, image, created_at, last_login)
+	          VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
 	_, err := db.Exec(ctx, query,
 		user.OID,
@@ -16,18 +18,11 @@ func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
 		user.Email,
 		user.Password,
 		user.Image,
-		user.Verified,
 		user.CreatedAt,
 		user.LastLogin,
 	)
 
 	return err
-}
-
-// Querier defines an interface for executing a single-row query.
-// Both *pgxpool.Pool and pgx.Tx implement this interface through the QueryRow method.
-type Querier interface {
-	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
 }
 
 /*
@@ -47,7 +42,7 @@ type Querier interface {
 
 */
 
-func GetUser(ctx context.Context, db Querier, SearchField string, query string, dest ...interface{}) error {
+func GetUser(ctx context.Context, db utils.Querier, SearchField string, query string, dest ...interface{}) error {
 	err := db.QueryRow(ctx, query, SearchField).Scan(dest...)
 	if err != nil {
 		if err == pgx.ErrNoRows {

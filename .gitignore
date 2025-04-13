@@ -2,3 +2,5 @@ build/*
 *.env
 .idea
 .vscode
+playground
+tmp/main*

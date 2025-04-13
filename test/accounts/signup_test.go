@@ -1,1 +1,1 @@
-package accounts
+package accounts_test

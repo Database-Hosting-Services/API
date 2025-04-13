@@ -2,11 +2,13 @@ package main
 
 import (
 	"DBHS/accounts"
-	"DBHS/config"
-	httpSwagger "github.com/swaggo/http-swagger"
+	"DBHS/projects"
+	"DBHS/tables"
 )
 
 func defineURLs() {
 	config.Mux.HandleFunc("GET /swagger/docs/", httpSwagger.WrapHandler)
 	accounts.DefineURLs()
+	projects.DefineURLs()
+	tables.DefineURLs()
 }

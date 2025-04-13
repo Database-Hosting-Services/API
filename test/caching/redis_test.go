@@ -1,4 +1,4 @@
-package caching
+package caching_test
 
 import (
 	"DBHS/caching"

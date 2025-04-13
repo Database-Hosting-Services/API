@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>DBHS API Documentation</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    
+    <!-- 1) Load Scalar from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+    <!-- 2) Point it at your OpenAPI JSON -->
+    <script>
+      Scalar.createApiReference('#app', {
+        url: '/swagger/doc.json',
+        proxyUrl: '' // omit or set your CORS proxy if needed
+      });
+    </script>
+  </body>
+</html>
