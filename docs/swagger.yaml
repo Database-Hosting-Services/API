@@ -812,6 +812,55 @@ paths:
       summary: Get details of a specific index
       tags:
       - indexes
+    put:
+      consumes:
+      - application/json
+      description: Modify the name of a specific index by its ID and project ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Index ID
+        in: path
+        name: index_oid
+        required: true
+        type: string
+      - description: Index name update information
+        in: body
+        name: index
+        required: true
+        schema:
+          $ref: '#/definitions/indexes.IndexData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Index name updated successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid input or index name is the same as the current name
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Index not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Failed to update index name
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update the name of a specific index
+      tags:
+      - indexes
   /projects/{project_id}/schema:
     get:
       description: Get the database schema for a specific project

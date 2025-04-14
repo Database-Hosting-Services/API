@@ -866,6 +866,81 @@ const docTemplate = `{
                     }
                 }
             },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Modify the name of a specific index by its ID and project ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "indexes"
+                ],
+                "summary": "Update the name of a specific index",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Index ID",
+                        "name": "index_oid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Index name update information",
+                        "name": "index",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/indexes.IndexData"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Index name updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/response.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or index name is the same as the current name",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Index not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to update index name",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {

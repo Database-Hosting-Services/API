@@ -176,6 +176,22 @@ func DeleteIndex(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// UpdateIndexName godoc
+// @Summary Update the name of a specific index
+// @Description Modify the name of a specific index by its ID and project ID
+// @Tags indexes
+// @Accept json
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param index_oid path string true "Index ID"
+// @Param index body IndexData true "Index name update information"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse "Index name updated successfully"
+// @Failure 400 {object} response.ErrorResponse "Invalid input or index name is the same as the current name"
+// @Failure 404 {object} response.ErrorResponse "Index not found"
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse "Failed to update index name"
+// @Router /projects/{project_id}/indexes/{index_oid} [put]
 func UpdateIndexName(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
