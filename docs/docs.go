@@ -909,14 +909,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Index not found",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "404": {
+                        "description": "Index not found",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
