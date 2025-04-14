@@ -5,12 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"regexp"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
-	"os"
-	"regexp"
 )
 
 func checkPasswordStrength(password string) error {
@@ -103,7 +104,8 @@ func SendMail(d *gomail.Dialer, from, to, code, Subject string) error {
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", Subject)
 
-	data, err := os.ReadFile("utils/mailTemplate.html")
+	// Use absolute path from project root
+	data, err := os.ReadFile("templates/mailTemplate.html") // Remove the "../"
 	if err != nil {
 		return fmt.Errorf("failed to read mail template: %w", err)
 	}

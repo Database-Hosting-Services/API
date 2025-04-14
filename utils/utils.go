@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -104,4 +105,9 @@ func GetNonZeroFieldsFromStruct(data interface{}) ([]string, []interface{}, erro
 func ReplaceWhiteSpacesWithUnderscore(str string) string {
 	replaced := strings.ReplaceAll(str, " ", "_")
 	return replaced
+}
+
+func UserServerDbFormat(dbname string, userId int) string {
+	dbname = strings.ToLower(dbname)
+	return dbname + "_" + strconv.Itoa(userId)
 }

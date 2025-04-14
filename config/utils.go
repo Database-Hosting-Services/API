@@ -1,10 +1,12 @@
 package config
 
 import (
+	"DBHS/utils"
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"strings"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // ParseDatabaseURL parses a PostgreSQL connection string into its components
@@ -92,5 +94,30 @@ func (m *UserDbConfig) GetDbConnection(ctx context.Context, dbName string) (*pgx
 		return nil, fmt.Errorf("unable to create connection pool for database %s: %w", dbName, err)
 	}
 
+	// ping the database
+	err = newPool.Ping(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to ping database %s: %w", dbName, err)
+	}
+
 	return newPool, nil
+}
+
+func LoadTypeMap(ctx context.Context, db utils.Querier) error {
+
+	rows, err := db.Query(ctx, "SELECT oid, typname FROM pg_type")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var oid uint32
+		var typname string
+		if err := rows.Scan(&oid, &typname); err != nil {
+			return err
+		}
+		PgTypes[oid] = typname
+	}
+	return nil
 }

@@ -3,6 +3,7 @@ package projects
 import (
 	"DBHS/utils"
 	"context"
+	"errors"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
@@ -47,8 +48,8 @@ func getUserSpecificProjectFromDatabase(ctx context.Context, db utils.Querier, u
 	var project SafeProjectData
 	err := pgxscan.Get(ctx, db, &project, RetrieveUserSpecificProject, userId, projectOid)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, nil
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrorProjectNotFound
 		}
 		return nil, err
 	}
