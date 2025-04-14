@@ -136,6 +136,20 @@ func GetIndex(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// DeleteIndex godoc
+// @Summary Delete a specific index
+// @Description Remove a specific index by its ID and project ID
+// @Tags indexes
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param index_oid path string true "Index ID"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse "Index deleted successfully"
+// @Failure 400 {object} response.ErrorResponse "Index ID and Project ID are required"
+// @Failure 404 {object} response.ErrorResponse "Index not found"
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse "Failed to delete index"
+// @Router /projects/{project_id}/indexes/{index_oid} [delete]
 func DeleteIndex(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
