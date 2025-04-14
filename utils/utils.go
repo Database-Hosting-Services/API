@@ -13,7 +13,23 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
+
+	api "DBHS/apiError"
+	response "DBHS/response"
 )
+
+func SampleHandler(w http.ResponseWriter, r *http.Request, simulatedError api.ApiError) {
+	switch simulatedError.StatusCode {
+	case http.StatusBadRequest:
+		response.BadRequest(w, simulatedError.Message, simulatedError.Error())
+	case http.StatusUnauthorized:
+		response.UnAuthorized(w, simulatedError.Message, simulatedError.Error())
+	case http.StatusNotFound:
+		response.NotFound(w, simulatedError.Message, simulatedError.Error())
+	default:
+		response.InternalServerError(w, simulatedError.Message, simulatedError.Error())
+	}
+}
 
 func GenerateOID() string {
 	return uuid.New().String() // 36 character

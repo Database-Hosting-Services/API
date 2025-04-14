@@ -4,20 +4,31 @@ import (
 	"DBHS/utils"
 	"context"
 	"errors"
+	"strings"
+
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	api "DBHS/apiError"
+
+	"github.com/jackc/pgx/v5"
+
+	"DBHS/config"
 )
 
-func CreateIndexInDatabase(ctx context.Context, db *pgxpool.Pool, projectOid string, indexData IndexData) error {
+func CreateIndexInDatabase(ctx context.Context, db *pgxpool.Pool, projectOid string, indexData IndexData) api.ApiError {
 	// Get user ID from context
 	UserID, ok := ctx.Value("user-id").(int)
 	if !ok || UserID == 0 {
-		return errors.New("Unauthorized")
+		return *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
 	}
 
 	// ------------------------ Get the project pool connection ------------------------
 	conn, err := ProjectPoolConnection(ctx, db, UserID, projectOid)
 	if err != nil {
-		return err
+		if err == pgx.ErrNoRows {
+			return *api.NewApiError("Project not found", 404, errors.New("project was this id not found"))
+		}
+		return *api.NewApiError("Internal server error", 500, errors.New("failed to connect to the project"))
 	}
 	defer conn.Close()
 
@@ -25,10 +36,14 @@ func CreateIndexInDatabase(ctx context.Context, db *pgxpool.Pool, projectOid str
 
 	query := GenerateIndexQuery(indexData)
 	if _, err = conn.Exec(ctx, query); err != nil {
-		return err
+		if strings.Contains(err.Error(), "already exists") {
+			return *api.NewApiError("the index name must be unique", 400, errors.New("index name already exists"))
+		}
+		return *api.NewApiError("Internal server error", 500, errors.New("failed to create the index"))
 	}
 
-	return nil
+	config.App.InfoLog.Println("Index created successfully for project:", projectOid)
+	return *api.NewApiError("Index created successfully", 200, nil)
 }
 
 func GetIndexes(ctx context.Context, db *pgxpool.Pool, projectOid string) ([]RetrievedIndex, error) {

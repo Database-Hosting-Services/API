@@ -3,6 +3,7 @@ package indexes
 import (
 	"DBHS/config"
 	"DBHS/response"
+	"DBHS/utils"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -47,17 +48,9 @@ func CreateIndex(app *config.Application) http.HandlerFunc {
 
 		// Create the index in the database
 		err := CreateIndexInDatabase(r.Context(), config.DB, projectOid, indexData)
-		if err != nil {
-			config.App.ErrorLog.Println("Failed to create index:", err)
-			if strings.Contains(err.Error(), "already exists") {
-				response.BadRequest(w, "Index already exists", nil)
-			} else if strings.Contains(err.Error(), "project not found") {
-				response.NotFound(w, "Project not found", nil)
-			} else if strings.Contains(err.Error(), "Unauthorized") {
-				response.UnAuthorized(w, "Unauthorized", nil)
-			} else {
-				response.InternalServerError(w, "Failed to create index", nil)
-			}
+
+		if err.Error() != nil {
+			utils.SampleHandler(w, r, err)
 			return
 		}
 
