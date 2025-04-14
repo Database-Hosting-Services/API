@@ -60,7 +60,7 @@ const (
 					AND t.table_name = $1
 				ORDER BY 
 					c.ordinal_position;`
-					
+
 	GetAllTablesSchema = `SELECT
 					t.table_name,
 					c.column_name,

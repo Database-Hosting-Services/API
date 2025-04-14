@@ -103,7 +103,7 @@ func (m *UserDbConfig) GetDbConnection(ctx context.Context, dbName string) (*pgx
 	return newPool, nil
 }
 
-func LoadTypeMap(ctx context.Context, db utils.Querier) (error) {
+func LoadTypeMap(ctx context.Context, db utils.Querier) error {
 
 	rows, err := db.Query(ctx, "SELECT oid, typname FROM pg_type")
 	if err != nil {

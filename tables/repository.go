@@ -13,7 +13,7 @@ import (
 
 func GetProjectNameID(ctx context.Context, projectId string, db utils.Querier) (interface{}, interface{}, error) {
 	var name, id interface{}
-	err := db.QueryRow(ctx,"SELECT id, name FROM projects WHERE oid = $1", projectId).Scan(&id, &name)
+	err := db.QueryRow(ctx, "SELECT id, name FROM projects WHERE oid = $1", projectId).Scan(&id, &name)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -22,7 +22,7 @@ func GetProjectNameID(ctx context.Context, projectId string, db utils.Querier) (
 
 func GetAllTablesNameOid(ctx context.Context, projectId int64, db pgxscan.Querier) ([]ShortTable, error) {
 	var tables []ShortTable
-	err := pgxscan.Select(ctx, db, &tables,`SELECT oid, name FROM "Ptable" WHERE project_id = $1`, projectId)
+	err := pgxscan.Select(ctx, db, &tables, `SELECT oid, name FROM "Ptable" WHERE project_id = $1`, projectId)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func InsertNewTable(ctx context.Context, table *Table, TableId *int, db utils.Qu
 }
 
 func DeleteTableRecord(ctx context.Context, tableId int, db utils.Querier) error {
-	_,err := db.Exec(ctx, fmt.Sprintf(DeleteTableStmt, "id"), tableId)
+	_, err := db.Exec(ctx, fmt.Sprintf(DeleteTableStmt, "id"), tableId)
 	if err != nil {
 		return fmt.Errorf("failed to delete table record: %w", err)
 	}
@@ -55,9 +55,9 @@ func CheckOwnershipQuery(ctx context.Context, projectId string, userId int, db u
 	return count > 0, nil
 }
 
-func ReadTableColumns(ctx context.Context,tableName string, db pgxscan.Querier) (map[string]DbColumn, error) {
+func ReadTableColumns(ctx context.Context, tableName string, db pgxscan.Querier) (map[string]DbColumn, error) {
 	var columns []DbColumn
-	err := pgxscan.Select(ctx,db, &columns, ReadTableStmt, tableName)
+	err := pgxscan.Select(ctx, db, &columns, ReadTableStmt, tableName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read table: %w", err)
 	}
@@ -102,7 +102,7 @@ func DeleteTableFromServerDb(ctx context.Context, tableOID string, db utils.Quer
 	OFFSET [PAGE * LIMIT]
 */
 
-func ReadTableData(ctx context.Context, tableName string, parameters map[string][]string , db utils.Querier) (*Data, error) {
+func ReadTableData(ctx context.Context, tableName string, parameters map[string][]string, db utils.Querier) (*Data, error) {
 	query, err := PrepareQuery(tableName, parameters)
 	if err != nil {
 		return nil, err
@@ -126,14 +126,14 @@ func ReadTableData(ctx context.Context, tableName string, parameters map[string]
 		Columns: make([]ShowColumn, len(columns)),
 	}
 	// get column name, type
-	for i,col := range columns {
+	for i, col := range columns {
 		data.Columns[i] = ShowColumn{
 			Name: col.Name,
 			Type: config.PgTypes[col.DataTypeOID],
 		}
 	}
 
-	//reserve memory where a row will be read 
+	//reserve memory where a row will be read
 	values := make([]interface{}, len(columns))
 	ptr := make([]interface{}, len(columns))
 	for i := range values {
@@ -149,7 +149,7 @@ func ReadTableData(ctx context.Context, tableName string, parameters map[string]
 			row[columns[i].Name] = values[i]
 		}
 		data.Rows = append(data.Rows, row)
-	}	
+	}
 
 	return &data, nil
 }
@@ -188,12 +188,12 @@ func AddFilters(query string, filters []string) (string, error) {
 	}
 	query = query + " WHERE "
 	var opMap = map[string]string{
-		"eq":  "=",
-		"neq": "!=",
-		"lt":  "<",
-		"lte": "<=",
-		"gt":  ">",
-		"gte": ">=",
+		"eq":   "=",
+		"neq":  "!=",
+		"lt":   "<",
+		"lte":  "<=",
+		"gt":   ">",
+		"gte":  ">=",
 		"like": "LIKE", // if needed
 	}
 
@@ -204,7 +204,7 @@ func AddFilters(query string, filters []string) (string, error) {
 		if op == "like" {
 			predicates = append(predicates, fmt.Sprintf("%s %s %s", column, opMap[op], value))
 		} else {
-			intV , err := strconv.Atoi(value) 
+			intV, err := strconv.Atoi(value)
 			if err != nil {
 				return "", err
 			}
@@ -212,7 +212,7 @@ func AddFilters(query string, filters []string) (string, error) {
 		}
 	}
 
-	return  query + strings.Join(predicates, " AND "), nil
+	return query + strings.Join(predicates, " AND "), nil
 
 }
 
@@ -224,7 +224,7 @@ func AddOrder(query string, orders []string) (string, error) {
 
 	query = query + " ORDER BY "
 	var opMap = map[string]string{
-		"asc" : "ASC",
+		"asc":  "ASC",
 		"desc": "DESC",
 	}
 
@@ -235,6 +235,5 @@ func AddOrder(query string, orders []string) (string, error) {
 		predicates = append(predicates, fmt.Sprintf("%s %s", column, opMap[op]))
 	}
 
-	return  query + strings.Join(predicates, ", "), nil
+	return query + strings.Join(predicates, ", "), nil
 }
-

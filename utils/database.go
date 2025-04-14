@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 )
+
 var (
 	CheckOwnershipStmt = `SELECT COUNT(*) FROM "projects" WHERE oid = $1 AND owner_id = $2;`
 )
