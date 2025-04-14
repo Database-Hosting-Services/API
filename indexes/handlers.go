@@ -96,6 +96,20 @@ func ProjectIndexes(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// GetIndex godoc
+// @Summary Get details of a specific index
+// @Description Retrieve details of a specific index by its ID and project ID
+// @Tags indexes
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param index_oid path string true "Index ID"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse "Index retrieved successfully"
+// @Failure 400 {object} response.ErrorResponse "Index ID and Project ID are required"
+// @Failure 404 {object} response.ErrorResponse "Index not found"
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse "Failed to get index"
+// @Router /projects/{project_id}/indexes/{index_oid} [get]
 func GetIndex(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
