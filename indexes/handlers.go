@@ -65,6 +65,17 @@ func CreateIndex(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// ProjectIndexes godoc
+// @Summary Get all indexes in a project
+// @Description Retrieve a list of all indexes for the specified project
+// @Tags indexes
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse "Indexes retrieved successfully"
+// @Failure 400 {object} response.ErrorResponse "Project ID is required"
+// @Failure 500 {object} response.ErrorResponse "Failed to get indexes"
+// @Router /projects/{project_id}/indexes [get]
 func ProjectIndexes(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
