@@ -18,4 +18,8 @@ type SpecificIndex struct {
 	IndexType string `json:"index_type"`
 }
 
+type UpdateName struct {
+	Name string `json:"name"`
+}
+
 var DefaultSpecificIndex = SpecificIndex{}

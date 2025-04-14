@@ -827,12 +827,12 @@ paths:
         name: index_oid
         required: true
         type: string
-      - description: Index name update information
+      - description: New index name
         in: body
-        name: index
+        name: name
         required: true
         schema:
-          $ref: '#/definitions/indexes.IndexData'
+          type: object
       produces:
       - application/json
       responses:

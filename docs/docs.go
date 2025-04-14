@@ -899,12 +899,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Index name update information",
-                        "name": "index",
+                        "description": "New index name",
+                        "name": "name",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/indexes.IndexData"
+                            "type": "object"
                         }
                     }
                 ],

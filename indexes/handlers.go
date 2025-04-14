@@ -184,7 +184,7 @@ func DeleteIndex(app *config.Application) http.HandlerFunc {
 // @Produce json
 // @Param project_id path string true "Project ID"
 // @Param index_oid path string true "Index ID"
-// @Param index body IndexData true "Index name update information"
+// @Param name body object true "New index name" Schema example: {"name": "new_name"}
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse "Index name updated successfully"
 // @Failure 400 {object} response.ErrorResponse "Invalid input or index name is the same as the current name"
@@ -201,18 +201,18 @@ func UpdateIndexName(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		var indexData IndexData
+		var indexData UpdateName
 		if err := json.NewDecoder(r.Body).Decode(&indexData); err != nil {
 			response.BadRequest(w, "Invalid request body", nil)
 			return
 		}
 
-		if indexData.IndexName == "" {
+		if indexData.Name == "" {
 			response.BadRequest(w, "Index name is required", nil)
 			return
 		}
 
-		err := UpdateSpecificIndex(r.Context(), config.DB, projectOid, indexOid, indexData.IndexName)
+		err := UpdateSpecificIndex(r.Context(), config.DB, projectOid, indexOid, indexData.Name)
 		if err != nil {
 			config.App.ErrorLog.Println("Failed to update index name:", err)
 			if strings.Contains(err.Error(), "index not found") {
