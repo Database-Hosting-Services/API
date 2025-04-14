@@ -72,6 +72,19 @@ definitions:
       username:
         type: string
     type: object
+  indexes.IndexData:
+    properties:
+      columns:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      table_name:
+        type: string
+      type:
+        type: string
+    type: object
   projects.Project:
     properties:
       API_URL:
@@ -643,6 +656,51 @@ paths:
       summary: Update a project
       tags:
       - projects
+  /projects/{project_id}/indexes:
+    post:
+      consumes:
+      - application/json
+      description: Create a new index in the specified project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Index information
+        in: body
+        name: index
+        required: true
+        schema:
+          $ref: '#/definitions/indexes.IndexData'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Index created successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid input or index already exists
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Project not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new index
+      tags:
+      - indexes
   /projects/{project_id}/schema:
     get:
       description: Get the database schema for a specific project

@@ -10,6 +10,21 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// CreateIndex godoc
+// @Summary Create a new index
+// @Description Create a new index in the specified project
+// @Tags indexes
+// @Accept json
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param index body IndexData true "Index information"
+// @Security BearerAuth
+// @Success 201 {object} response.SuccessResponse "Index created successfully"
+// @Failure 400 {object} response.ErrorResponse "Invalid input or index already exists"
+// @Failure 401 {object} response.ErrorResponse "Unauthorized"
+// @Failure 404 {object} response.ErrorResponse "Project not found"
+// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Router /projects/{project_id}/indexes [post]
 func CreateIndex(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
