@@ -26,9 +26,9 @@ func CreateIndexInDatabase(ctx context.Context, db *pgxpool.Pool, projectOid str
 	conn, err := ProjectPoolConnection(ctx, db, UserID, projectOid)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return *api.NewApiError("Project not found", 404, errors.New("project was this id not found"))
+			return *api.NewApiError("Project not found", 404, errors.New(err.Error()))
 		}
-		return *api.NewApiError("Internal server error", 500, errors.New("failed to connect to the project"))
+		return *api.NewApiError("Internal server error", 500, errors.New(err.Error()))
 	}
 	defer conn.Close()
 
@@ -37,9 +37,9 @@ func CreateIndexInDatabase(ctx context.Context, db *pgxpool.Pool, projectOid str
 	query := GenerateIndexQuery(indexData)
 	if _, err = conn.Exec(ctx, query); err != nil {
 		if strings.Contains(err.Error(), "already exists") {
-			return *api.NewApiError("the index name must be unique", 400, errors.New("index name already exists"))
+			return *api.NewApiError("the index name must be unique", 400, errors.New(err.Error()))
 		}
-		return *api.NewApiError("Internal server error", 500, errors.New("failed to create the index"))
+		return *api.NewApiError("Internal server error", 500, errors.New(err.Error()))
 	}
 
 	config.App.InfoLog.Println("Index created successfully for project:", projectOid)
