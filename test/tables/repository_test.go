@@ -65,7 +65,7 @@ func (suite *RepositoryTestSuite) SetupSuite() {
 
 	// Set global DB for repository functions
 	config.DB = suite.db
-	
+
 }
 
 func (suite *RepositoryTestSuite) TearDownSuite() {
@@ -93,7 +93,7 @@ func (suite *RepositoryTestSuite) SetupTest() {
 	`, existingProjectOID)
 
 	require.NoError(suite.T(), err, "Failed to set up test data")
-	
+
 }
 
 func (suite *RepositoryTestSuite) TearDownTest() {

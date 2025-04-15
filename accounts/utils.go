@@ -5,13 +5,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"regexp"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
-	"os"
-	"regexp"
 )
+
+// EmailSenderFunc defines the signature of the SendMail function for mocking
+type EmailSenderFunc func(d interface{}, from, to, code, subject string) error
+
+// Mock sender for tests
+var currentEmailSender EmailSenderFunc = nil
 
 func checkPasswordStrength(password string) error {
 	/*
@@ -95,7 +102,19 @@ func CheckPasswordHash(inputPassword, storedHash string) bool {
 	return err == nil
 }
 
+// SetEmailSender allows testing to set a mock email sender
+func SetEmailSender(sender EmailSenderFunc) EmailSenderFunc {
+	old := currentEmailSender
+	currentEmailSender = sender
+	return old
+}
+
 func SendMail(d *gomail.Dialer, from, to, code, Subject string) error {
+	// Use mock sender if set (for testing)
+	if currentEmailSender != nil {
+		return currentEmailSender(d, from, to, code, Subject)
+	}
+
 	m := gomail.NewMessage()
 
 	// Set headers
@@ -103,7 +122,8 @@ func SendMail(d *gomail.Dialer, from, to, code, Subject string) error {
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", Subject)
 
-	data, err := os.ReadFile("../templates/mailTemplate.html") // test this template path
+	// Use absolute path from project root
+	data, err := os.ReadFile("templates/mailTemplate.html") // Remove the "../"
 	if err != nil {
 		return fmt.Errorf("failed to read mail template: %w", err)
 	}

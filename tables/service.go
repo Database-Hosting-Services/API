@@ -67,14 +67,13 @@ func CreateTable(ctx context.Context, projectOID string, table *ClientTable, ser
 	return tableRecord.OID, nil
 }
 
-
 func UpdateTable(ctx context.Context, projectOID string, tableOID string, updates *TableUpdate, servDb *pgxpool.Pool) error {
 	userId, ok := ctx.Value("user-id").(int)
 	if !ok || userId == 0 {
 		return errors.New("Unauthorized")
 	}
 
-	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb) 
+	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return err
 	}
@@ -85,7 +84,7 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 	}
 
 	// Call the service function to read the table
-	table, err := ReadTableColumns(ctx,tableName, userDb)
+	table, err := ReadTableColumns(ctx, tableName, userDb)
 	if err != nil {
 		return err
 	}
@@ -105,13 +104,13 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 	return nil
 }
 
-func DeletTable(ctx context.Context, projectOID , tableOID string, servDb *pgxpool.Pool) error {
+func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpool.Pool) error {
 	userId, ok := ctx.Value("user-id").(int)
 	if !ok || userId == 0 {
 		return errors.New("Unauthorized")
 	}
 
-	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb) 
+	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return err
 	}
@@ -130,7 +129,7 @@ func DeletTable(ctx context.Context, projectOID , tableOID string, servDb *pgxpo
 		return err
 	}
 
-	servtx , err := servDb.Begin(ctx)
+	servtx, err := servDb.Begin(ctx)
 	if err != nil {
 		return err
 	}
@@ -154,7 +153,7 @@ func DeletTable(ctx context.Context, projectOID , tableOID string, servDb *pgxpo
 }
 
 /*
-	the responce data will be in the form 
+	the responce data will be in the form
 	{
 		"columns": [ // array of columns names and types
 			{
@@ -162,26 +161,26 @@ func DeletTable(ctx context.Context, projectOID , tableOID string, servDb *pgxpo
 				"type": "type"
 			}
 			...
-		] 
+		]
 		"rows": [
 			{
 				"column1_name": "value"
 				"column2_name": "value"
 				...
-			}	
+			}
 		]
 
-	}	
+	}
 
 */
 
-func ReadTable(ctx context.Context, projectOID , tableOID string, parameters map[string][]string, servDb *pgxpool.Pool) (*Data, error) {
+func ReadTable(ctx context.Context, projectOID, tableOID string, parameters map[string][]string, servDb *pgxpool.Pool) (*Data, error) {
 	userId, ok := ctx.Value("user-id").(int)
 	if !ok || userId == 0 {
 		return nil, response.ErrUnauthorized
 	}
 
-	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb) 
+	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return nil, err
 	}

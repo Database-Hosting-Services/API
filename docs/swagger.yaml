@@ -159,6 +159,19 @@ definitions:
         example: User verified successfully
         type: string
     type: object
+  indexes.IndexData:
+    properties:
+      columns:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      table_name:
+        type: string
+      type:
+        type: string
+    type: object
   projects.Project:
     properties:
       API_URL:
@@ -733,6 +746,211 @@ paths:
       summary: Update a project
       tags:
       - projects
+  /projects/{project_id}/indexes:
+    get:
+      description: Retrieve a list of all indexes for the specified project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Indexes retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Failed to get indexes
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all indexes in a project
+      tags:
+      - indexes
+    post:
+      consumes:
+      - application/json
+      description: Create a new index in the specified project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Index information
+        in: body
+        name: index
+        required: true
+        schema:
+          $ref: '#/definitions/indexes.IndexData'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Index created successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid input or index already exists
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Project not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new index
+      tags:
+      - indexes
+  /projects/{project_id}/indexes/{index_oid}:
+    delete:
+      description: Remove a specific index by its ID and project ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Index ID
+        in: path
+        name: index_oid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Index deleted successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Index ID and Project ID are required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Index not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Failed to delete index
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a specific index
+      tags:
+      - indexes
+    get:
+      description: Retrieve details of a specific index by its ID and project ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Index ID
+        in: path
+        name: index_oid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Index retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Index ID and Project ID are required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Index not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Failed to get index
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get details of a specific index
+      tags:
+      - indexes
+    put:
+      consumes:
+      - application/json
+      description: Modify the name of a specific index by its ID and project ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Index ID
+        in: path
+        name: index_oid
+        required: true
+        type: string
+      - description: New index name
+        in: body
+        name: name
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Index name updated successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Invalid input or index name is the same as the current name
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Index not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Failed to update index name
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update the name of a specific index
+      tags:
+      - indexes
   /projects/{project_id}/schema:
     get:
       description: Get the database schema for a specific project

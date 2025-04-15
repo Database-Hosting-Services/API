@@ -37,7 +37,7 @@ func Route(hundlers map[string]http.HandlerFunc) http.Handler {
 	})
 }
 
-func CheckOwnership (next http.Handler) http.Handler {
+func CheckOwnership(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
 		projectId := urlVariables["project_id"]
