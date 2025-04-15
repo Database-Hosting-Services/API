@@ -5,10 +5,8 @@ import (
 	"DBHS/response"
 	"DBHS/utils"
 	"encoding/json"
-	"net/http"
-	"strings"
-
 	"github.com/gorilla/mux"
+	"net/http"
 )
 
 // CreateIndex godoc
@@ -194,19 +192,9 @@ func UpdateIndexName(app *config.Application) http.HandlerFunc {
 		}
 
 		err := UpdateSpecificIndex(r.Context(), config.DB, projectOid, indexOid, indexData.Name)
-		if err != nil {
+		if err.Error() != nil {
 			config.App.ErrorLog.Println("Failed to update index name:", err)
-			if strings.Contains(err.Error(), "index not found") {
-				response.NotFound(w, "Index not found", nil)
-			} else if strings.Contains(err.Error(), "unauthorized") {
-				response.UnAuthorized(w, "Unauthorized", nil)
-			} else if strings.Contains(err.Error(), "index name is the same as the current name") {
-				response.BadRequest(w, "Index name is the same as the current name", nil)
-			} else if strings.Contains(err.Error(), "index already exists") {
-				response.BadRequest(w, "Index already exists", nil)
-			} else {
-				response.InternalServerError(w, "Failed to update index name", nil)
-			}
+			utils.ResponseHandler(w, r, err)
 			return
 		}
 
