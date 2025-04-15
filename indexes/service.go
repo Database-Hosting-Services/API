@@ -8,11 +8,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	api "DBHS/utils/apiError"
-
-	"github.com/jackc/pgx/v5"
-
 	"DBHS/config"
+	api "DBHS/utils/apiError"
 )
 
 func CreateIndexInDatabase(ctx context.Context, db *pgxpool.Pool, projectOid string, indexData IndexData) api.ApiError {
@@ -25,7 +22,7 @@ func CreateIndexInDatabase(ctx context.Context, db *pgxpool.Pool, projectOid str
 	// ------------------------ Get the project pool connection ------------------------
 	conn, err := ProjectPoolConnection(ctx, db, UserID, projectOid)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err.Error() == "Project not found" || err.Error() == "connection pool not found" {
 			return *api.NewApiError("Project not found", 404, errors.New(err.Error()))
 		}
 		return *api.NewApiError("Internal server error", 500, errors.New(err.Error()))
@@ -46,29 +43,32 @@ func CreateIndexInDatabase(ctx context.Context, db *pgxpool.Pool, projectOid str
 	return *api.NewApiError("Index created successfully", 200, nil)
 }
 
-func GetIndexes(ctx context.Context, db *pgxpool.Pool, projectOid string) ([]RetrievedIndex, error) {
+func GetIndexes(ctx context.Context, db *pgxpool.Pool, projectOid string) ([]RetrievedIndex, api.ApiError) {
 	// Get user ID from context
 	UserID, ok := ctx.Value("user-id").(int)
 	if !ok || UserID == 0 {
-		return nil, errors.New("Unauthorized")
+		return nil, *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
 	}
 
 	// ------------------------ Get the project pool connection ------------------------
 	conn, err := ProjectPoolConnection(ctx, db, UserID, projectOid)
 	if err != nil {
-		return nil, err
+		if err.Error() == "Project not found" || err.Error() == "connection pool not found" {
+			return nil, *api.NewApiError("Project not found", 404, errors.New(err.Error()))
+		}
+		return nil, *api.NewApiError("Internal server error", 500, errors.New(err.Error()))
 	}
-
 	defer conn.Close()
 
 	// ------------------------ Get the indexes from the database ------------------------
 
 	indexes, err := GetProjectIndexes(ctx, conn)
 	if err != nil {
-		return nil, err
+		return nil, *api.NewApiError("Internal server error", 500, errors.New(err.Error()))
 	}
 
-	return indexes, nil
+	config.App.InfoLog.Println("Indexes retrieved successfully for project:", projectOid)
+	return indexes, *api.NewApiError("Indexes retrieved successfully", 200, nil)
 }
 
 func GetSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOid string) (SpecificIndex, error) {

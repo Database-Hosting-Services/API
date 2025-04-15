@@ -79,9 +79,10 @@ func ProjectIndexes(app *config.Application) http.HandlerFunc {
 		}
 
 		indexes, err := GetIndexes(r.Context(), config.DB, projectOid)
-		if err != nil {
+
+		if err.Error() != nil {
 			config.App.ErrorLog.Println("Failed to get indexes:", err)
-			response.InternalServerError(w, "Failed to get indexes", nil)
+			utils.ResponseHandler(w, r, err)
 			return
 		}
 
