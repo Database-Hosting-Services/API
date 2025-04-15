@@ -14,6 +14,12 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
+// EmailSenderFunc defines the signature of the SendMail function for mocking
+type EmailSenderFunc func(d interface{}, from, to, code, subject string) error
+
+// Mock sender for tests
+var currentEmailSender EmailSenderFunc = nil
+
 func checkPasswordStrength(password string) error {
 	/*
 		The password should contains uppercase, lowercase , digits and special characters
@@ -96,7 +102,19 @@ func CheckPasswordHash(inputPassword, storedHash string) bool {
 	return err == nil
 }
 
+// SetEmailSender allows testing to set a mock email sender
+func SetEmailSender(sender EmailSenderFunc) EmailSenderFunc {
+	old := currentEmailSender
+	currentEmailSender = sender
+	return old
+}
+
 func SendMail(d *gomail.Dialer, from, to, code, Subject string) error {
+	// Use mock sender if set (for testing)
+	if currentEmailSender != nil {
+		return currentEmailSender(d, from, to, code, Subject)
+	}
+
 	m := gomail.NewMessage()
 
 	// Set headers

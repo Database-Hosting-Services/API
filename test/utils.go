@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 )
@@ -74,6 +75,66 @@ func Drop(tableName string, conditions map[string]interface{}) error {
 	}
 
 	return nil
+}
+
+// AuthenticateTestUser signs in with the existing user credentials from the .env file
+func AuthenticateTestUser() (token string, err error) {
+	// Get credentials from .env file
+	email := os.Getenv("TEST_USER_EMAIL")
+	password := os.Getenv("TEST_USER_PASSWORD")
+
+	if email == "" || password == "" {
+		return "", fmt.Errorf("TEST_USER_EMAIL or TEST_USER_PASSWORD not set in environment")
+	}
+
+	// Set up a mock SendMail function to avoid sending actual emails during tests
+	originalSender := accounts.SetEmailSender(func(d interface{}, from, to, code, subject string) error {
+		return nil
+	})
+	defer accounts.SetEmailSender(originalSender)
+
+	// Create a sign-in request
+	user := accounts.UserSignIn{
+		Email:    email,
+		Password: password,
+	}
+
+	// Create the signin request
+	jsonData, err := json.Marshal(user)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal user data: %w", err)
+	}
+
+	// Register routes
+	accounts.DefineURLs()
+
+	// Create and execute the signin request
+	req := httptest.NewRequest("POST", "/api/user/sign-in", bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	config.Router.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		return "", fmt.Errorf("sign-in handler returned wrong status code: got %v want %v with body %v",
+			rr.Code, http.StatusOK, rr.Body.String())
+	}
+
+	// Parse the response to get the token
+	var response struct {
+		Message string                 `json:"message"`
+		Data    map[string]interface{} `json:"data"`
+	}
+
+	if err := json.NewDecoder(rr.Body).Decode(&response); err != nil {
+		return "", fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	token, ok := response.Data["token"].(string)
+	if !ok {
+		return "", fmt.Errorf("token not found in response")
+	}
+
+	return token, nil
 }
 
 // CreateTestUser creates a test user and verifies it without sending emails
