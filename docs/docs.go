@@ -16,8 +16,54 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/projects": {
-            "get": {
+        "/accounts/forgot-password": {
+            "post": {
+                "description": "Send a verification code to reset password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Initiate password reset",
+                "parameters": [
+                    {
+                        "description": "User email information",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.EmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verification code sent",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.SuccessMessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "User does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/password": {
+            "put": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -30,44 +76,176 @@ const docTemplate = `{
                 "tags": [
                     "projects"
                 ],
-                "summary": "Get all user projects",
+                "summary": "Update user password",
+                "parameters": [
+                    {
+                        "description": "Password update information",
+                        "name": "password",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.PasswordUpdateRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Projects retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.SuccessResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/projects.Project"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/accounts.SuccessMessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/resend-code": {
+            "post": {
+                "description": "Resend verification code to user email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Resend verification code",
+                "parameters": [
+                    {
+                        "description": "User email information",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.EmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verification code sent successfully",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.SuccessMessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid email",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/reset-password": {
+            "post": {
+                "description": "Verify code and reset user password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Verify and reset password",
+                "parameters": [
+                    {
+                        "description": "Password reset information with verification code",
+                        "name": "reset",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.PasswordResetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password reset successfully",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.SuccessMessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid code or password",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/accounts.ErrorResponse"
                         }
                     }
                 }
-            },
+            }
+        },
+        "/accounts/signin": {
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "description": "User login credentials",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.UserCredentials"
+                        }
                     }
                 ],
-                "description": "Create a new project with the provided details",
+                "responses": {
+                    "200": {
+                        "description": "User signed in successfully with JWT token and user details",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid credentials",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/signup": {
+            "post": {
+                "description": "Register a new user with username, email and password, sends verification code to email",
                 "consumes": [
                     "application/json"
                 ],
@@ -85,33 +263,73 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/projects.Project"
+                            "$ref": "#/definitions/accounts.SignUpUser"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "User signed up successfully, check your email for verification",
                         "schema": {
-                            "$ref": "#/definitions/response.SuccessResponse"
+                            "$ref": "#/definitions/accounts.CreatedResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/accounts.ErrorResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "500": {
+                        "description": "Server error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/verify": {
+            "post": {
+                "description": "Verify a user account with verification code sent to email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Verify user account",
+                "parameters": [
+                    {
+                        "description": "User verification information with code",
+                        "name": "verification",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.VerificationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User verified successfully with JWT token",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.VerificationSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid verification code",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/accounts.ErrorResponse"
                         }
                     }
                 }
@@ -124,7 +342,10 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get the database schema for a specific project",
+                "description": "Update user profile information such as username and image",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -139,31 +360,52 @@ const docTemplate = `{
                         "name": "project-id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "User information to update",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ProfileUpdateRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Database schema retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/response.SuccessResponse"
+                            "$ref": "#/definitions/accounts.ProfileUpdateResponse"
                         }
                     },
                     "400": {
-                        "description": "Project ID is required",
+                        "description": "Invalid input data",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/accounts.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/accounts.ErrorResponse"
                         }
                     }
                 }
@@ -1483,114 +1725,230 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "accounts.ResetPasswordForm": {
+        "accounts.CreatedResponse": {
             "type": "object",
             "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
+                "data": {},
+                "message": {
+                    "type": "string",
+                    "example": "User signed up successfully, check your email for verification"
                 }
             }
         },
-        "accounts.UpdatePasswordModel": {
+        "accounts.EmailRequest": {
             "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "ragnar@email.com"
+                }
+            }
+        },
+        "accounts.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "Invalid request parameters"
+                }
+            }
+        },
+        "accounts.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "email": {
+                            "type": "string",
+                            "example": "ragnar@email.com"
+                        },
+                        "image": {
+                            "type": "string",
+                            "example": "profile_image.jpg"
+                        },
+                        "oid": {
+                            "type": "string",
+                            "example": "user-id-123"
+                        },
+                        "token": {
+                            "type": "string",
+                            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "username": {
+                            "type": "string",
+                            "example": "ragnar"
+                        }
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "User signed in successfully"
+                }
+            }
+        },
+        "accounts.PasswordResetRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "email",
+                "password"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "ragnar@email.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "NewPassword123!"
+                }
+            }
+        },
+        "accounts.PasswordUpdateRequest": {
+            "type": "object",
+            "required": [
+                "confirm_password",
+                "current_password",
+                "password"
+            ],
             "properties": {
                 "confirm_password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "NewPassword123!"
                 },
                 "current_password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "OldPassword123!"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "NewPassword123!"
                 }
             }
         },
-        "accounts.UpdateUserRequest": {
+        "accounts.ProfileUpdateRequest": {
             "type": "object",
             "properties": {
                 "image": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "profile_image_url.jpg"
                 },
                 "username": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "new_ragnar"
                 }
             }
         },
-        "accounts.User": {
+        "accounts.ProfileUpdateResponse": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "string"
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "image": {
+                            "type": "string",
+                            "example": "profile_image_url.jpg"
+                        },
+                        "username": {
+                            "type": "string",
+                            "example": "new_ragnar"
+                        }
+                    }
                 },
+                "message": {
+                    "type": "string",
+                    "example": "User's data updated successfully"
+                }
+            }
+        },
+        "accounts.SignUpUser": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
                 "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "image": {
-                    "type": "string"
-                },
-                "last_login": {
-                    "type": "string"
-                },
-                "oid": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "ragnar@email.com"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Password123!"
                 },
                 "username": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "ragnar"
                 }
             }
         },
-        "accounts.UserSignIn": {
+        "accounts.SuccessMessageResponse": {
             "type": "object",
             "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
+                "message": {
+                    "type": "string",
+                    "example": "Operation completed successfully"
                 }
             }
         },
-        "accounts.UserUnVerified": {
+        "accounts.UserCredentials": {
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "ragnar@email.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "Password123!"
+                }
+            }
+        },
+        "accounts.VerificationRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "email"
+            ],
             "properties": {
                 "code": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123456"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "ragnar@email.com"
+                }
+            }
+        },
+        "accounts.VerificationSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "token": {
+                            "type": "string",
+                            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                    }
                 },
-                "id": {
-                    "type": "integer"
-                },
-                "image": {
-                    "type": "string"
-                },
-                "last_login": {
-                    "type": "string"
-                },
-                "oid": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
+                "message": {
+                    "type": "string",
+                    "example": "User verified successfully"
                 }
             }
         },
@@ -1666,10 +2024,6 @@ const docTemplate = `{
                 "error": {
                     "type": "string",
                     "example": "Invalid request parameters"
-                },
-                "status": {
-                    "type": "integer",
-                    "example": 400
                 }
             }
         },
@@ -1680,10 +2034,6 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Operation successful"
-                },
-                "status": {
-                    "type": "integer",
-                    "example": 200
                 }
             }
         },
