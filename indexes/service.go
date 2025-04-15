@@ -8,7 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	api "DBHS/apiError"
+	api "DBHS/utils/apiError"
 
 	"github.com/jackc/pgx/v5"
 

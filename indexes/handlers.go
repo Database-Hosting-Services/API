@@ -50,7 +50,7 @@ func CreateIndex(app *config.Application) http.HandlerFunc {
 		err := CreateIndexInDatabase(r.Context(), config.DB, projectOid, indexData)
 
 		if err.Error() != nil {
-			utils.SampleHandler(w, r, err)
+			utils.ResponseHandler(w, r, err)
 			return
 		}
 

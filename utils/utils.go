@@ -14,20 +14,26 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 
-	api "DBHS/apiError"
 	response "DBHS/response"
+	api "DBHS/utils/apiError"
 )
 
-func SampleHandler(w http.ResponseWriter, r *http.Request, simulatedError api.ApiError) {
+func ResponseHandler(w http.ResponseWriter, r *http.Request, simulatedError api.ApiError) {
 	switch simulatedError.StatusCode {
-	case http.StatusBadRequest:
+	case http.StatusBadRequest: // 400
 		response.BadRequest(w, simulatedError.Message, simulatedError.Error())
-	case http.StatusUnauthorized:
+	case http.StatusUnauthorized: // 401
 		response.UnAuthorized(w, simulatedError.Message, simulatedError.Error())
-	case http.StatusNotFound:
+	case http.StatusNotFound: // 404
 		response.NotFound(w, simulatedError.Message, simulatedError.Error())
-	default:
+	case http.StatusTooManyRequests: // 429
+		response.TooManyRequests(w, simulatedError.Message, simulatedError.Error())
+	// default:
+	// 	response.InternalServerError(w, simulatedError.Message, simulatedError.Error())
+	case http.StatusInternalServerError: // 500
 		response.InternalServerError(w, simulatedError.Message, simulatedError.Error())
+	default:
+		response.CreateResponse(w, simulatedError.StatusCode, simulatedError.Message, simulatedError.Error(), nil, nil)
 	}
 }
 
