@@ -5,13 +5,12 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 
 	"DBHS/config"
 	"DBHS/docs" // Import generated docs
 	"DBHS/middleware"
 
-	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/MarceloPetrucio/go-scalar-api-reference"
 	_ "github.com/swaggo/swag"
 )
 
@@ -50,28 +49,28 @@ func main() {
 
 	// Initialize Swagger documentation
 	// Add swagger endpoints to the router
-	config.Router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-		httpSwagger.URL("/swagger/doc.json"), // The URL pointing to API definition
-		httpSwagger.DeepLinking(true),
-		httpSwagger.DocExpansion("none"),
-		httpSwagger.DomID("swagger-ui"),
-	))
+	config.Router.PathPrefix("/reference").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		htmlContent, err := scalar.ApiReferenceHTML(&scalar.Options{
+			// SpecURL: "https://generator3.swagger.io/openapi.json",// allow external URL or local path file
+			SpecURL: "./docs/swagger.json",
+			CustomOptions: scalar.CustomOptions{
+				PageTitle: "Simple API",
+			},
+			DarkMode: true,
+		})
 
-	// Serve ReDoc UI
-	config.Router.HandleFunc("/redoc", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join(".", "docs", "redoc.html"))
-	})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	// Serve Scalar UI
-	config.Router.HandleFunc("/scalar", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join(".", "docs", "scalar.html"))
-	})
-
-	// Directly serve swagger.json for Scalar UI
-	config.Router.HandleFunc("/swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "text/html")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		http.ServeFile(w, r, filepath.Join(".", "docs", "swagger.json"))
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(htmlContent))
 	})
 
 	handler := middleware.LimitMiddleware(config.Router)
@@ -83,9 +82,7 @@ func main() {
 	}
 
 	infoLog.Printf("starting server on :%s", *addr)
-	infoLog.Printf("Swagger UI available at http://localhost%s/swagger/index.html", *addr)
-	infoLog.Printf("ReDoc UI available at http://localhost%s/redoc", *addr)
-	infoLog.Printf("Scalar UI available at http://localhost%s/scalar", *addr)
+	infoLog.Printf("Scalar UI available at http://%s/reference", *addr)
 
 	err := server.ListenAndServe()
 	errorLog.Fatal(err)
