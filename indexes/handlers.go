@@ -114,15 +114,9 @@ func GetIndex(app *config.Application) http.HandlerFunc {
 		}
 
 		index, err := GetSpecificIndex(r.Context(), config.DB, projectOid, indexOid)
-		if err != nil {
+		if err.Error() != nil {
 			config.App.ErrorLog.Println("Failed to get index:", err)
-			if err.Error() == "index not found" {
-				response.NotFound(w, "Index not found", nil)
-			} else if err.Error() == "unauthorized" {
-				response.UnAuthorized(w, "Unauthorized", nil)
-			} else {
-				response.InternalServerError(w, "Failed to get index", nil)
-			}
+			utils.ResponseHandler(w, r, err)
 			return
 		}
 

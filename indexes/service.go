@@ -71,17 +71,20 @@ func GetIndexes(ctx context.Context, db *pgxpool.Pool, projectOid string) ([]Ret
 	return indexes, *api.NewApiError("Indexes retrieved successfully", 200, nil)
 }
 
-func GetSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOid string) (SpecificIndex, error) {
+func GetSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOid string) (SpecificIndex, api.ApiError) {
 	// Get user ID from context
 	UserID, ok := ctx.Value("user-id").(int)
 	if !ok || UserID == 0 {
-		return DefaultSpecificIndex, errors.New("Unauthorized")
+		return DefaultSpecificIndex, *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
 	}
 
 	// ------------------------ Get the project pool connection ------------------------
 	conn, err := ProjectPoolConnection(ctx, db, UserID, projectOid)
 	if err != nil {
-		return DefaultSpecificIndex, err
+		if err.Error() == "Project not found" || err.Error() == "connection pool not found" {
+			return DefaultSpecificIndex, *api.NewApiError("Project not found", 404, errors.New(err.Error()))
+		}
+		return DefaultSpecificIndex, *api.NewApiError("Internal server error", 500, errors.New(err.Error()))
 	}
 
 	defer conn.Close()
@@ -90,11 +93,11 @@ func GetSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOi
 
 	index := GetSpecificIndexFromDatabase(ctx, conn, indexOid)
 	if index == (SpecificIndex{}) {
-		return DefaultSpecificIndex, errors.New("index not found")
+		return DefaultSpecificIndex, *api.NewApiError("Index not found", 404, errors.New("index with the given ID not found"))
 	}
 
 	// ------------------------ Close the connection ------------------------
-	return index, nil
+	return index, *api.NewApiError("Index retrieved successfully", 200, nil)
 }
 
 func DeleteSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOid string) error {
