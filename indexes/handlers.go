@@ -148,15 +148,8 @@ func DeleteIndex(app *config.Application) http.HandlerFunc {
 		}
 
 		err := DeleteSpecificIndex(r.Context(), config.DB, projectOid, indexOid)
-		if err != nil {
-			config.App.ErrorLog.Println("Failed to delete index:", err)
-			if strings.Contains(err.Error(), "index not found") {
-				response.NotFound(w, "Index not found", nil)
-			} else if strings.Contains(err.Error(), "unauthorized") {
-				response.UnAuthorized(w, "Unauthorized", nil)
-			} else {
-				response.InternalServerError(w, "Failed to delete index", nil)
-			}
+		if err.Error() != nil {
+			utils.ResponseHandler(w, r, err)
 			return
 		}
 

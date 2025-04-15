@@ -100,17 +100,20 @@ func GetSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOi
 	return index, *api.NewApiError("Index retrieved successfully", 200, nil)
 }
 
-func DeleteSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOid string) error {
+func DeleteSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOid string) api.ApiError {
 	// Get user ID from context
 	UserID, ok := ctx.Value("user-id").(int)
 	if !ok || UserID == 0 {
-		return errors.New("Unauthorized")
+		return *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
 	}
 
 	// ------------------------ Get the project pool connection ------------------------
 	conn, err := ProjectPoolConnection(ctx, db, UserID, projectOid)
 	if err != nil {
-		return err
+		if err.Error() == "Project not found" || err.Error() == "connection pool not found" {
+			return *api.NewApiError("Project not found", 404, errors.New(err.Error()))
+		}
+		return *api.NewApiError("Internal server error", 500, errors.New(err.Error()))
 	}
 
 	defer conn.Close()
@@ -119,15 +122,21 @@ func DeleteSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, inde
 
 	IndexData := GetSpecificIndexFromDatabase(ctx, conn, indexOid)
 	if IndexData == (SpecificIndex{}) {
-		return errors.New("index not found")
+		return *api.NewApiError("Index not found", 404, errors.New("index with the given ID not found"))
 	}
 
 	err = DeleteIndexFromDatabase(ctx, conn, IndexData.IndexName)
 
 	if err != nil {
-		return err
+		if strings.Contains(err.Error(), "not found") {
+			return *api.NewApiError("Index not found", 404, errors.New(err.Error()))
+		}
+		if strings.Contains(err.Error(), "cannot drop index") {
+			return *api.NewApiError("Index cannot be dropped", 400, errors.New(err.Error()))
+		}
+		return *api.NewApiError("Internal server error", 500, errors.New(err.Error()))
 	}
-	return nil
+	return *api.NewApiError("Index deleted successfully", 200, nil)
 }
 
 func UpdateSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOid string, newName string) error {
