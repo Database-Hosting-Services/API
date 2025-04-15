@@ -38,7 +38,7 @@ func ParseTableIntoSQLCreate(table *ClientTable) (string, error) {
 	return createTableSQL, nil
 }
 
-func CreateTableIntoHostingServer(ctx context.Context, table *ClientTable, tx pgx.Tx) (error) {
+func CreateTableIntoHostingServer(ctx context.Context, table *ClientTable, tx pgx.Tx) error {
 	DDLQuery, err := ParseTableIntoSQLCreate(table)
 	if err != nil {
 		return err
@@ -72,12 +72,11 @@ func ExtractDb(ctx context.Context, projectOID string, UserID int, servDb *pgxpo
 	// get the db connection
 	userDb, err := config.ConfigManager.GetDbConnection(ctx, utils.UserServerDbFormat(dbName.(string), UserID))
 	if err != nil {
-		return  0, nil, err
+		return 0, nil, err
 	}
 
 	return projectId.(int64), userDb, nil
 }
-
 
 func ExecuteUpdate(tableName string, table map[string]DbColumn, updates *TableUpdate, db utils.Querier) error {
 	// inserts
