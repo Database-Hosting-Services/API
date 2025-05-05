@@ -12,6 +12,8 @@ import (
 
 	"github.com/MarceloPetrucio/go-scalar-api-reference"
 	_ "github.com/swaggo/swag"
+
+	"github.com/rs/cors"
 )
 
 // @title DBHS API
@@ -75,10 +77,17 @@ func main() {
 
 	handler := middleware.LimitMiddleware(config.Router)
 
+	// Set up CORS middleware
+	// Allow all origins, credentials, and headers
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+	}).Handler(handler)
+
 	server := &http.Server{
 		Addr:     *addr,
 		ErrorLog: errorLog,
-		Handler:  handler,
+		Handler:  corsHandler,
 	}
 
 	infoLog.Printf("starting server on :%s", *addr)
