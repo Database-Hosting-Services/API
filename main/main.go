@@ -79,10 +79,7 @@ func main() {
 
 	// Set up CORS middleware
 	// Allow all origins, credentials, and headers
-	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowCredentials: true,
-	}).Handler(handler)
+	corsHandler := cors.Default().Handler(handler)
 
 	server := &http.Server{
 		Addr:     *addr,
