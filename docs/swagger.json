@@ -9,403 +9,6 @@
     },
     "basePath": "/api",
     "paths": {
-        "/accounts/forgot-password": {
-            "post": {
-                "description": "Send a verification code to reset password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "accounts"
-                ],
-                "summary": "Initiate password reset",
-                "parameters": [
-                    {
-                        "description": "User email information",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/accounts.EmailRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Verification code sent",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.SuccessMessageResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "User does not exist",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/accounts/password": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update the password for an authenticated user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "accounts"
-                ],
-                "summary": "Update user password",
-                "parameters": [
-                    {
-                        "description": "Password update information",
-                        "name": "password",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/accounts.PasswordUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Password updated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.SuccessMessageResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/accounts/resend-code": {
-            "post": {
-                "description": "Resend verification code to user email",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "accounts"
-                ],
-                "summary": "Resend verification code",
-                "parameters": [
-                    {
-                        "description": "User email information",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/accounts.EmailRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Verification code sent successfully",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.SuccessMessageResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid email",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/accounts/reset-password": {
-            "post": {
-                "description": "Verify code and reset user password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "accounts"
-                ],
-                "summary": "Verify and reset password",
-                "parameters": [
-                    {
-                        "description": "Password reset information with verification code",
-                        "name": "reset",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/accounts.PasswordResetRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Password reset successfully",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.SuccessMessageResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid code or password",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/accounts/signin": {
-            "post": {
-                "description": "Authenticate user with email and password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "accounts"
-                ],
-                "summary": "User login",
-                "parameters": [
-                    {
-                        "description": "User login credentials",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/accounts.UserCredentials"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User signed in successfully with JWT token and user details",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.LoginResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid credentials",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/accounts/signup": {
-            "post": {
-                "description": "Register a new user with username, email and password, sends verification code to email",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "accounts"
-                ],
-                "summary": "Register a new user",
-                "parameters": [
-                    {
-                        "description": "User registration information",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/accounts.SignUpUser"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "User signed up successfully, check your email for verification",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.CreatedResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input data or user already exists",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/accounts/verify": {
-            "post": {
-                "description": "Verify a user account with verification code sent to email",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "accounts"
-                ],
-                "summary": "Verify user account",
-                "parameters": [
-                    {
-                        "description": "User verification information with code",
-                        "name": "verification",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/accounts.VerificationRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "User verified successfully with JWT token",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.VerificationSuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid verification code",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/accounts/{id}": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update user profile information such as username and image",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "accounts"
-                ],
-                "summary": "Update user information",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "User information to update",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ProfileUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User's data updated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ProfileUpdateResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input data",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/projects": {
             "get": {
                 "security": [
@@ -1474,6 +1077,403 @@
                         "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/forget-password/verify": {
+            "post": {
+                "description": "Verify code and reset user password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Verify and reset password",
+                "parameters": [
+                    {
+                        "description": "Password reset information with verification code",
+                        "name": "reset",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.PasswordResetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password reset successfully",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.SuccessMessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid code or password",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/forgot-password": {
+            "post": {
+                "description": "Send a verification code to reset password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Initiate password reset",
+                "parameters": [
+                    {
+                        "description": "User email information",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.EmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verification code sent",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.SuccessMessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "User does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/resend-code": {
+            "post": {
+                "description": "Resend verification code to user email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Resend verification code",
+                "parameters": [
+                    {
+                        "description": "User email information",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.EmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verification code sent successfully",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.SuccessMessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid email",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/sign-in": {
+            "post": {
+                "description": "Authenticate user with email and password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "User login",
+                "parameters": [
+                    {
+                        "description": "User login credentials",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.UserCredentials"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User signed in successfully with JWT token and user details",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid credentials",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/sign-up": {
+            "post": {
+                "description": "Register a new user with username, email and password, sends verification code to email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "User registration information",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.SignUpUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User signed up successfully, check your email for verification",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.CreatedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input data or user already exists",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/verify": {
+            "post": {
+                "description": "Verify a user account with verification code sent to email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Verify user account",
+                "parameters": [
+                    {
+                        "description": "User verification information with code",
+                        "name": "verification",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.VerificationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User verified successfully with JWT token",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.VerificationSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid verification code",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/update-password": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the password for an authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Update user password",
+                "parameters": [
+                    {
+                        "description": "Password update information",
+                        "name": "password",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.PasswordUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.SuccessMessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update user profile information such as username and image",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Update user information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "User information to update",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ProfileUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User's data updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ProfileUpdateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input data",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse"
                         }
                     }
                 }
