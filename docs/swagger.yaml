@@ -312,7 +312,7 @@ info:
   title: DBHS API
   version: "1.0"
 paths:
-  /projects:
+  /api/projects:
     get:
       description: Get all projects owned by the authenticated user
       produces:
@@ -992,7 +992,7 @@ paths:
       - BearerAuth: []
       summary: Update the name of a specific index
       tags:
-      - schemas
+      - indexes
   /user/forget-password/verify:
     post:
       consumes:
