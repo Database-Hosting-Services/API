@@ -83,6 +83,7 @@ func signUp(app *config.Application) http.HandlerFunc {
 // @Produce json
 // @Param user body UserCredentials true "User login credentials"
 // @Success 200 {object} LoginResponse "User signed in successfully with JWT token and user details"
+// @Success 302 {object} RedirectResponse "User redirected to verification page"
 // @Failure 400 {object} ErrorResponse "Invalid credentials"
 // @Failure 500 {object} ErrorResponse "Server error"
 // @Router /user/sign-in [post]
@@ -112,7 +113,7 @@ func SignIn(app *config.Application) http.HandlerFunc {
 
 		verification, ok := resp["Verification"].(string)
 		if ok {
-			response.OK(w, verification, nil)
+			response.Redirect(w, verification, resp)
 		} else {
 			response.OK(w, "User signed in successfully", resp)
 		}

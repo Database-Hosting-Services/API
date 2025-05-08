@@ -11,3 +11,7 @@ func OK(w http.ResponseWriter, message string, data interface{}) {
 func Created(w http.ResponseWriter, message string, data interface{}) {
 	CreateResponse(w, http.StatusCreated, message, nil, data, nil)
 }
+
+func Redirect(w http.ResponseWriter, message string, data interface{}) {
+	CreateResponse(w, http.StatusFound, message, nil, data, nil) // 302
+}

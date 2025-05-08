@@ -101,6 +101,12 @@ definitions:
         example: User's data updated successfully
         type: string
     type: object
+  accounts.RedirectResponse:
+    properties:
+      message:
+        example: verification code sent to your email
+        type: string
+    type: object
   accounts.SignUpUser:
     properties:
       email:
@@ -1102,6 +1108,10 @@ paths:
           description: User signed in successfully with JWT token and user details
           schema:
             $ref: '#/definitions/accounts.LoginResponse'
+        "302":
+          description: User redirected to verification page
+          schema:
+            $ref: '#/definitions/accounts.RedirectResponse'
         "400":
           description: Invalid credentials
           schema:

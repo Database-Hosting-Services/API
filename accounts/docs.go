@@ -94,3 +94,8 @@ type ProfileUpdateResponse struct {
 type ErrorResponse struct {
 	Error string `json:"error" example:"Invalid request parameters"`
 }
+
+// RedirectResponse represents a redirect response
+type RedirectResponse struct {
+	Message string `json:"message" example:"verification code sent to your email"`
+}
