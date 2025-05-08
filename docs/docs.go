@@ -1258,6 +1258,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/accounts.LoginResponse"
                         }
                     },
+                    "302": {
+                        "description": "User redirected to verification page",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.RedirectResponse"
+                        }
+                    },
                     "400": {
                         "description": "Invalid credentials",
                         "schema": {
@@ -1629,6 +1635,15 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "User's data updated successfully"
+                }
+            }
+        },
+        "accounts.RedirectResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "verification code sent to your email"
                 }
             }
         },
