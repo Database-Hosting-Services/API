@@ -3,5 +3,4 @@ build/*
 .idea
 .vscode
 playground
-tmp/main*
-*.log
+.qodo

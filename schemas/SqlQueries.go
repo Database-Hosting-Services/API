@@ -1,8 +1,9 @@
 package schemas
 
 const (
-	GetDatabaseByName = `SELECT host, port, user_id, password, db_name, ssl_mode, created_at FROM database_config WHERE db_name = $1`
-	GetTableSchema    = `SELECT
+	GetDatabaseByName   = `SELECT host, port, user_id, password, db_name, ssl_mode, created_at FROM database_config WHERE db_name = $1`
+	GetTableNameByOID   = `SELECT name FROM "Ptable" WHERE oid = $1`
+	GetTableSchemaQuery = `SELECT
 					t.table_name,
 					c.column_name,
 					c.data_type,
