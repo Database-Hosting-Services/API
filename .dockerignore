@@ -1,0 +1,38 @@
+# Build artifacts
+build/
+tmp/
+
+# Git
+.git/
+.gitignore
+
+# Documentation (except docs/ which contains swagger)
+README.md
+
+# Test files
+test/
+*_test.go
+
+# Development files
+# .env (keeping this for Docker build)
+.env.local
+.env.development
+.env.test
+.env.production
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Coverage files
+coverage.out
+coverage.html 
