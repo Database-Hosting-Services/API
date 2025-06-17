@@ -4,8 +4,9 @@ import (
 	"DBHS/config"
 	"DBHS/response"
 	"DBHS/utils"
-	"github.com/gorilla/mux"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func CurrentStorage(app *config.Application) http.HandlerFunc {
@@ -27,5 +28,25 @@ func CurrentStorage(app *config.Application) http.HandlerFunc {
 			return
 		}
 		response.OK(w, "Current storage retrieved successfully", storage)
+	}
+}
+
+// ExecutionTime returns statistics about query execution times for a project
+func ExecutionTime(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		projectOid := urlVariables["project_id"]
+		if projectOid == "" {
+			response.BadRequest(w, "Project Id is required", nil)
+			return
+		}
+
+		stats, apiErr := GetExecutionTimeStats(r.Context(), config.DB, projectOid)
+		if apiErr.Error() != nil {
+			utils.ResponseHandler(w, r, apiErr)
+			return
+		}
+
+		response.OK(w, "Execution time statistics retrieved successfully", stats)
 	}
 }

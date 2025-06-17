@@ -13,4 +13,8 @@ func DefineURLs() {
 	router.Handle("/current_storage", middleware.Route(map[string]http.HandlerFunc{
 		http.MethodGet: CurrentStorage(config.App),
 	}))
+
+	router.Handle("/execution_time", middleware.Route(map[string]http.HandlerFunc{
+		http.MethodGet: ExecutionTime(config.App),
+	}))
 }

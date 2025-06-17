@@ -19,8 +19,8 @@ type UserCredentials struct {
 
 // VerificationRequest represents a user verification request
 type VerificationRequest struct {
-	Email    string `json:"email" example:"ragnar@email.com" binding:"required"`
-	Code     string `json:"code" example:"123456" binding:"required"`
+	Email string `json:"email" example:"ragnar@email.com" binding:"required"`
+	Code  string `json:"code" example:"123456" binding:"required"`
 }
 
 // EmailRequest represents a request with just email
