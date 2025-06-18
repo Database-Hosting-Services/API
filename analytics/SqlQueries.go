@@ -18,4 +18,15 @@ const (
 		JOIN pg_database pd ON pss.dbid = pd.oid
 		WHERE pd.datname = $1
 	`
+
+	GET_READ_WRITE_CPU = `
+		SELECT                                   
+			SUM(CASE WHEN query ILIKE 'SELECT%' THEN calls ELSE 0 END) as read_queries,
+			SUM(CASE WHEN query ILIKE ANY(ARRAY['INSERT%', 'UPDATE%', 'DELETE%']) THEN calls ELSE 0 END) as write_queries,
+			ROUND(SUM(total_exec_time)::numeric, 2) as total_cpu_time_ms
+		FROM pg_stat_statements pss
+		JOIN pg_database pd ON pss.dbid = pd.oid
+		WHERE pd.datname = current_database()
+		GROUP BY pd.datname;
+	`
 )

@@ -17,4 +17,8 @@ func DefineURLs() {
 	router.Handle("/execution_time", middleware.Route(map[string]http.HandlerFunc{
 		http.MethodGet: ExecutionTime(config.App),
 	}))
+
+	router.Handle("/cost", middleware.Route(map[string]http.HandlerFunc{
+		http.MethodGet: DatabaseUsage(config.App),
+	}))
 }

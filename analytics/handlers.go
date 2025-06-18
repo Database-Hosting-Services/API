@@ -50,3 +50,23 @@ func ExecutionTime(app *config.Application) http.HandlerFunc {
 		response.OK(w, "Execution time statistics retrieved successfully", stats)
 	}
 }
+
+// DatabaseUsage returns statistics about database usage and associated costs
+func DatabaseUsage(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		projectOid := urlVariables["project_id"]
+		if projectOid == "" {
+			response.BadRequest(w, "Project Id is required", nil)
+			return
+		}
+
+		stats, apiErr := GetDatabaseUsageStats(r.Context(), config.DB, projectOid)
+		if apiErr.Error() != nil {
+			utils.ResponseHandler(w, r, apiErr)
+			return
+		}
+
+		response.OK(w, "Database usage statistics retrieved successfully", stats)
+	}
+}
