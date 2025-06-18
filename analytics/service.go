@@ -35,36 +35,11 @@ func GetDatabaseStorage(ctx context.Context, db *pgxpool.Pool, projectOid string
 }
 
 func GetExecutionTimeStats(ctx context.Context, db *pgxpool.Pool, projectOid string) (ExecutionTimeStats, api.ApiError) {
-	// Get user ID from context
-	UserID, ok := ctx.Value("user-id").(int)
-	if !ok || UserID == 0 {
-		return ExecutionTimeStats{}, *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
-	}
-
-	// Get the project pool connection
-	conn, err := indexes.ProjectPoolConnection(ctx, db, UserID, projectOid)
-	if err != nil {
-		if err.Error() == "Project not found" || err.Error() == "connection pool not found" {
-			return ExecutionTimeStats{}, *api.NewApiError("Project not found", 404, errors.New(err.Error()))
-		}
-		return ExecutionTimeStats{}, *api.NewApiError("Internal server error", 500, errors.New(err.Error()))
-	}
+    conn, err := GetConnectionToAnalyticsPool(ctx, db, projectOid)
 	defer conn.Close()
 
-	// Check if pg_stat_statements extension exists
-	var extensionExists bool
-	err = conn.QueryRow(ctx, "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_stat_statements')").Scan(&extensionExists)
-	if err != nil {
-		return ExecutionTimeStats{}, *api.NewApiError("Internal server error", 500, errors.New("failed to check for pg_stat_statements extension: "+err.Error()))
-	}
-
-	// If extension doesn't exist, try to create it
-	if !extensionExists {
-		_, err = conn.Exec(ctx, "CREATE EXTENSION IF NOT EXISTS pg_stat_statements")
-		if err != nil {
-			return ExecutionTimeStats{}, *api.NewApiError("Internal server error", 500,
-				errors.New("pg_stat_statements extension is not available. Please ensure it is installed in PostgreSQL and included in shared_preload_libraries"))
-		}
+	if err.Error() != nil {
+		return ExecutionTimeStats{}, err 
 	}
 
 	// Get current database name
@@ -86,36 +61,11 @@ func GetExecutionTimeStats(ctx context.Context, db *pgxpool.Pool, projectOid str
 }
 
 func GetDatabaseUsageStats(ctx context.Context, db *pgxpool.Pool, projectOid string) (DatabaseUsageCost, api.ApiError) {
-	// Get user ID from context
-	UserID, ok := ctx.Value("user-id").(int)
-	if !ok || UserID == 0 {
-		return DatabaseUsageCost{}, *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
-	}
-
-	// Get the project pool connection
-	conn, err := indexes.ProjectPoolConnection(ctx, db, UserID, projectOid)
-	if err != nil {
-		if err.Error() == "Project not found" || err.Error() == "connection pool not found" {
-			return DatabaseUsageCost{}, *api.NewApiError("Project not found", 404, errors.New(err.Error()))
-		}
-		return DatabaseUsageCost{}, *api.NewApiError("Internal server error", 500, errors.New(err.Error()))
-	}
+    conn, err := GetConnectionToAnalyticsPool(ctx, db, projectOid)
 	defer conn.Close()
 
-	// Check if pg_stat_statements extension exists
-	var extensionExists bool
-	err = conn.QueryRow(ctx, "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_stat_statements')").Scan(&extensionExists)
-	if err != nil {
-		return DatabaseUsageCost{}, *api.NewApiError("Internal server error", 500, errors.New("failed to check for pg_stat_statements extension: "+err.Error()))
-	}
-
-	// If extension doesn't exist, try to create it
-	if !extensionExists {
-		_, err = conn.Exec(ctx, "CREATE EXTENSION IF NOT EXISTS pg_stat_statements")
-		if err != nil {
-			return DatabaseUsageCost{}, *api.NewApiError("Internal server error", 500,
-				errors.New("pg_stat_statements extension is not available. Please ensure it is installed in PostgreSQL and included in shared_preload_libraries"))
-		}
+	if err.Error() != nil {
+		return DatabaseUsageCost{}, err 
 	}
 
 	var stats DatabaseUsageStats
