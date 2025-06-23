@@ -14,8 +14,14 @@ COPY go.mod go.sum ./
 # Download dependencies
 RUN go mod download
 
+# Install swag for generating documentation
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
 # Copy source code
 COPY . .
+
+# Generate swagger documentation
+RUN swag init -g main/main.go -o ./docs
 
 # Create build directory (matching Makefile structure)
 RUN mkdir -p build

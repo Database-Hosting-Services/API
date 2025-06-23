@@ -11,6 +11,17 @@ func getAnalytics() Analytics { // this only a placeholder for now
 	return Analytics{}
 }
 
+
+// @Summary Generate AI Report
+// @Description Generate an AI-powered analytics report for a specific project
+// @Tags AI
+// @Accept json
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Success 200 {object} response.Response{data=object} "Report generated successfully"
+// @Failure 500 {object} response.Response "Internal server error"
+// @Router /projects/{project_id}/ai/report [get]
+// @Security BearerAuth
 func Report(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get project id from path
