@@ -168,6 +168,7 @@ func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 
 	userCode := user.Code
 	if _, err := cache.Get(user.Email, user); err != nil {
+		fmt.Println("error getting user from cache", err, err == nil)
 		return nil, err
 	}
 

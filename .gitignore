@@ -5,3 +5,4 @@ build/*
 playground
 tmp/main*
 *.log
+curl.sh
