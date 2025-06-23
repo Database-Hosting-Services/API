@@ -44,8 +44,6 @@ COPY --from=builder /app/templates ./templates
 # Copy docs directory for swagger documentation
 COPY --from=builder /app/docs ./docs
 
-# Copy .env file if it exists
-COPY --from=builder /app/.env ./.env
 
 # Change ownership to non-root user
 RUN chown -R appuser:appgroup /app
