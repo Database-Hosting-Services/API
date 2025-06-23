@@ -35,4 +35,7 @@ generate-docs:
 clean:
 	rm -rf $(BUILD_DIR)/*
 
+deploy:
+	flyctl deploy --app dbhs-api
+
 .PHONY: build run clean
