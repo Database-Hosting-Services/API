@@ -5,7 +5,7 @@ MSG ?= "Default commit message"
 build:
 	go build -o $(BUILD_DIR)/API main/*
 
-run:
+run: build generate-docs
 	cd $(BUILD_DIR) && ./API
 
 runserver: build run
@@ -34,5 +34,8 @@ generate-docs:
 
 clean:
 	rm -rf $(BUILD_DIR)/*
+
+deploy:
+	flyctl deploy --app orbix
 
 .PHONY: build run clean

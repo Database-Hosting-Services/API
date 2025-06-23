@@ -18,6 +18,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param project body projects.Project true "Project information"
+// @Security BearerAuth
 // @Success 201 {object} response.SuccessResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
@@ -170,7 +171,7 @@ func getSpecificProject(app *config.Application) http.HandlerFunc {
 // @Success 200 {object} response.SuccessResponse{data=Project} "Project updated successfully"
 // @Failure 400 {object} response.ErrorResponse "Invalid input or Project ID is required"
 // @Failure 500 {object} response.ErrorResponse "Internal server error"
-// @Router /projects/{project_id} [put]
+// @Router /projects/{project_id} [patch]
 func updateProject(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userId := r.Context().Value("user-id").(int)

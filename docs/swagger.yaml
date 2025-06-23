@@ -318,7 +318,7 @@ info:
   title: DBHS API
   version: "1.0"
 paths:
-  /projects:
+  /api/projects:
     get:
       description: Get all projects owned by the authenticated user
       produces:
@@ -374,10 +374,83 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Create a new project
       tags:
       - projects
-  /projects/{project_id}:
+  /api/projects/{project-id}/schema/tables:
+    get:
+      description: Get the database schema for a specific project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Database schema retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get database schema
+      tags:
+      - schemas
+  /api/projects/{project-id}/schema/tables/{table-id}:
+    get:
+      description: Get the schema for a specific table in a project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project-id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Table schema retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get table schema
+      tags:
+      - schemas
+  /api/projects/{project_id}:
     delete:
       consumes:
       - application/json
@@ -453,7 +526,7 @@ paths:
       summary: Get a specific project
       tags:
       - projects
-    put:
+    patch:
       consumes:
       - application/json
       description: Update a project's details by its ID
@@ -494,6 +567,7 @@ paths:
       summary: Update a project
       tags:
       - projects
+  /api/projects/{project_id}/tables:
   /projects/{project_id}/analytics/execution-time:
     get:
       consumes:
@@ -592,6 +666,233 @@ paths:
       summary: Get database usage statistics
       tags:
       - analytics
+  /projects/{project_id}/indexes:
+    get:
+      description: Get a list of all tables in the specified project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of tables
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/tables.Table'
+                  type: array
+              type: object
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all tables in a project
+      tags:
+      - tables
+    post:
+      consumes:
+      - application/json
+      description: Create a new table in the specified project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table information
+        in: body
+        name: table
+        required: true
+        schema:
+          $ref: '#/definitions/tables.ClientTable'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new table
+      tags:
+      - tables
+  /api/projects/{project_id}/tables/{table_id}:
+    delete:
+      description: Delete a table from the specified project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a table
+      tags:
+      - tables
+    get:
+      description: Get table structure and data with pagination, filtering and sorting
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Number of records per page
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Column to order by
+        in: query
+        name: order_by
+        type: string
+      - description: Sort order (asc or desc)
+        in: query
+        name: order
+        type: string
+      - description: Filter condition (e.g. name=value)
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/tables.Data'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Read table data
+      tags:
+      - tables
+    put:
+      consumes:
+      - application/json
+      description: Update table structure by adding, modifying, or deleting columns
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      - description: Table update information
+        in: body
+        name: updates
+        required: true
+        schema:
+          $ref: '#/definitions/tables.TableUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an existing table
+      tags:
+      - tables
   /projects/{project_id}/indexes:
     get:
       description: Retrieve a list of all indexes for the specified project
@@ -797,304 +1098,6 @@ paths:
       summary: Update the name of a specific index
       tags:
       - indexes
-  /projects/{project_id}/schema:
-    get:
-      description: Get the database schema for a specific project
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Database schema retrieved successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Project ID is required
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get database schema
-      tags:
-      - schemas
-  /projects/{project_id}/tables:
-    get:
-      description: Get a list of all tables in the specified project
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of tables
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/tables.Table'
-                  type: array
-              type: object
-        "400":
-          description: Project ID is required
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get all tables in a project
-      tags:
-      - tables
-    post:
-      consumes:
-      - application/json
-      description: Create a new table in the specified project
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      - description: Table information
-        in: body
-        name: table
-        required: true
-        schema:
-          $ref: '#/definitions/tables.ClientTable'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Create a new table
-      tags:
-      - tables
-  /projects/{project_id}/tables/{table_id}:
-    delete:
-      description: Delete a table from the specified project
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      - description: Table ID
-        in: path
-        name: table_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Delete a table
-      tags:
-      - tables
-    get:
-      description: Get table structure and data with pagination, filtering and sorting
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      - description: Table ID
-        in: path
-        name: table_id
-        required: true
-        type: string
-      - description: Page number
-        in: query
-        name: page
-        required: true
-        type: integer
-      - description: Number of records per page
-        in: query
-        name: limit
-        required: true
-        type: integer
-      - description: Column to order by
-        in: query
-        name: order_by
-        type: string
-      - description: Sort order (asc or desc)
-        in: query
-        name: order
-        type: string
-      - description: Filter condition (e.g. name=value)
-        in: query
-        name: filter
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/tables.Data'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Read table data
-      tags:
-      - tables
-    put:
-      consumes:
-      - application/json
-      description: Update table structure by adding, modifying, or deleting columns
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      - description: Table ID
-        in: path
-        name: table_id
-        required: true
-        type: string
-      - description: Table update information
-        in: body
-        name: updates
-        required: true
-        schema:
-          $ref: '#/definitions/tables.TableUpdate'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Update an existing table
-      tags:
-      - tables
-  /projects/{project_id}/tables/{table_id}/schema:
-    get:
-      description: Get the schema for a specific table in a project
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      - description: Table ID
-        in: path
-        name: table_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Table schema retrieved successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Project ID is required
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get table schema
-      tags:
-      - schemas
   /user/forget-password/verify:
     post:
       consumes:

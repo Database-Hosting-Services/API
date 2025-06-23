@@ -2,6 +2,7 @@ package main
 
 import (
 	"DBHS/accounts"
+	"DBHS/AI"
 	"DBHS/analytics"
 	"DBHS/indexes"
 	"DBHS/projects"
@@ -15,5 +16,6 @@ func defineURLs() {
 	projects.DefineURLs()
 	schemas.DefineURLs()
 	tables.DefineURLs()
+	ai.DefineURLs()
 	analytics.DefineURLs()
 }
