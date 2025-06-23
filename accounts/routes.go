@@ -31,4 +31,5 @@ func protectedRoutes() {
 
 	userProtected.Handle("/update-password", middleware.MethodsAllowed(http.MethodPost)(UpdatePassword(config.App)))
 	userProtected.Handle("/{id}", middleware.MethodsAllowed(http.MethodPatch)(UpdateUser(config.App)))
+
 }

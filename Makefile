@@ -36,6 +36,6 @@ clean:
 	rm -rf $(BUILD_DIR)/*
 
 deploy:
-	flyctl deploy --app dbhs-api
+	flyctl deploy --app orbix
 
 .PHONY: build run clean
