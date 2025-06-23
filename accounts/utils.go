@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"path/filepath"
+	"runtime"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -122,10 +124,13 @@ func SendMail(d *gomail.Dialer, from, to, code, Subject string) error {
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", Subject)
 
-	// Use absolute path from project root
-	data, err := os.ReadFile("templates/mailTemplate.html") // Remove the "../"
+	// get the directory of the current file using runtime
+	_, filename, _, _ := runtime.Caller(0)
+	dir := filepath.Dir(filepath.Dir(filename))
+	mailTemplatePath := filepath.Join(dir, "templates", "mailTemplate.html")
+	data, err := os.ReadFile(mailTemplatePath)
 	if err != nil {
-		return fmt.Errorf("failed to read mail template: %w", err)
+		return fmt.Errorf("failed to read mail template: %w, path: %s", err, mailTemplatePath)
 	}
 
 	body := fmt.Sprintf(string(data), code)

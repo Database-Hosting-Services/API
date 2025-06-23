@@ -53,6 +53,7 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 	// --------------------------- Database Project Data --------------------------------
 
 	oid := utils.GenerateOID()
+	//fmt.Println(projectname)
 	projectDBData := CreateDatabaseProjectData(oid, projectname, projectDescription, "active", UserId, projectDBConfig)
 
 	// Insert the new project data into the database using the transaction

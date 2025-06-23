@@ -38,6 +38,9 @@ WORKDIR /app
 # Copy the binary from builder stage
 COPY --from=builder /app/build/API ./API
 
+# Copy the the template directory
+COPY --from=builder /app/templates ./templates
+
 # Copy docs directory for swagger documentation
 COPY --from=builder /app/docs ./docs
 

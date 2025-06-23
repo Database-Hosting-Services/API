@@ -9,20 +9,13 @@ import (
 	"path/filepath"
 	"runtime"
 
-	// "path/filepath"
-	// "runtime"
-
-	// "path/filepath"
-	// "runtime"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
-	// "github.com/joho/godotenv"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	// "github.com/joho/godotenv"
+	Agent "github.com/Database-Hosting-Services/AI-Agent/RAG"
 	"gopkg.in/gomail.v2"
 )
 
@@ -64,6 +57,8 @@ var (
 	DBConfig    *DatabaseConfig
 
 	ConfigManager *UserDbConfig
+
+	AI Agent.RAGmodel
 )
 
 func loadEnv() {
@@ -188,6 +183,16 @@ func Init(infoLog, errorLog *log.Logger) {
 	if err := LoadTypeMap(context.Background(), DB); err != nil {
 		errorLog.Fatal(err)
 	}
+
+	AI = Agent.GetRAG(&Agent.RAGConfig{
+		GeminiAPIKey:         os.Getenv("GEMINI_API_KEY"),
+		GeminiModel:          os.Getenv("GEMINI_MODEL"),
+		GeminiEmbeddingModel: os.Getenv("GEMINI_EMBEDDING_MODEL"),
+		PineconeAPIKey:       os.Getenv("PINECONE_API_KEY"),
+		PineconeIndexName:    os.Getenv("PINECONE_INDEX_NAME"),
+		PineconeIndexHost:    os.Getenv("PINECONE_INDEX_HOST"),
+	})
+	infoLog.Println("Connected to AI successfully! ✅")
 }
 
 func CloseDB() {
