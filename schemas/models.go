@@ -1,12 +1,12 @@
 package schemas
 
 type Column struct {
-	Name         string     `json:"name"`
-	Type         string     `json:"type"`
-	IsUnique     bool       `json:"isUnique"`
-	IsNullable   bool       `json:"isNullable"`
-	IsPrimaryKey bool       `json:"isPrimaryKey"`
-	ForeignKey   ForeignKey `json:"foreignKey"`
+	Name         string       `json:"name"`
+	Type         string       `json:"type"`
+	IsUnique     bool         `json:"isUnique"`
+	IsNullable   bool         `json:"isNullable"`
+	IsPrimaryKey bool         `json:"isPrimaryKey"`
+	ForeignKeys  []ForeignKey `json:"foreignKey"`
 }
 
 type ForeignKey struct {
@@ -16,5 +16,9 @@ type ForeignKey struct {
 
 type TableSchema struct {
 	TableName string   `json:"tableName"`
-	Cols      []Column `json:"cols"`
+	Cols      []Column `json:"columnss"`
+}
+
+type SchemaResponse struct {
+	Schema []TableSchema `json:"schema"`
 }

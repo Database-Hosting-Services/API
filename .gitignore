@@ -6,3 +6,5 @@ playground
 tmp/main*
 *.log
 curl.sh
+.qodo
+*.log
