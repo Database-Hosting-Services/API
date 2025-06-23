@@ -8,12 +8,12 @@ type SuccessResponse struct {
 
 // ErrorResponse represents an error API response for Swagger documentation
 type ErrorResponse struct {
-	Error  string `json:"error" example:"Invalid request parameters"`
+	Error string `json:"error" example:"Invalid request parameters"`
 }
 
 // ErrorResponse represents an error API response for Swagger documentation
 type ErrorResponse400 struct {
-	Error  string `json:"error" example:"Invalid request parameters"`
+	Error string `json:"error" example:"Invalid request parameters"`
 }
 
 type ErrorResponse401 struct {
