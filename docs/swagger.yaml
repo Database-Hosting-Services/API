@@ -494,6 +494,104 @@ paths:
       summary: Update a project
       tags:
       - projects
+  /projects/{project_id}/analytics/execution-time:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve statistics about query execution times for a specific
+        project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Execution time statistics retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is missing
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get query execution time statistics
+      tags:
+      - analytics
+  /projects/{project_id}/analytics/storage:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the current storage usage information for a specific project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Current storage retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is missing
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: No storage information found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current storage information
+      tags:
+      - analytics
+  /projects/{project_id}/analytics/usage:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve statistics about database usage and associated costs
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Database usage statistics retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is missing
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get database usage statistics
+      tags:
+      - analytics
   /projects/{project_id}/indexes:
     get:
       description: Retrieve a list of all indexes for the specified project

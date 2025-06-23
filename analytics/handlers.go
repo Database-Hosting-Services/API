@@ -9,6 +9,19 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// CurrentStorage godoc
+// @Summary Get current storage information
+// @Description Retrieve the current storage usage information for a specific project
+// @Tags analytics
+// @Accept json
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse "Current storage retrieved successfully"
+// @Failure 400 {object} response.ErrorResponse "Project ID is missing"
+// @Failure 404 {object} response.ErrorResponse "No storage information found"
+// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Router /projects/{project_id}/analytics/storage [get]
 func CurrentStorage(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
@@ -31,7 +44,18 @@ func CurrentStorage(app *config.Application) http.HandlerFunc {
 	}
 }
 
-// ExecutionTime returns statistics about query execution times for a project
+// ExecutionTime godoc
+// @Summary Get query execution time statistics
+// @Description Retrieve statistics about query execution times for a specific project
+// @Tags analytics
+// @Accept json
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse "Execution time statistics retrieved successfully"
+// @Failure 400 {object} response.ErrorResponse "Project ID is missing"
+// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Router /projects/{project_id}/analytics/execution-time [get]
 func ExecutionTime(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
@@ -51,7 +75,18 @@ func ExecutionTime(app *config.Application) http.HandlerFunc {
 	}
 }
 
-// DatabaseUsage returns statistics about database usage and associated costs
+// DatabaseUsage godoc
+// @Summary Get database usage statistics
+// @Description Retrieve statistics about database usage and associated costs
+// @Tags analytics
+// @Accept json
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse "Database usage statistics retrieved successfully"
+// @Failure 400 {object} response.ErrorResponse "Project ID is missing"
+// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Router /projects/{project_id}/analytics/usage [get]
 func DatabaseUsage(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)

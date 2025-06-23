@@ -35,11 +35,11 @@ func GetDatabaseStorage(ctx context.Context, db *pgxpool.Pool, projectOid string
 }
 
 func GetExecutionTimeStats(ctx context.Context, db *pgxpool.Pool, projectOid string) (ExecutionTimeStats, api.ApiError) {
-    conn, err := GetConnectionToAnalyticsPool(ctx, db, projectOid)
+	conn, err := GetConnectionToAnalyticsPool(ctx, db, projectOid)
 	defer conn.Close()
 
 	if err.Error() != nil {
-		return ExecutionTimeStats{}, err 
+		return ExecutionTimeStats{}, err
 	}
 
 	// Get current database name
@@ -61,11 +61,11 @@ func GetExecutionTimeStats(ctx context.Context, db *pgxpool.Pool, projectOid str
 }
 
 func GetDatabaseUsageStats(ctx context.Context, db *pgxpool.Pool, projectOid string) (DatabaseUsageCost, api.ApiError) {
-    conn, err := GetConnectionToAnalyticsPool(ctx, db, projectOid)
+	conn, err := GetConnectionToAnalyticsPool(ctx, db, projectOid)
 	defer conn.Close()
 
 	if err.Error() != nil {
-		return DatabaseUsageCost{}, err 
+		return DatabaseUsageCost{}, err
 	}
 
 	var stats DatabaseUsageStats

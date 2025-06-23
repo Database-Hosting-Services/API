@@ -18,7 +18,6 @@ func (d *DatabaseUsageStats) CalculateCosts() DatabaseUsageCost {
 	return Cost
 }
 
-
 func GetConnectionToAnalyticsPool(ctx context.Context, db *pgxpool.Pool, projectOid string) (*pgxpool.Pool, api.ApiError) {
 	// Get user ID from context
 	UserID, ok := ctx.Value("user-id").(int)
@@ -50,6 +49,6 @@ func GetConnectionToAnalyticsPool(ctx context.Context, db *pgxpool.Pool, project
 				errors.New("pg_stat_statements extension is not available. Please ensure it is installed in PostgreSQL and included in shared_preload_libraries"))
 		}
 	}
-	
+
 	return conn, api.ApiError{} // Return empty ApiError to indicate success
 }
