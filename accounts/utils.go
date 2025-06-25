@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
+	"strings"
 )
 
 // EmailSenderFunc defines the signature of the SendMail function for mocking
@@ -117,6 +118,13 @@ func SendMail(d *gomail.Dialer, from, to, code, Subject string) error {
 		return currentEmailSender(d, from, to, code, Subject)
 	}
 
+	if code == "" {
+		return fmt.Errorf("verification code cannot be empty")
+	}
+	if to == "" {
+		return fmt.Errorf("recipient email cannot be empty")
+	}
+
 	m := gomail.NewMessage()
 
 	// Set headers
@@ -124,16 +132,24 @@ func SendMail(d *gomail.Dialer, from, to, code, Subject string) error {
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", Subject)
 
-	// get the directory of the current file using runtime
+	// Get the directory of the current file using runtime
 	_, filename, _, _ := runtime.Caller(0)
 	dir := filepath.Dir(filepath.Dir(filename))
 	mailTemplatePath := filepath.Join(dir, "templates", "mailTemplate.html")
+	
 	data, err := os.ReadFile(mailTemplatePath)
 	if err != nil {
 		return fmt.Errorf("failed to read mail template: %w, path: %s", err, mailTemplatePath)
 	}
 
-	body := fmt.Sprintf(string(data), code)
+	// Replace the placeholder with the actual verification code
+	body := strings.ReplaceAll(string(data), "{{VERIFICATION_CODE}}", code, )
+	
+	// Verify the replacement worked
+	if strings.Contains(body, "{{VERIFICATION_CODE}}") {
+		return fmt.Errorf("failed to replace verification code placeholder in template")
+	}
+	
 	m.SetBody("text/html", body)
 
 	// Send email using the provided dialer
