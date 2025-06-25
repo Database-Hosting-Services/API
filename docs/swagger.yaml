@@ -214,6 +214,16 @@ definitions:
         example: Invalid request parameters
         type: string
     type: object
+  response.Response:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
   response.SuccessResponse:
     properties:
       data: {}
@@ -318,67 +328,6 @@ info:
   title: DBHS API
   version: "1.0"
 paths:
-  /api/projects:
-    get:
-      description: Get all projects owned by the authenticated user
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Projects retrieved successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/projects.Project'
-                  type: array
-              type: object
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get all user projects
-      tags:
-      - projects
-    post:
-      consumes:
-      - application/json
-      description: Create a new project with the provided details
-      parameters:
-      - description: Project information
-        in: body
-        name: project
-        required: true
-        schema:
-          $ref: '#/definitions/projects.Project'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Create a new project
-      tags:
-      - projects
   /api/projects/{project-id}/schema/tables:
     get:
       description: Get the database schema for a specific project
@@ -450,223 +399,7 @@ paths:
       summary: Get table schema
       tags:
       - schemas
-  /api/projects/{project_id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete a project by its ID
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Project deleted successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Project ID is required
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: Project not found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Delete a project
-      tags:
-      - projects
-    get:
-      description: Get details of a specific project by its ID
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Project retrieved successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/projects.Project'
-              type: object
-        "400":
-          description: Project ID is required
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: Project not found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get a specific project
-      tags:
-      - projects
-    patch:
-      consumes:
-      - application/json
-      description: Update a project's details by its ID
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      - description: Project update information
-        in: body
-        name: project
-        required: true
-        schema:
-          $ref: '#/definitions/projects.updateProjectDataModel'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Project updated successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/projects.Project'
-              type: object
-        "400":
-          description: Invalid input or Project ID is required
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Update a project
-      tags:
-      - projects
   /api/projects/{project_id}/tables:
-  /projects/{project_id}/analytics/execution-time:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve statistics about query execution times for a specific
-        project
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Execution time statistics retrieved successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Project ID is missing
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get query execution time statistics
-      tags:
-      - analytics
-  /projects/{project_id}/analytics/storage:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve the current storage usage information for a specific project
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Current storage retrieved successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Project ID is missing
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: No storage information found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get current storage information
-      tags:
-      - analytics
-  /projects/{project_id}/analytics/usage:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve statistics about database usage and associated costs
-      parameters:
-      - description: Project ID
-        in: path
-        name: project_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Database usage statistics retrieved successfully
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Project ID is missing
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get database usage statistics
-      tags:
-      - analytics
-  /projects/{project_id}/indexes:
     get:
       description: Get a list of all tables in the specified project
       parameters:
@@ -893,6 +626,314 @@ paths:
       summary: Update an existing table
       tags:
       - tables
+  /projects:
+    get:
+      description: Get all projects owned by the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Projects retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/projects.Project'
+                  type: array
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all user projects
+      tags:
+      - projects
+    post:
+      consumes:
+      - application/json
+      description: Create a new project with the provided details
+      parameters:
+      - description: Project information
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/projects.Project'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new project
+      tags:
+      - projects
+  /projects/{project_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a project by its ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Project deleted successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Project not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a project
+      tags:
+      - projects
+    get:
+      description: Get details of a specific project by its ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Project retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/projects.Project'
+              type: object
+        "400":
+          description: Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Project not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a specific project
+      tags:
+      - projects
+    patch:
+      consumes:
+      - application/json
+      description: Update a project's details by its ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Project update information
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/projects.updateProjectDataModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Project updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/projects.Project'
+              type: object
+        "400":
+          description: Invalid input or Project ID is required
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a project
+      tags:
+      - projects
+  /projects/{project_id}/ai/report:
+    get:
+      consumes:
+      - application/json
+      description: Generate an AI-powered analytics report for a specific project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Report generated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Generate AI Report
+      tags:
+      - AI
+  /projects/{project_id}/analytics/execution-time:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve statistics about query execution times for a specific
+        project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Execution time statistics retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is missing
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get query execution time statistics
+      tags:
+      - analytics
+  /projects/{project_id}/analytics/storage:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the current storage usage information for a specific project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Current storage retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is missing
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: No storage information found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current storage information
+      tags:
+      - analytics
+  /projects/{project_id}/analytics/usage:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve statistics about database usage and associated costs
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Database usage statistics retrieved successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is missing
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get database usage statistics
+      tags:
+      - analytics
   /projects/{project_id}/indexes:
     get:
       description: Retrieve a list of all indexes for the specified project
