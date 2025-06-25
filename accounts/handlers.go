@@ -354,9 +354,15 @@ func ForgetPasswordVerify(app *config.Application) http.HandlerFunc {
 		err := ForgetPasswordVerifyService(r.Context(), config.DB, config.VerifyCache, &body)
 		if err != nil {
 			app.ErrorLog.Println(err.Error())
-			if err.Error() == "Wrong verification code" {
-				response.BadRequest(w, err.Error(), err)
-				return
+			if err.Error() == "Wrong verification code" || err == redis.Nil {
+				switch err.Error() {
+				case "Wrong verification code":
+					response.BadRequest(w, err.Error(), nil)
+					return
+				case redis.Nil.Error():
+					response.BadRequest(w, "email not found please sign up first", nil)
+					return
+				}
 			}
 			response.InternalServerError(w, "Server Error, please try again later.", err)
 			return
