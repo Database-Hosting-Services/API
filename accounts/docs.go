@@ -95,6 +95,11 @@ type ErrorResponse struct {
 	Error string `json:"error" example:"Invalid request parameters"`
 }
 
+// ErrorResponse represents an error response
+type ErrorResponse400EmailNotFound struct {
+	Error string `json:"error" example:"email not found please sign up first"`
+}
+
 // RedirectResponse represents a redirect response
 type RedirectResponse struct {
 	Message string `json:"message" example:"verification code sent to your email"`

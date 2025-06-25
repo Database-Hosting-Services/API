@@ -129,8 +129,7 @@ func SignIn(app *config.Application) http.HandlerFunc {
 // @Produce json
 // @Param verification body VerificationRequest true "User verification information with code"
 // @Success 201 {object} VerificationSuccessResponse "User verified successfully with JWT token"
-// @Failure 400 {object} ErrorResponse "Invalid verification code"
-// @Failure 500 {object} ErrorResponse "Server error"
+// @Failure 400 {object} ErrorResponse400EmailNotFound "Invalid verification code or email not found please sign up first"
 // @Router /user/verify [post]
 func Verify(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -308,7 +307,6 @@ func UpdateUser(app *config.Application) http.HandlerFunc {
 // @Param user body EmailRequest true "User email information"
 // @Success 200 {object} SuccessMessageResponse "Verification code sent"
 // @Failure 400 {object} ErrorResponse "User does not exist"
-// @Failure 500 {object} ErrorResponse "Server error"
 // @Router /user/forgot-password [post]
 func ForgetPassword(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -340,8 +338,7 @@ func ForgetPassword(app *config.Application) http.HandlerFunc {
 // @Produce json
 // @Param reset body PasswordResetRequest true "Password reset information with verification code"
 // @Success 200 {object} SuccessMessageResponse "Password reset successfully"
-// @Failure 400 {object} ErrorResponse "Invalid code or password"
-// @Failure 500 {object} ErrorResponse "Server error"
+// @Failure 400 {object} ErrorResponse400EmailNotFound "Invalid code or password or email not found please sign up first"
 // @Router /user/forget-password/verify [post]
 func ForgetPasswordVerify(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -354,9 +351,15 @@ func ForgetPasswordVerify(app *config.Application) http.HandlerFunc {
 		err := ForgetPasswordVerifyService(r.Context(), config.DB, config.VerifyCache, &body)
 		if err != nil {
 			app.ErrorLog.Println(err.Error())
-			if err.Error() == "Wrong verification code" {
-				response.BadRequest(w, err.Error(), err)
-				return
+			if err.Error() == "Wrong verification code" || err == redis.Nil {
+				switch err.Error() {
+				case "Wrong verification code":
+					response.BadRequest(w, err.Error(), nil)
+					return
+				case redis.Nil.Error():
+					response.BadRequest(w, "email not found please sign up first", nil)
+					return
+				}
 			}
 			response.InternalServerError(w, "Server Error, please try again later.", err)
 			return
