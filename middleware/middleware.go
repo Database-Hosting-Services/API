@@ -41,7 +41,7 @@ func CheckOwnership(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
 		projectId := urlVariables["project_id"]
-		userId := r.Context().Value("user-id").(int)
+		userId := r.Context().Value("user-id").(int64)
 		ok, err := utils.CheckOwnershipQuery(r.Context(), projectId, userId, config.DB)
 		if err != nil {
 			response.InternalServerError(w, err.Error(), err)

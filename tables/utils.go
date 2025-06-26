@@ -63,7 +63,7 @@ func CheckForValidTable(table *ClientTable) bool {
 	return true
 }
 
-func ExtractDb(ctx context.Context, projectOID string, UserID int, servDb *pgxpool.Pool) (int64, *pgxpool.Pool, error) {
+func ExtractDb(ctx context.Context, projectOID string, UserID int64, servDb *pgxpool.Pool) (int64, *pgxpool.Pool, error) {
 	// get the dbname to connect to
 	dbName, projectId, err := GetProjectNameID(ctx, projectOID, servDb)
 	if err != nil {
