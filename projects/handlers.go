@@ -109,7 +109,7 @@ func DeleteProject(app *config.Application) http.HandlerFunc {
 // NOTE : in future plans this function will return also the projects which the user is a member in these projects
 func GetProjects(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userId := r.Context().Value("user-id").(int)
+		userId := r.Context().Value("user-id").(int64)
 		data, err := getUserProjects(r.Context(), config.DB, userId)
 		if err != nil {
 			app.ErrorLog.Println(err)
@@ -135,7 +135,7 @@ func GetProjects(app *config.Application) http.HandlerFunc {
 // @Router /projects/{project_id} [get]
 func getSpecificProject(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userId := r.Context().Value("user-id").(int)
+		userId := r.Context().Value("user-id").(int64)
 		urlVariables := mux.Vars(r)
 
 		projectOid := urlVariables["project_id"]
@@ -174,7 +174,7 @@ func getSpecificProject(app *config.Application) http.HandlerFunc {
 // @Router /projects/{project_id} [patch]
 func updateProject(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userId := r.Context().Value("user-id").(int)
+		userId := r.Context().Value("user-id").(int64)
 		urlVariables := mux.Vars(r)
 
 		projectOid := urlVariables["project_id"]

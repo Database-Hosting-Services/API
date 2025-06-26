@@ -26,7 +26,7 @@ import (
 // @Router /api/projects/{project-id}/schema/tables [get]
 func GetDatabaseSchema(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userId := r.Context().Value("user-id").(int)
+		userId := r.Context().Value("user-id").(int64)
 		urlVariables := mux.Vars(r)
 
 		projectOid := urlVariables["project-id"]
@@ -47,7 +47,7 @@ func GetDatabaseSchema(app *config.Application) http.HandlerFunc {
 		}
 
 		projectName := strings.ToLower(project.Name)
-		projectName += "_" + strconv.Itoa(userId)
+		projectName += "_" + strconv.FormatInt(userId, 10)
 
 		databaseConn, err := config.ConfigManager.GetDbConnection(r.Context(), projectName)
 		if err != nil {
@@ -82,7 +82,7 @@ func GetDatabaseSchema(app *config.Application) http.HandlerFunc {
 // @Router /api/projects/{project-id}/schema/tables/{table-id} [get]
 func GetDatabaseTableSchema(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userId := r.Context().Value("user-id").(int)
+		userId := r.Context().Value("user-id").(int64)
 		urlVariables := mux.Vars(r)
 
 		projectOid := urlVariables["project-id"]
@@ -103,7 +103,7 @@ func GetDatabaseTableSchema(app *config.Application) http.HandlerFunc {
 		}
 
 		projectName := strings.ToLower(project.Name)
-		projectName += "_" + strconv.Itoa(userId)
+		projectName += "_" + strconv.FormatInt(userId, 10)
 
 		databaseConn, err := config.ConfigManager.GetDbConnection(r.Context(), projectName)
 		if err != nil {
