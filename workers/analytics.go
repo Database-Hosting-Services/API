@@ -62,19 +62,19 @@ func GatherAnalytics(app *config.Application) {
 		}
 
 		// insert the analytics to the database
-		_, err = config.DB.Exec(context, INSERT_ANALYTICS, projectOid, STORAGE_ANALYTICS, storage)
+		_, err = config.DB.Exec(context, INSERT_ANALYTICS, id, STORAGE_ANALYTICS, storage)
 		if err != nil {
 			app.ErrorLog.Println(err)
 			continue
 		}
 
-		_, err = config.DB.Exec(context, INSERT_ANALYTICS, projectOid, EXECUTION_TIME_ANALYTICS, executionTimeStats)
+		_, err = config.DB.Exec(context, INSERT_ANALYTICS, id, EXECUTION_TIME_ANALYTICS, executionTimeStats)
 		if err != nil {
 			app.ErrorLog.Println(err)
 			continue
 		}
 
-		_, err = config.DB.Exec(context, INSERT_ANALYTICS, projectOid, DATABASE_USAGE_ANALYTICS, databaseUsageStats)
+		_, err = config.DB.Exec(context, INSERT_ANALYTICS, id, DATABASE_USAGE_ANALYTICS, databaseUsageStats)
 		if err != nil {
 			app.ErrorLog.Println(err)
 			continue
