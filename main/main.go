@@ -9,8 +9,10 @@ import (
 	"DBHS/config"
 	"DBHS/docs" // Import generated docs
 	"DBHS/middleware"
+	"DBHS/workers"
 
 	"github.com/MarceloPetrucio/go-scalar-api-reference"
+	"github.com/robfig/cron/v3"
 	_ "github.com/swaggo/swag"
 
 	"github.com/rs/cors"
@@ -89,6 +91,12 @@ func main() {
 
 	infoLog.Printf("starting server on :%s", *addr)
 	infoLog.Printf("Scalar UI available at http://%s/reference", *addr)
+
+	c := cron.New()
+	c.AddFunc("0 0 * * *", func() {
+		workers.GatherAnalytics(config.App)
+	})
+	c.Start()
 
 	err := server.ListenAndServe()
 	errorLog.Fatal(err)

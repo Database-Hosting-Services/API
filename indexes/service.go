@@ -14,7 +14,7 @@ import (
 
 func CreateIndexInDatabase(ctx context.Context, db *pgxpool.Pool, projectOid string, indexData IndexData) api.ApiError {
 	// Get user ID from context
-	UserID, ok := ctx.Value("user-id").(int)
+	UserID, ok := ctx.Value("user-id").(int64)
 	if !ok || UserID == 0 {
 		return *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
 	}
@@ -45,7 +45,7 @@ func CreateIndexInDatabase(ctx context.Context, db *pgxpool.Pool, projectOid str
 
 func GetIndexes(ctx context.Context, db *pgxpool.Pool, projectOid string) ([]RetrievedIndex, api.ApiError) {
 	// Get user ID from context
-	UserID, ok := ctx.Value("user-id").(int)
+	UserID, ok := ctx.Value("user-id").(int64)
 	if !ok || UserID == 0 {
 		return nil, *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
 	}
@@ -73,7 +73,7 @@ func GetIndexes(ctx context.Context, db *pgxpool.Pool, projectOid string) ([]Ret
 
 func GetSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOid string) (SpecificIndex, api.ApiError) {
 	// Get user ID from context
-	UserID, ok := ctx.Value("user-id").(int)
+	UserID, ok := ctx.Value("user-id").(int64)
 	if !ok || UserID == 0 {
 		return DefaultSpecificIndex, *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
 	}
@@ -102,7 +102,7 @@ func GetSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOi
 
 func DeleteSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOid string) api.ApiError {
 	// Get user ID from context
-	UserID, ok := ctx.Value("user-id").(int)
+	UserID, ok := ctx.Value("user-id").(int64)
 	if !ok || UserID == 0 {
 		return *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
 	}
@@ -141,7 +141,7 @@ func DeleteSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, inde
 
 func UpdateSpecificIndex(ctx context.Context, db *pgxpool.Pool, projectOid, indexOid string, newName string) api.ApiError {
 	// Get user ID from context
-	UserID, ok := ctx.Value("user-id").(int)
+	UserID, ok := ctx.Value("user-id").(int64)
 	if !ok || UserID == 0 {
 		return *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
 	}

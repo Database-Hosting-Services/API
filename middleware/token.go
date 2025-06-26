@@ -11,8 +11,8 @@ import (
 	"net/http"
 )
 
-func GetUserByOid(ctx context.Context, oid string) (int, error) {
-	var id int
+func GetUserByOid(ctx context.Context, oid string) (int64, error) {
+	var id int64
 	err := config.DB.QueryRow(
 		ctx,
 		`SELECT id FROM "users" WHERE oid= $1`,

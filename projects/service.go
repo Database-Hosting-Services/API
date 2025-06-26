@@ -12,7 +12,7 @@ import (
 )
 
 func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, projectDescription string) (bool, error, SafeProjectData) {
-	UserId, ok := ctx.Value("user-id").(int)
+	UserId, ok := ctx.Value("user-id").(int64)
 	if !ok || UserId == 0 {
 		return false, errors.New("Unauthorized"), DefaultProjectResponse
 	}
@@ -74,7 +74,7 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 
 	// --------------------------- Create the Database -----------------------------------
 
-	DBname := projectname + "_" + strconv.Itoa(UserId)
+	DBname := projectname + "_" + strconv.FormatInt(UserId, 10)
 	_, err = config.AdminDB.Exec(ctx, "CREATE DATABASE "+DBname)
 	if err != nil {
 		return false, err, DefaultProjectResponse
@@ -91,7 +91,7 @@ func CreateUserProject(ctx context.Context, db *pgxpool.Pool, projectname, proje
 // DeleteUserProject handles the business logic for deleting a project
 func DeleteUserProject(ctx context.Context, db *pgxpool.Pool, projectOID string) error {
 	// Get user ID from context to check if user is owner for this project
-	UserID, ok := ctx.Value("user-id").(int)
+	UserID, ok := ctx.Value("user-id").(int64)
 	if !ok || UserID == 0 {
 		return errors.New("Unauthorized")
 	}
@@ -124,7 +124,7 @@ func DeleteUserProject(ctx context.Context, db *pgxpool.Pool, projectOID string)
 	}
 
 	// ---------------------- Drop the actual database ----------------------
-	DBname := projectName + "_" + strconv.Itoa(UserID)
+	DBname := projectName + "_" + strconv.FormatInt(UserID, 10)
 	_, err = config.AdminDB.Exec(ctx, "DROP DATABASE IF EXISTS "+DBname)
 	if err != nil {
 		return err
@@ -138,7 +138,7 @@ func DeleteUserProject(ctx context.Context, db *pgxpool.Pool, projectOID string)
 	return nil
 }
 
-func getUserProjects(ctx context.Context, db *pgxpool.Pool, userId int) ([]*SafeProjectData, error) {
+func getUserProjects(ctx context.Context, db *pgxpool.Pool, userId int64) ([]*SafeProjectData, error) {
 	projects, err := getUserProjectsFromDatabase(ctx, db, userId)
 	if err != nil {
 		return nil, err
@@ -146,7 +146,7 @@ func getUserProjects(ctx context.Context, db *pgxpool.Pool, userId int) ([]*Safe
 	return projects, nil
 }
 
-func GetUserSpecificProject(ctx context.Context, db utils.Querier, userId int, projectOid string) (*SafeProjectData, error) {
+func GetUserSpecificProject(ctx context.Context, db utils.Querier, userId int64, projectOid string) (*SafeProjectData, error) {
 	project, err := getUserSpecificProjectFromDatabase(ctx, db, userId, projectOid)
 	if err != nil {
 		return nil, err
