@@ -91,7 +91,6 @@ func Init(infoLog, errorLog *log.Logger) {
 
 	// Get the admin connection string
 	adminConnStr := os.Getenv("DATABASE_ADMIN_URL")
-	log.Println("Admin connection string: ", adminConnStr)
 	if adminConnStr == "" {
 		errorLog.Fatal("DATABASE_ADMIN_URL is not set")
 	}
