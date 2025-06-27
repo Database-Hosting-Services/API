@@ -21,6 +21,12 @@ definitions:
         example: Invalid request parameters
         type: string
     type: object
+  accounts.ErrorResponse400EmailNotFound:
+    properties:
+      error:
+        example: email not found please sign up first
+        type: string
+    type: object
   accounts.LoginResponse:
     properties:
       data:
@@ -1159,13 +1165,10 @@ paths:
           schema:
             $ref: '#/definitions/accounts.SuccessMessageResponse'
         "400":
-          description: Invalid code or password
+          description: Invalid code or password or email not found please sign up
+            first
           schema:
-            $ref: '#/definitions/accounts.ErrorResponse'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/accounts.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse400EmailNotFound'
       summary: Verify and reset password
       tags:
       - accounts
@@ -1190,10 +1193,6 @@ paths:
             $ref: '#/definitions/accounts.SuccessMessageResponse'
         "400":
           description: User does not exist
-          schema:
-            $ref: '#/definitions/accounts.ErrorResponse'
-        "500":
-          description: Server error
           schema:
             $ref: '#/definitions/accounts.ErrorResponse'
       summary: Initiate password reset
@@ -1314,13 +1313,10 @@ paths:
           schema:
             $ref: '#/definitions/accounts.VerificationSuccessResponse'
         "400":
-          description: Invalid verification code
+          description: Invalid verification code or email not found please sign up
+            first
           schema:
-            $ref: '#/definitions/accounts.ErrorResponse'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/accounts.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse400EmailNotFound'
       summary: Verify user account
       tags:
       - accounts
