@@ -1,10 +1,12 @@
 package tables
 
-import ai "DBHS/AI"
+import (
+	"DBHS/utils"
+)
 
 // Table struct is a row record of the tables table in the database
 type Table struct {
-	ai.Table
+	utils.Table
 	ID          int    `json:"id" db:"id"`
 	ProjectID   int64  `json:"project_id" db:"project_id"`
 	OID         string `json:"oid" db:"oid"`

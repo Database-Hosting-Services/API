@@ -11,11 +11,22 @@ import (
 	"github.com/georgysavva/scany/v2/pgxscan"
 )
 
-func GetAllTablesNameOid(ctx context.Context, projectId int64, db pgxscan.Querier) ([]ShortTable, error) {
-	var tables []ShortTable
+func GetAllTablesRepository(ctx context.Context, projectId int64, db utils.Querier) ([]Table, error) {
+	var tables []Table
 	err := pgxscan.Select(ctx, db, &tables, `SELECT oid, name FROM "Ptable" WHERE project_id = $1`, projectId)
 	if err != nil {
 		return nil, err
+	}
+
+	// extract the table schema
+	tableSchema, err := utils.GetTables(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+
+	// convert the table schema to the table model
+	for _, table := range tables {
+		table.Table = tableSchema[table.Name]
 	}
 
 	return tables, err

@@ -173,22 +173,22 @@ const docTemplate = `{
                             ]
                         }
                     },
-                    "400": {
-                        "description": "Project ID is required",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse401"
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse404"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse500"
                         }
                     }
                 }
@@ -1946,90 +1946,6 @@ const docTemplate = `{
                 }
             }
         },
-        "ai.ConstraintInfo": {
-            "type": "object",
-            "properties": {
-                "checkClause": {
-                    "type": "string"
-                },
-                "columnName": {
-                    "type": "string"
-                },
-                "constraintName": {
-                    "type": "string"
-                },
-                "constraintType": {
-                    "type": "string"
-                },
-                "foreignColumnName": {
-                    "type": "string"
-                },
-                "foreignTableName": {
-                    "type": "string"
-                },
-                "ordinalPosition": {
-                    "type": "integer"
-                },
-                "tableName": {
-                    "type": "string"
-                }
-            }
-        },
-        "ai.IndexInfo": {
-            "type": "object",
-            "properties": {
-                "columnName": {
-                    "type": "string"
-                },
-                "indexName": {
-                    "type": "string"
-                },
-                "indexType": {
-                    "type": "string"
-                },
-                "isPrimary": {
-                    "type": "boolean"
-                },
-                "isUnique": {
-                    "type": "boolean"
-                },
-                "tableName": {
-                    "type": "string"
-                }
-            }
-        },
-        "ai.TableColumn": {
-            "type": "object",
-            "properties": {
-                "characterMaximumLength": {
-                    "type": "integer"
-                },
-                "columnDefault": {
-                    "type": "string"
-                },
-                "columnName": {
-                    "type": "string"
-                },
-                "dataType": {
-                    "type": "string"
-                },
-                "isNullable": {
-                    "type": "boolean"
-                },
-                "numericPrecision": {
-                    "type": "integer"
-                },
-                "numericScale": {
-                    "type": "integer"
-                },
-                "ordinalPosition": {
-                    "type": "integer"
-                },
-                "tableName": {
-                    "type": "string"
-                }
-            }
-        },
         "indexes.IndexData": {
             "type": "object",
             "properties": {
@@ -2300,13 +2216,13 @@ const docTemplate = `{
                 "columns": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ai.TableColumn"
+                        "$ref": "#/definitions/utils.TableColumn"
                     }
                 },
                 "constraints": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ai.ConstraintInfo"
+                        "$ref": "#/definitions/utils.ConstraintInfo"
                     }
                 },
                 "description": {
@@ -2318,7 +2234,7 @@ const docTemplate = `{
                 "indexes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ai.IndexInfo"
+                        "$ref": "#/definitions/utils.IndexInfo"
                     }
                 },
                 "name": {
@@ -2363,6 +2279,90 @@ const docTemplate = `{
                 },
                 "update": {
                     "$ref": "#/definitions/tables.Column"
+                }
+            }
+        },
+        "utils.ConstraintInfo": {
+            "type": "object",
+            "properties": {
+                "checkClause": {
+                    "type": "string"
+                },
+                "columnName": {
+                    "type": "string"
+                },
+                "constraintName": {
+                    "type": "string"
+                },
+                "constraintType": {
+                    "type": "string"
+                },
+                "foreignColumnName": {
+                    "type": "string"
+                },
+                "foreignTableName": {
+                    "type": "string"
+                },
+                "ordinalPosition": {
+                    "type": "integer"
+                },
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.IndexInfo": {
+            "type": "object",
+            "properties": {
+                "columnName": {
+                    "type": "string"
+                },
+                "indexName": {
+                    "type": "string"
+                },
+                "indexType": {
+                    "type": "string"
+                },
+                "isPrimary": {
+                    "type": "boolean"
+                },
+                "isUnique": {
+                    "type": "boolean"
+                },
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.TableColumn": {
+            "type": "object",
+            "properties": {
+                "characterMaximumLength": {
+                    "type": "integer"
+                },
+                "columnDefault": {
+                    "type": "string"
+                },
+                "columnName": {
+                    "type": "string"
+                },
+                "dataType": {
+                    "type": "string"
+                },
+                "isNullable": {
+                    "type": "boolean"
+                },
+                "numericPrecision": {
+                    "type": "integer"
+                },
+                "numericScale": {
+                    "type": "integer"
+                },
+                "ordinalPosition": {
+                    "type": "integer"
+                },
+                "tableName": {
+                    "type": "string"
                 }
             }
         }

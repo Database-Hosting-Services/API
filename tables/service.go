@@ -5,15 +5,14 @@ import (
 	"DBHS/response"
 	"DBHS/utils"
 	"context"
-	"errors"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) ([]ShortTable, error) {
+func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) ([]Table, error) {
 	userId, ok := ctx.Value("user-id").(int)
 	if !ok || userId == 0 {
-		return nil, errors.New("Unauthorized")
+		return nil, response.ErrUnauthorized
 	}
 
 	_, projectId, err := utils.GetProjectNameID(ctx, projectOID, servDb)
@@ -21,7 +20,7 @@ func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) 
 		return nil, err
 	}
 
-	tables, err := GetAllTablesNameOid(ctx, projectId.(int64), servDb)
+	tables, err := GetAllTablesRepository(ctx, projectId.(int64), servDb)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +31,7 @@ func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) 
 func CreateTable(ctx context.Context, projectOID string, table *ClientTable, servDb *pgxpool.Pool) (string, error) {
 	userId, ok := ctx.Value("user-id").(int)
 	if !ok || userId == 0 {
-		return "", errors.New("Unauthorized")
+		return "", response.ErrUnauthorized
 	}
 
 	projectId, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
@@ -70,7 +69,7 @@ func CreateTable(ctx context.Context, projectOID string, table *ClientTable, ser
 func UpdateTable(ctx context.Context, projectOID string, tableOID string, updates *TableUpdate, servDb *pgxpool.Pool) error {
 	userId, ok := ctx.Value("user-id").(int)
 	if !ok || userId == 0 {
-		return errors.New("Unauthorized")
+		return response.ErrUnauthorized
 	}
 
 	_, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
@@ -107,7 +106,7 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpool.Pool) error {
 	userId, ok := ctx.Value("user-id").(int)
 	if !ok || userId == 0 {
-		return errors.New("Unauthorized")
+		return response.ErrUnauthorized
 	}
 
 	_, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)

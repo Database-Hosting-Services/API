@@ -39,9 +39,9 @@ import (
 // @Param project_id path string true "Project ID"
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse{data=[]Table} "List of tables"
-// @Failure 400 {object} response.ErrorResponse "Project ID is required"
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Failure 404 {object} response.ErrorResponse404 "Project not found"
+// @Failure 401 {object} response.ErrorResponse401 "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
 // @Router /api/projects/{project_id}/tables [get]
 func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

@@ -16,7 +16,7 @@ func getReport(projectUUID string, userID int, analytics Analytics, AI RAG.RAGmo
 	}
 
 	// get database schema
-	databaseSchema, err := ExtractDatabaseSchema(context.Background(), userDb)
+	databaseSchema, err := utils.ExtractDatabaseSchema(context.Background(), userDb)
 	if err != nil {
 		return "", err
 	}

@@ -171,61 +171,6 @@ definitions:
         example: User verified successfully
         type: string
     type: object
-  ai.ConstraintInfo:
-    properties:
-      checkClause:
-        type: string
-      columnName:
-        type: string
-      constraintName:
-        type: string
-      constraintType:
-        type: string
-      foreignColumnName:
-        type: string
-      foreignTableName:
-        type: string
-      ordinalPosition:
-        type: integer
-      tableName:
-        type: string
-    type: object
-  ai.IndexInfo:
-    properties:
-      columnName:
-        type: string
-      indexName:
-        type: string
-      indexType:
-        type: string
-      isPrimary:
-        type: boolean
-      isUnique:
-        type: boolean
-      tableName:
-        type: string
-    type: object
-  ai.TableColumn:
-    properties:
-      characterMaximumLength:
-        type: integer
-      columnDefault:
-        type: string
-      columnName:
-        type: string
-      dataType:
-        type: string
-      isNullable:
-        type: boolean
-      numericPrecision:
-        type: integer
-      numericScale:
-        type: integer
-      ordinalPosition:
-        type: integer
-      tableName:
-        type: string
-    type: object
   indexes.IndexData:
     properties:
       columns:
@@ -403,11 +348,11 @@ definitions:
     properties:
       columns:
         items:
-          $ref: '#/definitions/ai.TableColumn'
+          $ref: '#/definitions/utils.TableColumn'
         type: array
       constraints:
         items:
-          $ref: '#/definitions/ai.ConstraintInfo'
+          $ref: '#/definitions/utils.ConstraintInfo'
         type: array
       description:
         type: string
@@ -415,7 +360,7 @@ definitions:
         type: integer
       indexes:
         items:
-          $ref: '#/definitions/ai.IndexInfo'
+          $ref: '#/definitions/utils.IndexInfo'
         type: array
       name:
         type: string
@@ -445,6 +390,61 @@ definitions:
         type: string
       update:
         $ref: '#/definitions/tables.Column'
+    type: object
+  utils.ConstraintInfo:
+    properties:
+      checkClause:
+        type: string
+      columnName:
+        type: string
+      constraintName:
+        type: string
+      constraintType:
+        type: string
+      foreignColumnName:
+        type: string
+      foreignTableName:
+        type: string
+      ordinalPosition:
+        type: integer
+      tableName:
+        type: string
+    type: object
+  utils.IndexInfo:
+    properties:
+      columnName:
+        type: string
+      indexName:
+        type: string
+      indexType:
+        type: string
+      isPrimary:
+        type: boolean
+      isUnique:
+        type: boolean
+      tableName:
+        type: string
+    type: object
+  utils.TableColumn:
+    properties:
+      characterMaximumLength:
+        type: integer
+      columnDefault:
+        type: string
+      columnName:
+        type: string
+      dataType:
+        type: string
+      isNullable:
+        type: boolean
+      numericPrecision:
+        type: integer
+      numericScale:
+        type: integer
+      ordinalPosition:
+        type: integer
+      tableName:
+        type: string
     type: object
 info:
   contact: {}
@@ -547,18 +547,18 @@ paths:
                     $ref: '#/definitions/tables.Table'
                   type: array
               type: object
-        "400":
-          description: Project ID is required
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Project not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Get all tables in a project
