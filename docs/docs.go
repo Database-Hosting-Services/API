@@ -1334,15 +1334,9 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid code or password",
+                        "description": "Invalid code or password or email not found please sign up first",
                         "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
+                            "$ref": "#/definitions/accounts.ErrorResponse400EmailNotFound"
                         }
                     }
                 }
@@ -1381,12 +1375,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "User does not exist",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
                         "schema": {
                             "$ref": "#/definitions/accounts.ErrorResponse"
                         }
@@ -1570,15 +1558,9 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid verification code",
+                        "description": "Invalid verification code or email not found please sign up first",
                         "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
+                            "$ref": "#/definitions/accounts.ErrorResponse400EmailNotFound"
                         }
                     }
                 }
@@ -1735,6 +1717,15 @@ const docTemplate = `{
                 "error": {
                     "type": "string",
                     "example": "Invalid request parameters"
+                }
+            }
+        },
+        "accounts.ErrorResponse400EmailNotFound": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "email not found please sign up first"
                 }
             }
         },
