@@ -26,7 +26,7 @@ func GetAllTablesRepository(ctx context.Context, projectId int64, db utils.Queri
 
 	// convert the table schema to the table model
 	for _, table := range tables {
-		table.Table = tableSchema[table.Name]
+		table.Schema = tableSchema[table.Name]
 	}
 
 	return tables, err

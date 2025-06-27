@@ -2213,29 +2213,11 @@ const docTemplate = `{
         "tables.Table": {
             "type": "object",
             "properties": {
-                "columns": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/utils.TableColumn"
-                    }
-                },
-                "constraints": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/utils.ConstraintInfo"
-                    }
-                },
                 "description": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
-                },
-                "indexes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/utils.IndexInfo"
-                    }
                 },
                 "name": {
                     "type": "string"
@@ -2246,8 +2228,8 @@ const docTemplate = `{
                 "project_id": {
                     "type": "integer"
                 },
-                "tableName": {
-                    "type": "string"
+                "schema": {
+                    "$ref": "#/definitions/utils.Table"
                 }
             }
         },
@@ -2328,6 +2310,32 @@ const docTemplate = `{
                 },
                 "isUnique": {
                     "type": "boolean"
+                },
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.Table": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.TableColumn"
+                    }
+                },
+                "constraints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.ConstraintInfo"
+                    }
+                },
+                "indexes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.IndexInfo"
+                    }
                 },
                 "tableName": {
                     "type": "string"

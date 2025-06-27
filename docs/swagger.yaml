@@ -346,30 +346,18 @@ definitions:
     type: object
   tables.Table:
     properties:
-      columns:
-        items:
-          $ref: '#/definitions/utils.TableColumn'
-        type: array
-      constraints:
-        items:
-          $ref: '#/definitions/utils.ConstraintInfo'
-        type: array
       description:
         type: string
       id:
         type: integer
-      indexes:
-        items:
-          $ref: '#/definitions/utils.IndexInfo'
-        type: array
       name:
         type: string
       oid:
         type: string
       project_id:
         type: integer
-      tableName:
-        type: string
+      schema:
+        $ref: '#/definitions/utils.Table'
     type: object
   tables.TableUpdate:
     properties:
@@ -422,6 +410,23 @@ definitions:
         type: boolean
       isUnique:
         type: boolean
+      tableName:
+        type: string
+    type: object
+  utils.Table:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/utils.TableColumn'
+        type: array
+      constraints:
+        items:
+          $ref: '#/definitions/utils.ConstraintInfo'
+        type: array
+      indexes:
+        items:
+          $ref: '#/definitions/utils.IndexInfo'
+        type: array
       tableName:
         type: string
     type: object

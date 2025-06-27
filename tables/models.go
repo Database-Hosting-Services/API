@@ -6,12 +6,12 @@ import (
 
 // Table struct is a row record of the tables table in the database
 type Table struct {
-	utils.Table
-	ID          int    `json:"id" db:"id"`
-	ProjectID   int64  `json:"project_id" db:"project_id"`
-	OID         string `json:"oid" db:"oid"`
-	Name        string `json:"name" db:"name"`
-	Description string `json:"description" db:"description"`
+	ID          int         `json:"id" db:"id"`
+	ProjectID   int64       `json:"project_id" db:"project_id"`
+	OID         string      `json:"oid" db:"oid"`
+	Name        string      `json:"name" db:"name"`
+	Description string      `json:"description" db:"description"`
+	Schema      utils.Table `json:"schema"`
 }
 
 type ShortTable struct {
