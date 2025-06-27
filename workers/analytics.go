@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	STORAGE_ANALYTICS = "Storage"
-	EXECUTION_TIME_ANALYTICS = "ExecutionTimeStats"
+	STORAGE_ANALYTICS        = "Storage"
+	EXECUTION_TIME_ANALYTICS = "DatabaseActivity"
 	DATABASE_USAGE_ANALYTICS = "DatabaseUsageStats"
-	DATABASE_USAGE_COST = "DatabaseUsageCost"
+	DATABASE_USAGE_COST      = "DatabaseUsageCost"
 )
 
 const (

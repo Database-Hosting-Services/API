@@ -9,11 +9,10 @@ const (
 		WHERE spcname IN ('pg_default', 'pg_global')
 	`
 
-	GET_MAX_AVG_TOTAL_EXECUTION_TIME = `
+	GET_TOTAL_TimeAndQueries = `
 		SELECT
 			ROUND(SUM(total_exec_time)::numeric, 2) as total_time_ms,
-			ROUND(MAX(max_exec_time)::numeric, 2) AS max_time_ms,
-			ROUND(AVG(mean_exec_time)::numeric, 2) AS avg_time_ms
+			SUM(calls) as total_queries
 		FROM pg_stat_statements pss
 		JOIN pg_database pd ON pss.dbid = pd.oid
 		WHERE pd.datname = $1
@@ -31,4 +30,6 @@ const (
 	`
 
 	GET_ALL_CURRENT_STORAGE = `SELECT created_at::text, data->>'Management storage', data->>'Actual data' FROM analytics WHERE type = 'Storage' and "projectId" = $1 ORDER BY created_at DESC;`
+
+    GET_ALL_EXECUTION_TIME_STATS = `SELECT created_at::text, data->>'total_time_ms', data->>'total_queries' FROM analytics WHERE type = 'ExecutionTimeStats' AND "projectId" = $1;	`
 )
