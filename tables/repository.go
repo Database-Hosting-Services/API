@@ -11,15 +11,6 @@ import (
 	"github.com/georgysavva/scany/v2/pgxscan"
 )
 
-func GetProjectNameID(ctx context.Context, projectId string, db utils.Querier) (interface{}, interface{}, error) {
-	var name, id interface{}
-	err := db.QueryRow(ctx, "SELECT id, name FROM projects WHERE oid = $1", projectId).Scan(&id, &name)
-	if err != nil {
-		return nil, nil, err
-	}
-	return name, id, nil
-}
-
 func GetAllTablesNameOid(ctx context.Context, projectId int64, db pgxscan.Querier) ([]ShortTable, error) {
 	var tables []ShortTable
 	err := pgxscan.Select(ctx, db, &tables, `SELECT oid, name FROM "Ptable" WHERE project_id = $1`, projectId)

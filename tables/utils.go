@@ -1,7 +1,6 @@
 package tables
 
 import (
-	"DBHS/config"
 	"DBHS/utils"
 	"context"
 	"fmt"
@@ -9,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func CreateColumnDefinition(column *Column) string {
@@ -61,21 +59,6 @@ func CheckForValidTable(table *ClientTable) bool {
 		}
 	}
 	return true
-}
-
-func ExtractDb(ctx context.Context, projectOID string, UserID int, servDb *pgxpool.Pool) (int64, *pgxpool.Pool, error) {
-	// get the dbname to connect to
-	dbName, projectId, err := GetProjectNameID(ctx, projectOID, servDb)
-	if err != nil {
-		return 0, nil, err
-	}
-	// get the db connection
-	userDb, err := config.ConfigManager.GetDbConnection(ctx, utils.UserServerDbFormat(dbName.(string), UserID))
-	if err != nil {
-		return 0, nil, err
-	}
-
-	return projectId.(int64), userDb, nil
 }
 
 func ExecuteUpdate(tableName string, table map[string]DbColumn, updates *TableUpdate, db utils.Querier) error {

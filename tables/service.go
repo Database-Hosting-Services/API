@@ -16,7 +16,7 @@ func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) 
 		return nil, errors.New("Unauthorized")
 	}
 
-	_, projectId, err := GetProjectNameID(ctx, projectOID, servDb)
+	_, projectId, err := utils.GetProjectNameID(ctx, projectOID, servDb)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func CreateTable(ctx context.Context, projectOID string, table *ClientTable, ser
 		return "", errors.New("Unauthorized")
 	}
 
-	projectId, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
+	projectId, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return "", err
 	}
@@ -73,7 +73,7 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 		return errors.New("Unauthorized")
 	}
 
-	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
+	_, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpoo
 		return errors.New("Unauthorized")
 	}
 
-	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
+	_, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return err
 	}
@@ -180,7 +180,7 @@ func ReadTable(ctx context.Context, projectOID, tableOID string, parameters map[
 		return nil, response.ErrUnauthorized
 	}
 
-	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
+	_, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return nil, err
 	}

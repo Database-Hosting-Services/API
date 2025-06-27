@@ -9,7 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 )
-
+// old body
 /*
 	body
 	tableName: "",
@@ -28,6 +28,9 @@ import (
 	]
 
 */
+
+// new body
+
 // GetAllTablesHanlder godoc
 // @Summary Get all tables in a project
 // @Description Get a list of all tables in the specified project
@@ -45,9 +48,10 @@ func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		projectId := urlVariables["project_id"]
 		if projectId == "" {
-			response.BadRequest(w, "Project ID is required", nil)
+			response.NotFound(w, "Project ID is required", nil)
 			return
 		}
+		
 		data, err := GetAllTables(r.Context(), projectId, config.DB)
 		if err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {

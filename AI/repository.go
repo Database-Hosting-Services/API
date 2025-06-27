@@ -45,6 +45,13 @@ type IndexInfo struct {
 	IsPrimary  bool   `db:"is_primary"`
 }
 
+type Table struct {
+	TableName string `db:"table_name"`
+	Columns []TableColumn `db:"columns"`
+	Constraints []ConstraintInfo `db:"constraints"`
+	Indexes []IndexInfo `db:"indexes"`
+}
+
 const (
 	// Query to get all tables and their columns with detailed information
 	getTablesAndColumnsQuery = `
@@ -133,6 +140,128 @@ const (
 		ORDER BY 
 			t.relname, i.relname;`
 )
+/*
+	the schema format for the tables is:
+	
+	table_name: {
+		columns: [
+			{
+				column_name: "",
+				data_type: "",
+				is_nullable: "",
+				column_default: "",
+				character_maximum_length: "",
+				numeric_precision: "",
+				numeric_scale: "",
+				ordinal_position: "",
+			}
+		],
+		constraints: [
+			{
+				constraint_name: "",
+				constraint_type: "",
+			}
+		],
+		indexes: [
+			{
+				index_name: "",
+				index_type: "",
+			}
+		]
+	}
+*/
+func GetTables(ctx context.Context, db utils.Querier) ([]Table, error) {
+	// Get all tables and columns
+	columnsRows, err := db.Query(ctx, getTablesAndColumnsQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query table columns: %w", err)
+	}
+	defer columnsRows.Close()
+
+	var columns []TableColumn
+	err = pgxscan.ScanAll(&columns, columnsRows)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan table columns: %w", err)
+	}
+
+	tableColumns := make(map[string][]TableColumn)
+	for _, col := range columns {
+		tableColumns[col.TableName] = append(tableColumns[col.TableName], col)
+	}
+
+	// Get all constraints
+	constraints, err := GetConstraints(ctx, db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get constraints: %w", err)
+	}
+
+	tableConstraints := make(map[string][]ConstraintInfo)
+	for _, constraint := range constraints {
+		tableConstraints[constraint.TableName] = append(tableConstraints[constraint.TableName], constraint)
+	}
+
+	// Get all indexes
+	indexes, err := GetIndexes(ctx, db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get indexes: %w", err)
+	}
+
+	tableIndexes := make(map[string][]IndexInfo)
+	for _, index := range indexes {
+		tableIndexes[index.TableName] = append(tableIndexes[index.TableName], index)
+	}
+
+	tablesMap := make(map[string]Table)
+	for tableName, columns := range tableColumns {
+		tablesMap[tableName] = Table{
+			TableName: tableName,
+			Columns: columns,
+			Constraints: tableConstraints[tableName],
+			Indexes: tableIndexes[tableName],
+		}
+	}
+
+	tables := make([]Table, 0)
+	for _, table := range tablesMap {
+		tables = append(tables, table)
+	}
+
+	return tables, nil
+}
+
+func GetConstraints(ctx context.Context, db utils.Querier) ([]ConstraintInfo, error) {
+	// Get all constraints
+	constraintsRows, err := db.Query(ctx, getConstraintsQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query constraints: %w", err)
+	}
+	defer constraintsRows.Close()
+
+	var constraints []ConstraintInfo
+	err = pgxscan.ScanAll(&constraints, constraintsRows)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan constraints: %w", err)
+	}
+
+	return constraints, nil
+}
+
+func GetIndexes(ctx context.Context, db utils.Querier) ([]IndexInfo, error) {
+	// Get all indexes
+	indexesRows, err := db.Query(ctx, getIndexesQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query indexes: %w", err)
+	}
+	defer indexesRows.Close()
+
+	var indexes []IndexInfo
+	err = pgxscan.ScanAll(&indexes, indexesRows)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan indexes: %w", err)
+	}
+
+	return indexes, nil
+}
 
 // ExtractDatabaseSchema extracts the complete database schema as DDL statements
 func ExtractDatabaseSchema(ctx context.Context, db utils.Querier) (string, error) {

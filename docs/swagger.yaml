@@ -171,6 +171,61 @@ definitions:
         example: User verified successfully
         type: string
     type: object
+  ai.ConstraintInfo:
+    properties:
+      checkClause:
+        type: string
+      columnName:
+        type: string
+      constraintName:
+        type: string
+      constraintType:
+        type: string
+      foreignColumnName:
+        type: string
+      foreignTableName:
+        type: string
+      ordinalPosition:
+        type: integer
+      tableName:
+        type: string
+    type: object
+  ai.IndexInfo:
+    properties:
+      columnName:
+        type: string
+      indexName:
+        type: string
+      indexType:
+        type: string
+      isPrimary:
+        type: boolean
+      isUnique:
+        type: boolean
+      tableName:
+        type: string
+    type: object
+  ai.TableColumn:
+    properties:
+      characterMaximumLength:
+        type: integer
+      columnDefault:
+        type: string
+      columnName:
+        type: string
+      dataType:
+        type: string
+      isNullable:
+        type: boolean
+      numericPrecision:
+        type: integer
+      numericScale:
+        type: integer
+      ordinalPosition:
+        type: integer
+      tableName:
+        type: string
+    type: object
   indexes.IndexData:
     properties:
       columns:
@@ -346,16 +401,30 @@ definitions:
     type: object
   tables.Table:
     properties:
+      columns:
+        items:
+          $ref: '#/definitions/ai.TableColumn'
+        type: array
+      constraints:
+        items:
+          $ref: '#/definitions/ai.ConstraintInfo'
+        type: array
       description:
         type: string
       id:
         type: integer
+      indexes:
+        items:
+          $ref: '#/definitions/ai.IndexInfo'
+        type: array
       name:
         type: string
       oid:
         type: string
       project_id:
         type: integer
+      tableName:
+        type: string
     type: object
   tables.TableUpdate:
     properties:
