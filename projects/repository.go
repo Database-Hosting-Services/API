@@ -55,3 +55,15 @@ func getUserSpecificProjectFromDatabase(ctx context.Context, db utils.Querier, u
 	}
 	return &project, nil
 }
+
+func GetProjectID(ctx context.Context, db utils.Querier, userId int64, projectOid string) (int64, error) {
+	var projectID int64
+	err := pgxscan.Get(ctx, db, &projectID, RetrieveProjectID, userId, projectOid)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, ErrorProjectNotFound
+		}
+		return 0, err
+	}
+	return projectID, nil
+}

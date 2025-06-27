@@ -29,4 +29,6 @@ const (
 		WHERE pd.datname = current_database()
 		GROUP BY pd.datname;
 	`
+
+	GET_ALL_CURRENT_STORAGE = `SELECT created_at::text, data->>'Management storage', data->>'Actual data' FROM analytics WHERE type = 'Storage' and "projectId" = $1 ORDER BY created_at DESC;`
 )

@@ -1,13 +1,18 @@
 package analytics
 
 import (
+	"DBHS/config"
 	"DBHS/indexes"
+	"DBHS/projects"
+
 	api "DBHS/utils/apiError"
 	"context"
 	"errors"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+// --------------------- Background worker service functions -----------------------
 
 func GetDatabaseStorage(ctx context.Context, db *pgxpool.Pool, projectOid string) (Storage, api.ApiError) {
 	// Get user ID from context
@@ -81,4 +86,43 @@ func GetDatabaseUsageStats(ctx context.Context, db *pgxpool.Pool, projectOid str
 	Cost := stats.CalculateCosts()
 
 	return Cost, api.ApiError{} // Return empty ApiError to indicate success
+}
+
+// --------------------- HTTP endpoint service functions -----------------------
+
+func GetALLDatabaseStorage(ctx context.Context, db *pgxpool.Pool, projectOid string) ([]StorageWithDates, api.ApiError) {
+	owner_id, ok := ctx.Value("user-id").(int64)
+	if !ok || owner_id == 0 {
+		return nil, *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
+	}
+
+	id, err := projects.GetProjectID(ctx, db, owner_id, projectOid)
+	if err != nil {
+		if errors.Is(err, projects.ErrorProjectNotFound) {
+			return nil, *api.NewApiError("Project not found", 404, err)
+		}
+		return nil, *api.NewApiError("Internal server error", 500, err)
+	}
+
+	// Get all storage records for the project
+	rows, err := config.DB.Query(ctx, GET_ALL_CURRENT_STORAGE, id)
+	if err != nil {
+		return nil, *api.NewApiError("Internal server error", 500, errors.New("failed to retrieve storage records: "+err.Error()))
+	}
+
+	defer rows.Close()
+	var storageRecords []StorageWithDates
+	for rows.Next() {
+		var storage StorageWithDates
+		if err := rows.Scan(&storage.Timestamp, &storage.ManagementStorage, &storage.ActualData); err != nil {
+			return nil, *api.NewApiError("Internal server error", 500, errors.New("failed to scan storage record: "+err.Error()))
+		}
+		storageRecords = append(storageRecords, storage)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, *api.NewApiError("Internal server error", 500, errors.New("error iterating over storage records: "+err.Error()))
+	}
+
+	return storageRecords, api.ApiError{} // Return empty ApiError to indicate success
 }

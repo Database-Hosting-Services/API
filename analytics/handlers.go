@@ -31,12 +31,12 @@ func CurrentStorage(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		storage, apiErr := GetDatabaseStorage(r.Context(), config.DB, projectOid)
+		storage, apiErr := GetALLDatabaseStorage(r.Context(), config.DB, projectOid)
 		if apiErr.Error() != nil {
 			utils.ResponseHandler(w, r, apiErr)
 			return
 		}
-		if storage.ManagementStorage == "" && storage.ActualData == "" {
+		if len(storage) == 0 {
 			response.NotFound(w, "No storage information found for the project", nil)
 			return
 		}
