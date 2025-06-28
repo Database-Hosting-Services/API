@@ -28,7 +28,7 @@ func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) 
 	return tables, nil
 }
 
-func CreateTable(ctx context.Context, projectOID string, table *ClientTable, servDb *pgxpool.Pool) (string, error) {
+func CreateTable(ctx context.Context, projectOID string, table *Table, servDb *pgxpool.Pool) (string, error) {
 	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return "", response.ErrUnauthorized
@@ -48,22 +48,21 @@ func CreateTable(ctx context.Context, projectOID string, table *ClientTable, ser
 	if err := CreateTableIntoHostingServer(ctx, table, tx); err != nil {
 		return "", err
 	}
-	tableRecord := Table{
-		Name:      table.TableName,
-		ProjectID: projectId,
-		OID:       utils.GenerateOID(),
-	}
+
+	table.OID = utils.GenerateOID()
+	table.ProjectID = projectId
 	var tableId int64
 	// insert table row into the tables table
-	if err := InsertNewTable(ctx, &tableRecord, &tableId, servDb); err != nil {
+	if err := InsertNewTable(ctx, table, &tableId, servDb); err != nil {
 		return "", err
 	}
+
 	if err := tx.Commit(ctx); err != nil {
 		DeleteTableRecord(ctx, tableId, servDb)
 		return "", err
 	}
-	config.App.InfoLog.Printf("Table %s created successfully in project %s by user %s", table.TableName, projectOID, ctx.Value("user-name").(string))
-	return tableRecord.OID, nil
+	config.App.InfoLog.Printf("Table %s created successfully in project %s by user %s", table.Name, projectOID, ctx.Value("user-name").(string))
+	return table.OID, nil
 }
 
 func UpdateTable(ctx context.Context, projectOID string, tableOID string, updates *TableUpdate, servDb *pgxpool.Pool) error {

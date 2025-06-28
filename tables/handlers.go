@@ -104,7 +104,6 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 			response.BadRequest(w, "Project ID is required", nil)
 			return
 		}
-
 		// Call the service function to create the table
 		tableOID, err := CreateTable(r.Context(), projectId, &table, config.DB)
 		if err != nil {

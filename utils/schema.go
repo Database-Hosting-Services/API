@@ -337,6 +337,21 @@ func ExtractDatabaseSchema(ctx context.Context, db Querier) (string, error) {
 	return ddlStatements.String(), nil
 }
 
+func GenerateCreateTableDDL(table *Table) (string, error) {
+	var ddlStatements strings.Builder
+	ddlStatements.WriteString("-- Database Schema DDL Export\n")
+	ddlStatements.WriteString("-- Generated automatically\n\n")
+	ddlStatements.WriteString(generateCreateTableStatement(table.TableName, table.Columns, table.Constraints))
+	ddlStatements.WriteString("\n")
+	// Add indexes for this table
+	ddlStatements.WriteString("\n-- Indexes\n")
+	for _, index := range table.Indexes {
+		ddlStatements.WriteString(generateCreateIndexStatement(index))
+		ddlStatements.WriteString("\n")
+	}
+	return ddlStatements.String(), nil
+}
+
 // generateCreateTableStatement creates a CREATE TABLE DDL statement
 func generateCreateTableStatement(tableName string, columns []TableColumn, constraints []ConstraintInfo) string {
 	var stmt strings.Builder
@@ -402,7 +417,7 @@ func generateCreateTableStatement(tableName string, columns []TableColumn, const
 	// Add CHECK constraints
 	for _, check := range checkConstraints {
 		if check.CheckClause != nil {
-			columnDefs = append(columnDefs, fmt.Sprintf("    CONSTRAINT \"%s\" CHECK %s", check.ConstraintName, *check.CheckClause))
+			columnDefs = append(columnDefs, fmt.Sprintf("    CONSTRAINT \"%s\" CHECK (%s)", check.ConstraintName, *check.CheckClause))
 		}
 	}
 

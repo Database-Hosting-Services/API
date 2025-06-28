@@ -2,7 +2,7 @@ build/*
 *.env
 .idea
 .vscode
-playground
+playground/*
 tmp/main*
 *.log
 curl.sh

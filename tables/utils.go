@@ -36,8 +36,8 @@ func ParseTableIntoSQLCreate(table *ClientTable) (string, error) {
 	return createTableSQL, nil
 }
 
-func CreateTableIntoHostingServer(ctx context.Context, table *ClientTable, tx pgx.Tx) error {
-	DDLQuery, err := ParseTableIntoSQLCreate(table)
+func CreateTableIntoHostingServer(ctx context.Context, table *Table, tx pgx.Tx) error {
+	DDLQuery, err := utils.GenerateCreateTableDDL(&table.Schema)
 	if err != nil {
 		return err
 	}
@@ -49,12 +49,12 @@ func CreateTableIntoHostingServer(ctx context.Context, table *ClientTable, tx pg
 	return nil
 }
 
-func CheckForValidTable(table *ClientTable) bool {
-	if table.TableName == "" || len(table.Columns) == 0 {
+func CheckForValidTable(table *Table) bool {
+	if table.Name == "" || len(table.Schema.Columns) == 0 {
 		return false
 	}
-	for _, column := range table.Columns {
-		if column.Name == "" || column.Type == "" {
+	for _, column := range table.Schema.Columns {
+		if column.ColumnName == "" || column.DataType == "" {
 			return false
 		}
 	}
