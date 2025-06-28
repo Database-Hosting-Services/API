@@ -6,7 +6,7 @@ import (
 
 // Table struct is a row record of the tables table in the database
 type Table struct {
-	ID          int         `json:"id" db:"id"`
+	ID          int64       `json:"id" db:"id"`
 	ProjectID   int64       `json:"project_id" db:"project_id"`
 	OID         string      `json:"oid" db:"oid"`
 	Name        string      `json:"name" db:"name"`

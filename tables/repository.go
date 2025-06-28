@@ -11,28 +11,64 @@ import (
 	"github.com/georgysavva/scany/v2/pgxscan"
 )
 
-func GetAllTablesRepository(ctx context.Context, projectId int64, db utils.Querier) ([]Table, error) {
+func GetAllTablesRepository(ctx context.Context, projectId int64, userDb utils.Querier, servDb utils.Querier) ([]Table, error) {
 	var tables []Table
-	err := pgxscan.Select(ctx, db, &tables, `SELECT oid, name FROM "Ptable" WHERE project_id = $1`, projectId)
+	err := pgxscan.Select(ctx, servDb, &tables, `SELECT id, oid, name FROM "Ptable" WHERE project_id = $1`, projectId)
 	if err != nil {
 		return nil, err
 	}
+
+    // get the project db connection
+
 
 	// extract the table schema
-	tableSchema, err := utils.GetTables(ctx, db)
+	tableSchema, err := utils.GetTables(ctx, userDb)
 	if err != nil {
 		return nil, err
 	}
 
+	presentTables := make(map[string]bool)
+	// delete the table recored if they are not present in the schema
+	for i := 0; i < len(tables); i++ {
+		presentTables[tables[i].Name] = true
+		if _, ok := tableSchema[tables[i].Name]; !ok {
+			// delete the table record from the database
+			if err := DeleteTableRecord(ctx, tables[i].ID, servDb); err != nil {
+				config.App.ErrorLog.Printf("Failed to delete table record %s: %v", tables[i].OID, err)
+			}
+			// remove the table from the list
+			tables = append(tables[:i], tables[i+1:]...)
+			i-- // adjust index after removal
+		}
+	}
+
+	// insert new table entries if they are present in the schema but not in the database
+	for name, _ := range tableSchema {
+		if presentTables[name] {
+            continue // skip if the table is already present
+        }
+        // create a new table record
+        newTable := &Table{
+            Name:      name,
+            ProjectID: projectId,
+            OID:       utils.GenerateOID(),
+        }
+        if err := InsertNewTable(ctx, newTable, &newTable.ID, servDb); err != nil {
+            config.App.ErrorLog.Printf("Failed to insert new table %s: %v", name, err)
+        }
+        tables = append(tables, *newTable)
+	}
+
+
 	// convert the table schema to the table model
-	for _, table := range tables {
-		table.Schema = tableSchema[table.Name]
+	for i := range tables {
+		tables[i].Schema = tableSchema[tables[i].Name]
 	}
 
 	return tables, err
 }
 
-func InsertNewTable(ctx context.Context, table *Table, TableId *int, db utils.Querier) error {
+func InsertNewTable(ctx context.Context, table *Table, TableId *int64, db utils.Querier) error {
 	err := db.QueryRow(ctx, InsertNewTableRecordStmt, table.OID, table.Name, table.Description, table.ProjectID).Scan(TableId)
 	if err != nil {
 		return fmt.Errorf("failed to insert new table: %w", err)
@@ -40,7 +76,7 @@ func InsertNewTable(ctx context.Context, table *Table, TableId *int, db utils.Qu
 	return nil
 }
 
-func DeleteTableRecord(ctx context.Context, tableId int, db utils.Querier) error {
+func DeleteTableRecord(ctx context.Context, tableId int64, db utils.Querier) error {
 	_, err := db.Exec(ctx, fmt.Sprintf(DeleteTableStmt, "id"), tableId)
 	if err != nil {
 		return fmt.Errorf("failed to delete table record: %w", err)

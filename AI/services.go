@@ -8,7 +8,7 @@ import (
 	"github.com/Database-Hosting-Services/AI-Agent/RAG"
 )
 
-func getReport(projectUUID string, userID int, analytics Analytics, AI RAG.RAGmodel) (string, error) {
+func getReport(projectUUID string, userID int64, analytics Analytics, AI RAG.RAGmodel) (string, error) {
 	// get project name and connection
 	_, userDb, err := utils.ExtractDb(context.Background(), projectUUID, userID, config.DB)
 	if err != nil {

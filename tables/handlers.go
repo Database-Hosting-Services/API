@@ -29,7 +29,7 @@ import (
 
 */
 
-// new body
+// new body Table struct
 
 // GetAllTablesHanlder godoc
 // @Summary Get all tables in a project

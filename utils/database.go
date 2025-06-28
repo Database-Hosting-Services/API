@@ -17,7 +17,7 @@ func UpdateDataInDatabase(ctx context.Context, db Querier, query string, dest ..
 	return err
 }
 
-func CheckOwnershipQuery(ctx context.Context, projectId string, userId int, db Querier) (bool, error) {
+func CheckOwnershipQuery(ctx context.Context, projectId string, userId int64, db Querier) (bool, error) {
 	var count int
 	err := db.QueryRow(ctx, CheckOwnershipStmt, projectId, userId).Scan(&count)
 	if err != nil {
@@ -35,7 +35,7 @@ func GetProjectNameID(ctx context.Context, projectId string, db Querier) (interf
 	return name, id, nil
 }
 
-func ExtractDb(ctx context.Context, projectOID string, UserID int, servDb *pgxpool.Pool) (int64, *pgxpool.Pool, error) {
+func ExtractDb(ctx context.Context, projectOID string, UserID int64, servDb *pgxpool.Pool) (int64, *pgxpool.Pool, error) {
 	// get the dbname to connect to
 	dbName, projectId, err := GetProjectNameID(ctx, projectOID, servDb)
 	if err != nil {

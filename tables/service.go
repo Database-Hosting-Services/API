@@ -10,17 +10,17 @@ import (
 )
 
 func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) ([]Table, error) {
-	userId, ok := ctx.Value("user-id").(int)
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return nil, response.ErrUnauthorized
 	}
 
-	_, projectId, err := utils.GetProjectNameID(ctx, projectOID, servDb)
+	projectId, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return nil, err
 	}
 
-	tables, err := GetAllTablesRepository(ctx, projectId.(int64), servDb)
+	tables, err := GetAllTablesRepository(ctx, projectId, userDb, servDb)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) 
 }
 
 func CreateTable(ctx context.Context, projectOID string, table *ClientTable, servDb *pgxpool.Pool) (string, error) {
-	userId, ok := ctx.Value("user-id").(int)
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return "", response.ErrUnauthorized
 	}
@@ -53,7 +53,7 @@ func CreateTable(ctx context.Context, projectOID string, table *ClientTable, ser
 		ProjectID: projectId,
 		OID:       utils.GenerateOID(),
 	}
-	var tableId int
+	var tableId int64
 	// insert table row into the tables table
 	if err := InsertNewTable(ctx, &tableRecord, &tableId, servDb); err != nil {
 		return "", err
@@ -67,7 +67,7 @@ func CreateTable(ctx context.Context, projectOID string, table *ClientTable, ser
 }
 
 func UpdateTable(ctx context.Context, projectOID string, tableOID string, updates *TableUpdate, servDb *pgxpool.Pool) error {
-	userId, ok := ctx.Value("user-id").(int)
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return response.ErrUnauthorized
 	}
@@ -104,7 +104,7 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 }
 
 func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpool.Pool) error {
-	userId, ok := ctx.Value("user-id").(int)
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return response.ErrUnauthorized
 	}
@@ -174,7 +174,7 @@ func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpoo
 */
 
 func ReadTable(ctx context.Context, projectOID, tableOID string, parameters map[string][]string, servDb *pgxpool.Pool) (*Data, error) {
-	userId, ok := ctx.Value("user-id").(int)
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return nil, response.ErrUnauthorized
 	}
