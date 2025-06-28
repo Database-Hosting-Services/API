@@ -74,7 +74,7 @@ func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param project_id path string true "Project ID"
-// @Param table body ClientTable true "Table information"
+// @Param table body Table true "Table information"
 // @Security BearerAuth
 // @Success 201 {object} response.SuccessResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -84,7 +84,7 @@ func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
 func CreateTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Handler logic for creating a table
-		table := ClientTable{}
+		table := Table{}
 		// Parse the request body to populate the table struct
 		if err := json.NewDecoder(r.Body).Decode(&table); err != nil {
 			response.BadRequest(w, "Invalid request body", err)

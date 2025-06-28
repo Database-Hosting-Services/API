@@ -9,9 +9,9 @@ type Table struct {
 	ID          int64       `json:"id" db:"id"`
 	ProjectID   int64       `json:"project_id" db:"project_id"`
 	OID         string      `json:"oid" db:"oid"`
-	Name        string      `json:"name" db:"name"`
+	Name        string      `json:"name" db:"name" validate:"required"`
 	Description string      `json:"description" db:"description"`
-	Schema      utils.Table `json:"schema"`
+	Schema      utils.Table `json:"schema" validate:"required"`
 }
 
 type ShortTable struct {

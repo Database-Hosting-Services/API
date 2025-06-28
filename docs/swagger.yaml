@@ -287,15 +287,6 @@ definitions:
         example: Operation successful
         type: string
     type: object
-  tables.ClientTable:
-    properties:
-      columns:
-        items:
-          $ref: '#/definitions/tables.Column'
-        type: array
-      tableName:
-        type: string
-    type: object
   tables.Column:
     properties:
       foreignKey:
@@ -358,6 +349,9 @@ definitions:
         type: integer
       schema:
         $ref: '#/definitions/utils.Table'
+    required:
+    - name
+    - schema
     type: object
   tables.TableUpdate:
     properties:
@@ -381,74 +375,74 @@ definitions:
     type: object
   utils.ConstraintInfo:
     properties:
-      checkClause:
+      CheckClause:
         type: string
-      columnName:
+      ColumnName:
         type: string
-      constraintName:
+      ConstraintName:
         type: string
-      constraintType:
+      ConstraintType:
         type: string
-      foreignColumnName:
+      ForeignColumnName:
         type: string
-      foreignTableName:
+      ForeignTableName:
         type: string
-      ordinalPosition:
+      OrdinalPosition:
         type: integer
-      tableName:
+      TableName:
         type: string
     type: object
   utils.IndexInfo:
     properties:
-      columnName:
+      ColumnName:
         type: string
-      indexName:
+      IndexName:
         type: string
-      indexType:
+      IndexType:
         type: string
-      isPrimary:
+      IsPrimary:
         type: boolean
-      isUnique:
+      IsUnique:
         type: boolean
-      tableName:
+      TableName:
         type: string
     type: object
   utils.Table:
     properties:
-      columns:
+      Columns:
         items:
           $ref: '#/definitions/utils.TableColumn'
         type: array
-      constraints:
+      Constraints:
         items:
           $ref: '#/definitions/utils.ConstraintInfo'
         type: array
-      indexes:
+      Indexes:
         items:
           $ref: '#/definitions/utils.IndexInfo'
         type: array
-      tableName:
+      TableName:
         type: string
     type: object
   utils.TableColumn:
     properties:
-      characterMaximumLength:
+      CharacterMaximumLength:
         type: integer
-      columnDefault:
+      ColumnDefault:
         type: string
-      columnName:
+      ColumnName:
         type: string
-      dataType:
+      DataType:
         type: string
-      isNullable:
+      IsNullable:
         type: boolean
-      numericPrecision:
+      NumericPrecision:
         type: integer
-      numericScale:
+      NumericScale:
         type: integer
-      ordinalPosition:
+      OrdinalPosition:
         type: integer
-      tableName:
+      TableName:
         type: string
     type: object
 info:
@@ -584,7 +578,7 @@ paths:
         name: table
         required: true
         schema:
-          $ref: '#/definitions/tables.ClientTable'
+          $ref: '#/definitions/tables.Table'
       produces:
       - application/json
       responses:

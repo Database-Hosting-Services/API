@@ -224,7 +224,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/tables.ClientTable"
+                            "$ref": "#/definitions/tables.Table"
                         }
                     }
                 ],
@@ -2122,20 +2122,6 @@ const docTemplate = `{
                 }
             }
         },
-        "tables.ClientTable": {
-            "type": "object",
-            "properties": {
-                "columns": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tables.Column"
-                    }
-                },
-                "tableName": {
-                    "type": "string"
-                }
-            }
-        },
         "tables.Column": {
             "type": "object",
             "properties": {
@@ -2212,6 +2198,10 @@ const docTemplate = `{
         },
         "tables.Table": {
             "type": "object",
+            "required": [
+                "name",
+                "schema"
+            ],
             "properties": {
                 "description": {
                     "type": "string"
@@ -2267,28 +2257,28 @@ const docTemplate = `{
         "utils.ConstraintInfo": {
             "type": "object",
             "properties": {
-                "checkClause": {
+                "CheckClause": {
                     "type": "string"
                 },
-                "columnName": {
+                "ColumnName": {
                     "type": "string"
                 },
-                "constraintName": {
+                "ConstraintName": {
                     "type": "string"
                 },
-                "constraintType": {
+                "ConstraintType": {
                     "type": "string"
                 },
-                "foreignColumnName": {
+                "ForeignColumnName": {
                     "type": "string"
                 },
-                "foreignTableName": {
+                "ForeignTableName": {
                     "type": "string"
                 },
-                "ordinalPosition": {
+                "OrdinalPosition": {
                     "type": "integer"
                 },
-                "tableName": {
+                "TableName": {
                     "type": "string"
                 }
             }
@@ -2296,22 +2286,22 @@ const docTemplate = `{
         "utils.IndexInfo": {
             "type": "object",
             "properties": {
-                "columnName": {
+                "ColumnName": {
                     "type": "string"
                 },
-                "indexName": {
+                "IndexName": {
                     "type": "string"
                 },
-                "indexType": {
+                "IndexType": {
                     "type": "string"
                 },
-                "isPrimary": {
+                "IsPrimary": {
                     "type": "boolean"
                 },
-                "isUnique": {
+                "IsUnique": {
                     "type": "boolean"
                 },
-                "tableName": {
+                "TableName": {
                     "type": "string"
                 }
             }
@@ -2319,25 +2309,25 @@ const docTemplate = `{
         "utils.Table": {
             "type": "object",
             "properties": {
-                "columns": {
+                "Columns": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/utils.TableColumn"
                     }
                 },
-                "constraints": {
+                "Constraints": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/utils.ConstraintInfo"
                     }
                 },
-                "indexes": {
+                "Indexes": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/utils.IndexInfo"
                     }
                 },
-                "tableName": {
+                "TableName": {
                     "type": "string"
                 }
             }
@@ -2345,31 +2335,31 @@ const docTemplate = `{
         "utils.TableColumn": {
             "type": "object",
             "properties": {
-                "characterMaximumLength": {
+                "CharacterMaximumLength": {
                     "type": "integer"
                 },
-                "columnDefault": {
+                "ColumnDefault": {
                     "type": "string"
                 },
-                "columnName": {
+                "ColumnName": {
                     "type": "string"
                 },
-                "dataType": {
+                "DataType": {
                     "type": "string"
                 },
-                "isNullable": {
+                "IsNullable": {
                     "type": "boolean"
                 },
-                "numericPrecision": {
+                "NumericPrecision": {
                     "type": "integer"
                 },
-                "numericScale": {
+                "NumericScale": {
                     "type": "integer"
                 },
-                "ordinalPosition": {
+                "OrdinalPosition": {
                     "type": "integer"
                 },
-                "tableName": {
+                "TableName": {
                     "type": "string"
                 }
             }

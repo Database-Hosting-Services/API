@@ -5,6 +5,7 @@ import (
 	"DBHS/utils"
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -17,10 +18,7 @@ func GetAllTablesRepository(ctx context.Context, projectId int64, userDb utils.Q
 	if err != nil {
 		return nil, err
 	}
-
-    // get the project db connection
-
-
+    
 	// extract the table schema
 	tableSchema, err := utils.GetTables(ctx, userDb)
 	if err != nil {
@@ -37,7 +35,7 @@ func GetAllTablesRepository(ctx context.Context, projectId int64, userDb utils.Q
 				config.App.ErrorLog.Printf("Failed to delete table record %s: %v", tables[i].OID, err)
 			}
 			// remove the table from the list
-			tables = append(tables[:i], tables[i+1:]...)
+			tables = slices.Delete(tables, i, i+1)
 			i-- // adjust index after removal
 		}
 	}
