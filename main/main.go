@@ -93,10 +93,18 @@ func main() {
 	infoLog.Printf("Scalar UI available at http://%s/reference", *addr)
 
 	c := cron.New()
+
+	// Cron syntax "0 0 * * *" means: "At 00:00 (midnight) every day"
 	c.AddFunc("0 0 * * *", func() {
 		workers.GatherAnalytics(config.App)
 	})
 	c.Start()
+
+	// added route for the analytics worker to make a test 
+	config.Router.HandleFunc("/api/analytics/test", func(w http.ResponseWriter, r *http.Request) {
+		workers.GatherAnalytics(config.App)
+		w.WriteHeader(http.StatusOK)
+	})
 
 	err := server.ListenAndServe()
 	errorLog.Fatal(err)

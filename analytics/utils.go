@@ -5,6 +5,7 @@ import (
 	api "DBHS/utils/apiError"
 	"context"
 	"errors"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -51,4 +52,31 @@ func GetConnectionToAnalyticsPool(ctx context.Context, db *pgxpool.Pool, project
 	}
 
 	return conn, api.ApiError{} // Return empty ApiError to indicate success
+}
+
+// ------- functions for calculating differences between current and last records -------
+
+func CalculateExecutionTimeDifference(current DatabaseActivity, lastRecord *DatabaseActivityWithDates) DatabaseActivity {
+	if lastRecord == nil {
+		return current
+	}
+
+	// Calculate the difference between current and last record
+	return DatabaseActivity{
+		TotalTimeMs:  current.TotalTimeMs - lastRecord.TotalTimeMs,
+		TotalQueries: current.TotalQueries - lastRecord.TotalQueries,
+	}
+}
+
+func CalculateDatabaseUsageDifference(current DatabaseUsageCost, lastRecord *DatabaseUsageCostWithDates) DatabaseUsageCost {
+	if lastRecord == nil {
+		return current
+	}
+
+	// Calculate the difference between current and last record
+	return DatabaseUsageCost{
+		ReadWriteCost: current.ReadWriteCost - lastRecord.ReadWriteCost,
+		CPUCost:       current.CPUCost - lastRecord.CPUCost,
+		TotalCost:     current.TotalCost - lastRecord.TotalCost,
+	}
 }
