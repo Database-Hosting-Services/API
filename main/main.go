@@ -100,12 +100,6 @@ func main() {
 	})
 	c.Start()
 
-	// added route for the analytics worker to make a test 
-	config.Router.HandleFunc("/api/analytics/test", func(w http.ResponseWriter, r *http.Request) {
-		workers.GatherAnalytics(config.App)
-		w.WriteHeader(http.StatusOK)
-	})
-
 	err := server.ListenAndServe()
 	errorLog.Fatal(err)
 }
