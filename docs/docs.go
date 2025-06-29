@@ -851,7 +851,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve statistics about query execution times for a specific project",
+                "description": "Retrieve all historical statistics about query execution times for a specific project with timestamps",
                 "consumes": [
                     "application/json"
                 ],
@@ -865,7 +865,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Project ID",
+                        "description": "Project ID (OID)",
                         "name": "project_id",
                         "in": "path",
                         "required": true
@@ -875,11 +875,32 @@ const docTemplate = `{
                     "200": {
                         "description": "Execution time statistics retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/response.SuccessResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/analytics.DatabaseActivityWithDates"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "Project ID is missing",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No execution time records found",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -900,7 +921,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve the current storage usage information for a specific project",
+                "description": "Retrieve all historical storage usage records for a specific project with timestamps",
                 "consumes": [
                     "application/json"
                 ],
@@ -910,11 +931,11 @@ const docTemplate = `{
                 "tags": [
                     "analytics"
                 ],
-                "summary": "Get current storage information",
+                "summary": "Get historical storage information",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Project ID",
+                        "description": "Project ID (OID)",
                         "name": "project_id",
                         "in": "path",
                         "required": true
@@ -922,9 +943,24 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Current storage retrieved successfully",
+                        "description": "Storage history retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/response.SuccessResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/analytics.StorageWithDates"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -955,7 +991,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve statistics about database usage and associated costs",
+                "description": "Retrieve all historical statistics about database usage and associated costs for a specific project with timestamps",
                 "consumes": [
                     "application/json"
                 ],
@@ -965,11 +1001,11 @@ const docTemplate = `{
                 "tags": [
                     "analytics"
                 ],
-                "summary": "Get database usage statistics",
+                "summary": "Get database usage statistics and costs",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Project ID",
+                        "description": "Project ID (OID)",
                         "name": "project_id",
                         "in": "path",
                         "required": true
@@ -979,11 +1015,32 @@ const docTemplate = `{
                     "200": {
                         "description": "Database usage statistics retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/response.SuccessResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/analytics.DatabaseUsageCostWithDates"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "Project ID is missing",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No database usage records found",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1943,6 +2000,51 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "User verified successfully"
+                }
+            }
+        },
+        "analytics.DatabaseActivityWithDates": {
+            "type": "object",
+            "properties": {
+                "timestamp": {
+                    "type": "string"
+                },
+                "total_queries": {
+                    "type": "integer"
+                },
+                "total_time_ms": {
+                    "type": "number"
+                }
+            }
+        },
+        "analytics.DatabaseUsageCostWithDates": {
+            "type": "object",
+            "properties": {
+                "cpu_cost": {
+                    "type": "number"
+                },
+                "read_write_cost": {
+                    "type": "number"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "total_cost": {
+                    "type": "number"
+                }
+            }
+        },
+        "analytics.StorageWithDates": {
+            "type": "object",
+            "properties": {
+                "Actual data": {
+                    "type": "string"
+                },
+                "Management storage": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
                 }
             }
         },
