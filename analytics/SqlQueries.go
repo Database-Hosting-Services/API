@@ -31,15 +31,13 @@ const (
 
 	GET_ALL_CURRENT_STORAGE = `SELECT created_at::text, data->>'Management storage', data->>'Actual data' FROM analytics WHERE type = 'Storage' and "projectId" = $1 ORDER BY created_at DESC;`
 
-	GET_ALL_EXECUTION_TIME_STATS = `SELECT created_at::text, data->>'total_time_ms', data->>'total_queries' FROM analytics WHERE type = 'ExecutionTimeStats' AND "projectId" = $1;	`
+	GET_ALL_EXECUTION_TIME_STATS = `SELECT created_at::text, (data->>'total_time_ms')::numeric, (data->>'total_queries')::bigint FROM analytics WHERE type = 'ExecutionTimeStats' AND "projectId" = $1;	`
 
-	GET_ALL_DATABASE_USAGE_STATS = `SELECT created_at::text, data->>'read_write_cost', data->>'cpu_cost', data->>'total_cost' FROM analytics WHERE type = 'DatabaseUsageStats' AND "projectId" = $1;`
+	GET_ALL_DATABASE_USAGE_STATS = `SELECT created_at::text, (data->>'read_write_cost')::numeric, (data->>'cpu_cost')::numeric, (data->>'total_cost')::numeric FROM analytics WHERE type = 'DatabaseUsageStats' AND "projectId" = $1;`
 
 	// Queries to get the last records for each type of analytics
 
-	// GET_LAST_CURRENT_STORAGE = `SELECT created_at::text, data->>'Management storage', data->>'Actual data' FROM analytics WHERE type = 'Storage' and "projectId" = $1 ORDER BY created_at DESC LIMIT 1;`
+	GET_LAST_EXECUTION_TIME_STATS = `SELECT created_at::text, (data->>'total_time_ms')::numeric, (data->>'total_queries')::bigint FROM analytics WHERE type = 'ExecutionTimeStats' AND "projectId" = $1 ORDER BY created_at DESC LIMIT 1;`
 
-	GET_LAST_EXECUTION_TIME_STATS = `SELECT created_at::text, data->>'total_time_ms', data->>'total_queries' FROM analytics WHERE type = 'ExecutionTimeStats' AND "projectId" = $1 ORDER BY created_at DESC LIMIT 1;`
-
-	GET_LAST_DATABASE_USAGE_STATS = `SELECT created_at::text, data->>'read_write_cost', data->>'cpu_cost', data->>'total_cost' FROM analytics WHERE type = 'DatabaseUsageStats' AND "projectId" = $1 ORDER BY created_at DESC LIMIT 1;`
+	GET_LAST_DATABASE_USAGE_STATS = `SELECT created_at::text, (data->>'read_write_cost')::numeric, (data->>'cpu_cost')::numeric, (data->>'total_cost')::numeric FROM analytics WHERE type = 'DatabaseUsageStats' AND "projectId" = $1 ORDER BY created_at DESC LIMIT 1;`
 )

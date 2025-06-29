@@ -46,6 +46,11 @@ func gatherAndInsertExecutionTimeAnalytics(app *config.Application, ctx context.
 	// Get last execution time record
 	lastRecord, err := analytics.GetLastExecutionTimeRecord(ctx, config.DB, projectId)
 	if err != nil {
+		// If there's an actual error (not just no rows), return it
+		return err
+	}
+
+	if lastRecord == nil {
 		// If no previous record exists, insert current data directly
 		app.InfoLog.Println("No previous execution time record found, inserting current data")
 	}
@@ -71,6 +76,11 @@ func gatherAndInsertDatabaseUsageAnalytics(app *config.Application, ctx context.
 	// Get last database usage record
 	lastRecord, err := analytics.GetLastDatabaseUsageRecord(ctx, config.DB, projectId)
 	if err != nil {
+		// If there's an actual error (not just no rows), return it
+		return err
+	}
+
+	if lastRecord == nil {
 		// If no previous record exists, insert current data directly
 		app.InfoLog.Println("No previous database usage record found, inserting current data")
 	}

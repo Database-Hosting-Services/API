@@ -2,7 +2,9 @@ package analytics
 
 import (
 	"context"
+	"errors"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -14,6 +16,9 @@ func GetLastExecutionTimeRecord(ctx context.Context, db *pgxpool.Pool, projectId
 		&record.Timestamp, &record.TotalTimeMs, &record.TotalQueries,
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil // Return nil, nil when no rows found (not an error case)
+		}
 		return nil, err
 	}
 	return &record, nil
@@ -25,6 +30,9 @@ func GetLastDatabaseUsageRecord(ctx context.Context, db *pgxpool.Pool, projectId
 		&record.Timestamp, &record.ReadWriteCost, &record.CPUCost, &record.TotalCost,
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil // Return nil, nil when no rows found (not an error case)
+		}
 		return nil, err
 	}
 	return &record, nil
