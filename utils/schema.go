@@ -50,6 +50,11 @@ type Table struct {
 	Indexes     []IndexInfo      `db:"indexes" json:"Indexes"`
 }
 
+type RenameRelation struct {
+	OldName string `json:"oldName"`
+	NewName string `json:"newName"`
+}
+
 const (
 	// Query to get all tables and their columns with detailed information
 	getTablesAndColumnsQuery = `
@@ -327,7 +332,7 @@ func ExtractDatabaseSchema(ctx context.Context, db Querier) (string, error) {
 		// Add indexes for this table
 		if idxs, exists := tableIndexes[tableName]; exists {
 			for _, index := range idxs {
-				ddlStatements.WriteString(generateCreateIndexStatement(index))
+				ddlStatements.WriteString(generateCreateIndexStatement(&index))
 				ddlStatements.WriteString("\n")
 			}
 		}
@@ -346,7 +351,7 @@ func GenerateCreateTableDDL(table *Table) (string, error) {
 	// Add indexes for this table
 	ddlStatements.WriteString("\n-- Indexes\n")
 	for _, index := range table.Indexes {
-		ddlStatements.WriteString(generateCreateIndexStatement(index))
+		ddlStatements.WriteString(generateCreateIndexStatement(&index))
 		ddlStatements.WriteString("\n")
 	}
 	return ddlStatements.String(), nil
@@ -428,7 +433,7 @@ func generateCreateTableStatement(tableName string, columns []TableColumn, const
 }
 
 // generateCreateIndexStatement creates a CREATE INDEX DDL statement
-func generateCreateIndexStatement(index IndexInfo) string {
+func generateCreateIndexStatement(index *IndexInfo) string {
 	indexType := ""
 	if index.IsUnique {
 		indexType = "UNIQUE "
@@ -463,4 +468,209 @@ func formatDataType(col TableColumn) string {
 	default:
 		return dataType
 	}
+}
+
+func formatConstraint(constraint *ConstraintInfo) string {
+	if constraint == nil {
+		return ""
+	}
+
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("CONSTRAINT \"%s\"", constraint.ConstraintName))
+	switch constraint.ConstraintType {
+	case "PRIMARY KEY":
+		sb.WriteString(fmt.Sprintf(" PRIMARY KEY (\"%s\")", *constraint.ColumnName))
+	case "UNIQUE":
+		sb.WriteString(fmt.Sprintf(" UNIQUE (\"%s\")", *constraint.ColumnName))
+	case "FOREIGN KEY":
+		sb.WriteString(fmt.Sprintf(" FOREIGN KEY (\"%s\") REFERENCES \"%s\" (\"%s\")",
+			*constraint.ColumnName, *constraint.ForeignTableName, *constraint.ForeignColumnName))
+	case "CHECK":
+		sb.WriteString(fmt.Sprintf(" CHECK (%s)", *constraint.CheckClause))
+	}
+	return sb.String()
+}
+
+// function that compares two tables schema and returns the DDL statements to update the schema to turn old -> new
+func CompareTableSchemas(oldTable, newTable Table, renames []RenameRelation) (string, error) {
+	// each of the three aspects of the schema (columns, constraints, indexes) will be compared separately
+	// the result will be three actions: add, drop and alter
+	// and a spiecial case for the renaming of the table itself
+	var ddlStatements strings.Builder
+	ddlStatements.WriteString(fmt.Sprintf("-- Comparing table schema for %s\n", oldTable.TableName))
+	ddlStatements.WriteString("-- Generated automatically\n\n")
+	// Compare names
+	if oldTable.TableName != newTable.TableName {
+		ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";\n",
+			oldTable.TableName, newTable.TableName))
+	}
+	// Compare columns
+	oldColumns := make(map[string]*TableColumn)
+	for _, col := range oldTable.Columns {
+		oldColumns[col.ColumnName] = &col
+	}
+	newColumns := make(map[string]*TableColumn)
+	for _, col := range newTable.Columns {
+		newColumns[col.ColumnName] = &col
+	}
+	// renames
+	renamedColumns := make(map[string]string)
+	newRenamedColumns := make(map[string]bool)
+	for _, rename := range renames {
+		renamedColumns[rename.OldName] = rename.NewName
+		newRenamedColumns[rename.NewName] = true
+	}
+
+	// drop columns that are in old but not in new onl
+	for colName, oldCol := range oldColumns {
+		// check for renames first
+		if newColName, exists := renamedColumns[colName]; exists {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" RENAME COLUMN \"%s\" TO \"%s\";\n",
+				newTable.TableName, colName, newColName))
+			continue
+		}
+
+		// if the column is not in the new table, drop it
+		if _, exists := newColumns[colName]; !exists {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";\n",
+				newTable.TableName, oldCol.ColumnName))
+			continue
+		}
+	}
+	// add columns that are in new but not in old
+	for colName, newCol := range newColumns {
+		if _, exists := newRenamedColumns[colName]; exists {
+			continue // skip renamed columns
+		}
+		// check if the column is in the old table and add it if not
+		if _, exists := oldColumns[colName]; !exists {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN \"%s\" %s;\n",
+				newTable.TableName, colName, formatDataType(*newCol)))
+			continue
+		}
+
+		// check for changes in column properties
+		oldColumn := oldColumns[colName]
+		// type changes
+		if oldColumn.DataType != newCol.DataType {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" TYPE %s;\n",
+				newTable.TableName, colName, formatDataType(*newCol)))
+		}
+		// nullability changes
+		if oldColumn.IsNullable != newCol.IsNullable {
+			if newCol.IsNullable {
+				ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" DROP NOT NULL;\n",
+					newTable.TableName, colName))
+			} else {
+				ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" SET NOT NULL;\n",
+					newTable.TableName, colName))
+			}
+		}
+		// default value changes
+		if oldColumn.ColumnDefault != nil && newCol.ColumnDefault == nil {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" DROP DEFAULT;\n",
+				newTable.TableName, colName))
+		} else if oldColumn.ColumnDefault == nil && newCol.ColumnDefault != nil {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" SET DEFAULT %s;\n",
+				newTable.TableName, colName, *newCol.ColumnDefault))
+		} else if oldColumn.ColumnDefault != nil && newCol.ColumnDefault != nil && *oldColumn.ColumnDefault != *newCol.ColumnDefault {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" SET DEFAULT %s;\n",
+				newTable.TableName, colName, *newCol.ColumnDefault))
+		}
+		// character maximum length changes
+		if oldColumn.CharacterMaximumLength != nil && newCol.CharacterMaximumLength == nil {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" TYPE %s;\n",
+				newTable.TableName, colName, formatDataType(*newCol)))
+		} else if oldColumn.CharacterMaximumLength == nil && newCol.CharacterMaximumLength != nil {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" TYPE %s;\n",
+				newTable.TableName, colName, formatDataType(*newCol)))
+		} else if oldColumn.CharacterMaximumLength != nil && newCol.CharacterMaximumLength != nil &&
+			*oldColumn.CharacterMaximumLength != *newCol.CharacterMaximumLength {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" TYPE %s;\n",
+				newTable.TableName, colName, formatDataType(*newCol)))
+		}
+
+		// numeric precision changes
+		if oldColumn.NumericPrecision != nil && newCol.NumericPrecision == nil {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" TYPE %s;\n",
+				newTable.TableName, colName, formatDataType(*newCol)))
+		} else if oldColumn.NumericPrecision == nil && newCol.NumericPrecision != nil {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" TYPE %s;\n",
+				newTable.TableName, colName, formatDataType(*newCol)))
+		} else if oldColumn.NumericPrecision != nil && newCol.NumericPrecision != nil &&
+			*oldColumn.NumericPrecision != *newCol.NumericPrecision {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" TYPE %s;\n",
+				newTable.TableName, colName, formatDataType(*newCol)))
+		}
+
+		// numeric scale changes
+		if oldColumn.NumericScale != nil && newCol.NumericScale == nil {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" TYPE %s;\n",
+				newTable.TableName, colName, formatDataType(*newCol)))
+		} else if oldColumn.NumericScale == nil && newCol.NumericScale != nil {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" TYPE %s;\n",
+				newTable.TableName, colName, formatDataType(*newCol)))
+		} else if oldColumn.NumericScale != nil && newCol.NumericScale != nil &&
+			*oldColumn.NumericScale != *newCol.NumericScale {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" TYPE %s;\n",
+				newTable.TableName, colName, formatDataType(*newCol)))
+		}
+	}
+
+	// Compare constraints
+	oldConstraints := make(map[string]*ConstraintInfo)
+	for _, constraint := range oldTable.Constraints {
+		oldConstraints[constraint.ConstraintName] = &constraint
+	}
+	newConstraints := make(map[string]*ConstraintInfo)
+	for _, constraint := range newTable.Constraints {
+		newConstraints[constraint.ConstraintName] = &constraint
+	}
+
+	// drop constraints that are in old but not in new add executed with IF EXISTS to avoid errors
+	for constraintName, oldConstraint := range oldConstraints {
+		if _, exists := newConstraints[constraintName]; !exists {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" DROP CONSTRAINT IF EXISTS \"%s\";\n",
+				newTable.TableName, oldConstraint.ConstraintName))
+			continue
+		}
+	}
+
+	// add constraints that are in new but not in old 
+	for constraintName, newConstraint := range newConstraints {
+		if _, exists := oldConstraints[constraintName]; !exists {
+			ddlStatements.WriteString(fmt.Sprintf("ALTER TABLE \"%s\" ADD %s;\n",
+				newTable.TableName, formatConstraint(newConstraint)))
+		}
+	}
+
+	// compare indexes
+	oldIndexes := make(map[string]*IndexInfo)
+	for _, index := range oldTable.Indexes {
+		oldIndexes[index.IndexName] = &index
+	}
+	newIndexes := make(map[string]*IndexInfo)
+	for _, index := range newTable.Indexes {
+		newIndexes[index.IndexName] = &index
+	}
+	// drop indexes that are in old but not in new
+	for indexName, oldIndex := range oldIndexes {
+		if _, exists := newIndexes[indexName]; !exists {
+			ddlStatements.WriteString(fmt.Sprintf("DROP INDEX IF EXISTS \"%s\";\n", oldIndex.IndexName))
+			continue
+		}
+	}
+
+	// add indexes that are in new but not in old
+	for indexName, newIndex := range newIndexes {
+		if _, exists := oldIndexes[indexName]; !exists {
+			ddlStatements.WriteString(generateCreateIndexStatement(newIndex))
+		}
+	}
+
+	// return the DDL statements
+	if ddlStatements.Len() == 0 {
+		return "", fmt.Errorf("no changes detected between old and new table schemas")
+	}
+	return ddlStatements.String(), nil
 }

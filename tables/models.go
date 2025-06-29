@@ -14,6 +14,13 @@ type Table struct {
 	Schema      utils.Table `json:"schema" validate:"required"`
 }
 
+type UpdateTableSchema struct {
+	Table
+	Renames []utils.RenameRelation `json:"renames"`
+}
+
+
+
 type ShortTable struct {
 	OID  string `json:"oid" db:"oid"`
 	Name string `json:"name" db:"name"`
