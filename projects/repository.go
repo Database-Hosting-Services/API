@@ -30,7 +30,7 @@ func InsertNewRecord(ctx context.Context, db utils.Querier, query string, values
 	return nil
 }
 
-func getUserProjectsFromDatabase(ctx context.Context, db *pgxpool.Pool, userId int) ([]*SafeProjectData, error) {
+func getUserProjectsFromDatabase(ctx context.Context, db *pgxpool.Pool, userId int64) ([]*SafeProjectData, error) {
 	var projects []*SafeProjectData
 	err := pgxscan.Select(
 		ctx, db, &projects,
@@ -44,7 +44,7 @@ func getUserProjectsFromDatabase(ctx context.Context, db *pgxpool.Pool, userId i
 	return projects, nil
 }
 
-func getUserSpecificProjectFromDatabase(ctx context.Context, db utils.Querier, userId int, projectOid string) (*SafeProjectData, error) {
+func getUserSpecificProjectFromDatabase(ctx context.Context, db utils.Querier, userId int64, projectOid string) (*SafeProjectData, error) {
 	var project SafeProjectData
 	err := pgxscan.Get(ctx, db, &project, RetrieveUserSpecificProject, userId, projectOid)
 	if err != nil {
@@ -54,4 +54,16 @@ func getUserSpecificProjectFromDatabase(ctx context.Context, db utils.Querier, u
 		return nil, err
 	}
 	return &project, nil
+}
+
+func GetProjectID(ctx context.Context, db utils.Querier, userId int64, projectOid string) (int64, error) {
+	var projectID int64
+	err := pgxscan.Get(ctx, db, &projectID, RetrieveProjectID, userId, projectOid)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, ErrorProjectNotFound
+		}
+		return 0, err
+	}
+	return projectID, nil
 }

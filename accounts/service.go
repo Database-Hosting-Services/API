@@ -121,7 +121,7 @@ func SendUserVerificationCode(cache *caching.RedisClient, email, Password string
 func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
 	var UserData UserUnVerified
 
-	_, err := cache.Get(user.Email, &user)
+	_, err := cache.Get(user.Email, &UserData)
 	if err != nil {
 		return errors.New("invalid email")
 	}
@@ -134,8 +134,8 @@ func UpdateVerificationCode(cache *caching.RedisClient, user UserSignIn) error {
 		return err
 	}
 
-	cache.Set(user.Email, UserData, time.Duration(expiryMinutes)*time.Minute)
-	cache.Set(UserData.Username, 1, time.Duration(expiryMinutes)*time.Minute)
+	cache.Set(user.Email, &UserData, time.Duration(expiryMinutes)*time.Minute)
+	cache.Set(UserData.Username, true, time.Duration(expiryMinutes)*time.Minute)
 
 	SendMail(config.EmailSender, os.Getenv("GMAIL"), user.Email, NewCode, "Your Verification Code")
 	return nil

@@ -203,6 +203,35 @@ definitions:
         example: User verified successfully
         type: string
     type: object
+  analytics.DatabaseActivityWithDates:
+    properties:
+      timestamp:
+        type: string
+      total_queries:
+        type: integer
+      total_time_ms:
+        type: number
+    type: object
+  analytics.DatabaseUsageCostWithDates:
+    properties:
+      cpu_cost:
+        type: number
+      read_write_cost:
+        type: number
+      timestamp:
+        type: string
+      total_cost:
+        type: number
+    type: object
+  analytics.StorageWithDates:
+    properties:
+      Actual data:
+        type: string
+      Management storage:
+        type: string
+      timestamp:
+        type: string
+    type: object
   indexes.IndexData:
     properties:
       columns:
@@ -214,6 +243,13 @@ definitions:
       table_name:
         type: string
       type:
+        type: string
+    type: object
+  projects.CreateProjectRequest:
+    properties:
+      description:
+        type: string
+      name:
         type: string
     type: object
   projects.Project:
@@ -237,6 +273,25 @@ definitions:
       status:
         type: string
     type: object
+  projects.SafeProjectData:
+    properties:
+      API_URL:
+        type: string
+      API_key:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      oid:
+        type: string
+      owner_id:
+        type: integer
+      status:
+        type: string
+    type: object
   projects.updateProjectDataModel:
     properties:
       description:
@@ -250,6 +305,30 @@ definitions:
     properties:
       error:
         example: Invalid request parameters
+        type: string
+    type: object
+  response.ErrorResponse400:
+    properties:
+      error:
+        example: Invalid request parameters
+        type: string
+    type: object
+  response.ErrorResponse401:
+    properties:
+      error:
+        example: Unauthorized
+        type: string
+    type: object
+  response.ErrorResponse404:
+    properties:
+      error:
+        example: Resource not found
+        type: string
+    type: object
+  response.ErrorResponse500:
+    properties:
+      error:
+        example: Internal server error
         type: string
     type: object
   response.Response:
@@ -684,7 +763,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Get all user projects
@@ -700,26 +779,31 @@ paths:
         name: project
         required: true
         schema:
-          $ref: '#/definitions/projects.Project'
+          $ref: '#/definitions/projects.CreateProjectRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/projects.SafeProjectData'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse400'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse401'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Create a new project
@@ -746,19 +830,19 @@ paths:
         "400":
           description: Project ID is required
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse400'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse401'
         "404":
           description: Project not found
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse404'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Delete a project
@@ -832,11 +916,11 @@ paths:
         "400":
           description: Invalid input or Project ID is required
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse400'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Update a project
@@ -878,10 +962,10 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve statistics about query execution times for a specific
-        project
+      description: Retrieve all historical statistics about query execution times
+        for a specific project with timestamps
       parameters:
-      - description: Project ID
+      - description: Project ID (OID)
         in: path
         name: project_id
         required: true
@@ -892,9 +976,20 @@ paths:
         "200":
           description: Execution time statistics retrieved successfully
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/analytics.DatabaseActivityWithDates'
+                  type: array
+              type: object
         "400":
           description: Project ID is missing
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: No execution time records found
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
@@ -910,9 +1005,10 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve the current storage usage information for a specific project
+      description: Retrieve all historical storage usage records for a specific project
+        with timestamps
       parameters:
-      - description: Project ID
+      - description: Project ID (OID)
         in: path
         name: project_id
         required: true
@@ -921,9 +1017,16 @@ paths:
       - application/json
       responses:
         "200":
-          description: Current storage retrieved successfully
+          description: Storage history retrieved successfully
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/analytics.StorageWithDates'
+                  type: array
+              type: object
         "400":
           description: Project ID is missing
           schema:
@@ -938,16 +1041,17 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get current storage information
+      summary: Get historical storage information
       tags:
       - analytics
   /projects/{project_id}/analytics/usage:
     get:
       consumes:
       - application/json
-      description: Retrieve statistics about database usage and associated costs
+      description: Retrieve all historical statistics about database usage and associated
+        costs for a specific project with timestamps
       parameters:
-      - description: Project ID
+      - description: Project ID (OID)
         in: path
         name: project_id
         required: true
@@ -958,9 +1062,20 @@ paths:
         "200":
           description: Database usage statistics retrieved successfully
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/analytics.DatabaseUsageCostWithDates'
+                  type: array
+              type: object
         "400":
           description: Project ID is missing
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: No database usage records found
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
@@ -969,7 +1084,7 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get database usage statistics
+      summary: Get database usage statistics and costs
       tags:
       - analytics
   /projects/{project_id}/indexes:

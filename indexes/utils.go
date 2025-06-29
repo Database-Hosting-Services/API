@@ -31,7 +31,7 @@ func GenerateRenameIndexQuery(oldName string, newName string) string {
 	return "ALTER INDEX IF EXISTS " + oldName + " RENAME TO " + newName
 }
 
-func ProjectPoolConnection(ctx context.Context, db *pgxpool.Pool, UserID int, projectOid string) (*pgxpool.Pool, error) {
+func ProjectPoolConnection(ctx context.Context, db *pgxpool.Pool, UserID int64, projectOid string) (*pgxpool.Pool, error) {
 	projectDB, err := projects.GetUserSpecificProject(ctx, db, UserID, projectOid)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func ProjectPoolConnection(ctx context.Context, db *pgxpool.Pool, UserID int, pr
 
 	// ------------------------ Get The project connection Pool ------------------------
 
-	DBname := strings.ToLower(projectDB.Name) + "_" + strconv.Itoa(UserID)
+	DBname := strings.ToLower(projectDB.Name) + "_" + strconv.FormatInt(UserID, 10)
 	conn, err := config.ConfigManager.GetDbConnection(ctx, DBname)
 	if err != nil {
 		return nil, err

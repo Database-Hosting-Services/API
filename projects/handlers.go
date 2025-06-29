@@ -17,12 +17,12 @@ import (
 // @Tags projects
 // @Accept json
 // @Produce json
-// @Param project body projects.Project true "Project information"
+// @Param project body projects.CreateProjectRequest true "Project information"
 // @Security BearerAuth
-// @Success 201 {object} response.SuccessResponse
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse
-// @Failure 500 {object} response.ErrorResponse
+// @Success 201 {object} response.SuccessResponse{data=SafeProjectData}
+// @Failure 400 {object} response.ErrorResponse400
+// @Failure 401 {object} response.ErrorResponse401
+// @Failure 500 {object} response.ErrorResponse500
 // @Router /projects [post]
 func CreateProject(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -63,10 +63,10 @@ func CreateProject(app *config.Application) http.HandlerFunc {
 // @Param project_id path string true "Project ID"
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse "Project deleted successfully"
-// @Failure 400 {object} response.ErrorResponse "Project ID is required"
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 404 {object} response.ErrorResponse "Project not found"
-// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Failure 400 {object} response.ErrorResponse400 "Project ID is required"
+// @Failure 401 {object} response.ErrorResponse401 "Unauthorized"
+// @Failure 404 {object} response.ErrorResponse404 "Project not found"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
 // @Router /projects/{project_id} [delete]
 func DeleteProject(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -103,13 +103,13 @@ func DeleteProject(app *config.Application) http.HandlerFunc {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse{data=[]Project} "Projects retrieved successfully"
-// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
 // @Router /projects [get]
 // this function returns all projects which the use is the owner of these project
 // NOTE : in future plans this function will return also the projects which the user is a member in these projects
 func GetProjects(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userId := r.Context().Value("user-id").(int)
+		userId := r.Context().Value("user-id").(int64)
 		data, err := getUserProjects(r.Context(), config.DB, userId)
 		if err != nil {
 			app.ErrorLog.Println(err)
@@ -135,7 +135,7 @@ func GetProjects(app *config.Application) http.HandlerFunc {
 // @Router /projects/{project_id} [get]
 func getSpecificProject(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userId := r.Context().Value("user-id").(int)
+		userId := r.Context().Value("user-id").(int64)
 		urlVariables := mux.Vars(r)
 
 		projectOid := urlVariables["project_id"]
@@ -169,12 +169,12 @@ func getSpecificProject(app *config.Application) http.HandlerFunc {
 // @Param project body updateProjectDataModel true "Project update information"
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse{data=Project} "Project updated successfully"
-// @Failure 400 {object} response.ErrorResponse "Invalid input or Project ID is required"
-// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Failure 400 {object} response.ErrorResponse400 "Invalid input or Project ID is required"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
 // @Router /projects/{project_id} [patch]
 func updateProject(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userId := r.Context().Value("user-id").(int)
+		userId := r.Context().Value("user-id").(int64)
 		urlVariables := mux.Vars(r)
 
 		projectOid := urlVariables["project_id"]

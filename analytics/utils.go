@@ -5,6 +5,7 @@ import (
 	api "DBHS/utils/apiError"
 	"context"
 	"errors"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -20,7 +21,7 @@ func (d *DatabaseUsageStats) CalculateCosts() DatabaseUsageCost {
 
 func GetConnectionToAnalyticsPool(ctx context.Context, db *pgxpool.Pool, projectOid string) (*pgxpool.Pool, api.ApiError) {
 	// Get user ID from context
-	UserID, ok := ctx.Value("user-id").(int)
+	UserID, ok := ctx.Value("user-id").(int64)
 	if !ok || UserID == 0 {
 		return nil, *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
 	}
@@ -51,4 +52,31 @@ func GetConnectionToAnalyticsPool(ctx context.Context, db *pgxpool.Pool, project
 	}
 
 	return conn, api.ApiError{} // Return empty ApiError to indicate success
+}
+
+// ------- functions for calculating differences between current and last records -------
+
+func CalculateExecutionTimeDifference(current DatabaseActivity, lastRecord *DatabaseActivityWithDates) DatabaseActivity {
+	if lastRecord == nil {
+		return current
+	}
+
+	// Calculate the difference between current and last record
+	return DatabaseActivity{
+		TotalTimeMs:  current.TotalTimeMs - lastRecord.TotalTimeMs,
+		TotalQueries: current.TotalQueries - lastRecord.TotalQueries,
+	}
+}
+
+func CalculateDatabaseUsageDifference(current DatabaseUsageCost, lastRecord *DatabaseUsageCostWithDates) DatabaseUsageCost {
+	if lastRecord == nil {
+		return current
+	}
+
+	// Calculate the difference between current and last record
+	return DatabaseUsageCost{
+		ReadWriteCost: current.ReadWriteCost - lastRecord.ReadWriteCost,
+		CPUCost:       current.CPUCost - lastRecord.CPUCost,
+		TotalCost:     current.TotalCost - lastRecord.TotalCost,
+	}
 }

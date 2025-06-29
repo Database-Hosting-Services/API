@@ -39,7 +39,7 @@ func ValidatePostgresDatabaseName(name string) error {
 	return nil
 }
 
-func validateProjectData(ctx context.Context, db utils.Querier, projectname string, UserId int) error {
+func validateProjectData(ctx context.Context, db utils.Querier, projectname string, UserId int64) error {
 	// Check if the project already exists
 	Has, err := CheckDatabaseExists(ctx, db, CheckUserHasProject, UserId, projectname)
 	if err != nil {
@@ -58,7 +58,7 @@ func validateProjectData(ctx context.Context, db utils.Querier, projectname stri
 	return nil
 }
 
-func CreateDatabaseConfig(dbName string, userId int) DatabaseConfig {
+func CreateDatabaseConfig(dbName string, userId int64) DatabaseConfig {
 	return DatabaseConfig{
 		Host:      config.DBConfig.Host,
 		Port:      config.DBConfig.Port,
@@ -66,7 +66,7 @@ func CreateDatabaseConfig(dbName string, userId int) DatabaseConfig {
 		Password:  config.DBConfig.Password,
 		DBName:    dbName,
 		SSLMode:   config.DBConfig.SSLMode,
-		CreatedAt: time.Time{}, // default time format like "2006-01-02T15:04:05Z07:00"
+		CreatedAt: time.Now(), // default time format like "2006-01-02T15:04:05Z07:00"
 	}
 }
 
@@ -77,10 +77,10 @@ func GenerateApiKey() string {
 
 // TODO: support for generating API url
 func GenerateApiUrl(databaseConfig DatabaseConfig) string {
-	return "https://" + databaseConfig.Host + ":" + databaseConfig.Port + "/" + databaseConfig.DBName
+	return "postgresql://" + databaseConfig.Host + ":" + databaseConfig.Port + "/" + databaseConfig.DBName
 }
 
-func CreateDatabaseProjectData(oid, name, description, status string, ownerID int, databaseConfig DatabaseConfig) SafeProjectData {
+func CreateDatabaseProjectData(oid, name, description, status string, ownerID int64, databaseConfig DatabaseConfig) SafeProjectData {
 	return SafeProjectData{
 		Oid:         oid,
 		OwnerID:     ownerID,
