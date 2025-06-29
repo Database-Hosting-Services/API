@@ -1635,6 +1635,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/me": {
+            "get": {
+                "description": "Just call the endpoint and pass the user's token in headers and it will bring back the user's data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Get user's Data",
+                "responses": {
+                    "200": {
+                        "description": "User data fetched",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.UserDataResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Authorization failed",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorNotAuthorized"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorResponse400EmailNotFound"
+                        }
+                    }
+                }
+            }
+        },
         "/users/update-password": {
             "put": {
                 "security": [
@@ -1777,6 +1812,21 @@ const docTemplate = `{
                 "email": {
                     "type": "string",
                     "example": "ragnar@email.com"
+                }
+            }
+        },
+        "accounts.ErrorNotAuthorized": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Authorization failed"
+                },
+                "status": {
+                    "type": "integer"
                 }
             }
         },
@@ -1965,6 +2015,40 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "Password123!"
+                }
+            }
+        },
+        "accounts.UserData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "oid": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "accounts.UserDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/accounts.UserData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
                 }
             }
         },

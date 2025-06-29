@@ -15,6 +15,16 @@ definitions:
     required:
     - email
     type: object
+  accounts.ErrorNotAuthorized:
+    properties:
+      error:
+        type: string
+      message:
+        example: Authorization failed
+        type: string
+      status:
+        type: integer
+    type: object
   accounts.ErrorResponse:
     properties:
       error:
@@ -146,6 +156,28 @@ definitions:
     required:
     - email
     - password
+    type: object
+  accounts.UserData:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      image:
+        type: string
+      oid:
+        type: string
+      username:
+        type: string
+    type: object
+  accounts.UserDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/accounts.UserData'
+      message:
+        type: string
+      status:
+        type: integer
     type: object
   accounts.VerificationRequest:
     properties:
@@ -1474,6 +1506,30 @@ paths:
       security:
       - BearerAuth: []
       summary: Update user information
+      tags:
+      - accounts
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Just call the endpoint and pass the user's token in headers and
+        it will bring back the user's data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User data fetched
+          schema:
+            $ref: '#/definitions/accounts.UserDataResponse'
+        "401":
+          description: Authorization failed
+          schema:
+            $ref: '#/definitions/accounts.ErrorNotAuthorized'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/accounts.ErrorResponse'
+      summary: Get user's Data
       tags:
       - accounts
   /users/update-password:

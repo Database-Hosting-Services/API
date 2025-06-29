@@ -1,8 +1,27 @@
 package accounts
 
+import (
+	"time"
+)
+
 // This file contains enhanced model definitions for Swagger documentation
 
 // Request Models
+
+// User's data response (for 'users/me' endpoint)
+type UserData struct {
+	CreatedAt time.Time `json:"created_at"`
+	Email     string    `json:"email"`
+	Image     string    `json:"image"`
+	Oid       string    `json:"oid"`
+	Username  string    `json:"username"`
+}
+
+type UserDataResponse struct {
+	Status  int      `json:"status"`
+	Message string   `json:"message"`
+	Data    UserData `json:"data"`
+}
 
 // SignUpUser represents the user registration request data
 type SignUpUser struct {
@@ -103,4 +122,10 @@ type ErrorResponse400EmailNotFound struct {
 // RedirectResponse represents a redirect response
 type RedirectResponse struct {
 	Message string `json:"message" example:"verification code sent to your email"`
+}
+
+type ErrorNotAuthorized struct {
+	Status  int    `json:"status" exmaple:"401"`
+	Message string `json:"message" example:"Authorization failed"`
+	Error   string `json:"error" exmaple:"JWT token is empty"`
 }
