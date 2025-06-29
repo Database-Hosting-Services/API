@@ -6,7 +6,7 @@ go 1.24.0
 // update go version to 1.24.0
 
 require (
-	github.com/Database-Hosting-Services/AI-Agent v1.0.0
+	github.com/Database-Hosting-Services/AI-Agent v1.0.5
 	github.com/MarceloPetrucio/go-scalar-api-reference v0.0.0-20240521013641-ce5d2efe0e06
 	github.com/georgysavva/scany/v2 v2.1.4
 	github.com/golang-jwt/jwt/v5 v5.2.1

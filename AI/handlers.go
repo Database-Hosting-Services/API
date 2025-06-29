@@ -3,14 +3,14 @@ package ai
 import (
 	"DBHS/config"
 	"DBHS/response"
-	"net/http"
+	"encoding/json"
 	"github.com/gorilla/mux"
+	"net/http"
 )
 
 func getAnalytics() Analytics { // this only a placeholder for now
 	return Analytics{}
 }
-
 
 // @Summary Generate AI Report
 // @Description Generate an AI-powered analytics report for a specific project
@@ -41,5 +41,58 @@ func Report(app *config.Application) http.HandlerFunc {
 		}
 
 		response.OK(w, "Report generated successfully", report)
+	}
+}
+
+func ChatBotAsk(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		projectOID := vars["project_id"]
+		projectID, err := GetProjectIDfromOID(r.Context(), config.DB, projectOID)
+		if err != nil {
+			response.InternalServerError(w, "Failed to get project ID", err)
+			return
+		}
+		userID := r.Context().Value("user-id").(int)
+
+		var userRequest ChatBotRequest
+		if err := json.NewDecoder(r.Body).Decode(&userRequest); err != nil {
+			response.BadRequest(w, "Invalid request body", err)
+			return
+		}
+
+		transaction, err := config.DB.Begin(r.Context())
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Failed to start database transaction", err)
+			return
+		}
+
+		chat_data, err := GetOrCreateChatData(r.Context(), transaction, userID, projectID)
+		if err != nil {
+			response.InternalServerError(w, "Failed to get or create chat data", err)
+			return
+		}
+
+		answer, err := config.AI.QueryChat(userRequest.Question)
+		if err != nil {
+			response.InternalServerError(w, err.Error(), err)
+			return
+		}
+
+		err = SaveChatAction(r.Context(), transaction, chat_data.ID, userID, userRequest.Question, answer.ResponseText)
+		if err != nil {
+			response.InternalServerError(w, err.Error(), err)
+			return
+		}
+
+		if err := transaction.Commit(r.Context()); err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Failed to commit database transaction", err)
+			return
+		}
+
+		response.OK(w, "Answer generated successfully", answer)
 	}
 }

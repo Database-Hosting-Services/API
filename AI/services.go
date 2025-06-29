@@ -3,9 +3,12 @@ package ai
 import (
 	"DBHS/config"
 	"DBHS/tables"
+	"DBHS/utils"
 	"context"
 	"encoding/json"
+
 	"github.com/Database-Hosting-Services/AI-Agent/RAG"
+	"github.com/jackc/pgx/v5"
 )
 
 func getReport(projectUUID string, userID int, analytics Analytics, AI RAG.RAGmodel) (string, error) {
@@ -34,4 +37,43 @@ func getReport(projectUUID string, userID int, analytics Analytics, AI RAG.RAGmo
 	}
 
 	return report, nil
+}
+
+
+func SaveChatAction(ctx context.Context, db utils.Querier, chatId, userID int, question string, answer string) error {
+	// here i save the user prompt and the AI response together
+	// the chat action is a combination of the user question and the AI answer
+	if err := SaveUserChatMessage(ctx, db, chatId, question); err != nil {
+		return err
+	}
+	if err := SaveAIChatMessage(ctx, db, chatId, answer); err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetProjectIDfromOID(ctx context.Context, db utils.Querier, projectOID string) (int, error) {
+	var projectID int
+	err := db.QueryRow(ctx, "SELECT id FROM projects WHERE oid = $1", projectOID).Scan(&projectID)
+	if err != nil {
+		return 0, err
+	}
+	return projectID, nil
+}
+
+func GetOrCreateChatData(ctx context.Context, db utils.Querier, userID, projectID int) (ChatData, error) {
+	// i suppose return the chat history if needed, currently it just returns the chat data
+	
+	chat, err := GetUserChatForProject(ctx, db, userID, projectID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			chat, err = CreateNewChat(ctx, db, utils.GenerateOID(), userID, projectID)
+			if err != nil {
+				return ChatData{}, err
+			}
+		} else {
+			return ChatData{}, err
+		}
+	}
+	return chat, nil
 }
