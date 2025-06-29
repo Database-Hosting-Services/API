@@ -19,8 +19,8 @@ type DatabaseActivity struct {
 }
 
 type DatabaseActivityWithDates struct {
-	Timestamp   string  `json:"timestamp"`
-	TotalTimeMs float64 `json:"total_time_ms"`
+	Timestamp    string  `json:"timestamp"`
+	TotalTimeMs  float64 `json:"total_time_ms"`
 	TotalQueries int64   `json:"total_queries"`
 }
 
@@ -32,6 +32,13 @@ type DatabaseUsageStats struct {
 }
 
 type DatabaseUsageCost struct {
+	ReadWriteCost float64 `json:"read_write_cost"`
+	CPUCost       float64 `json:"cpu_cost"`
+	TotalCost     float64 `json:"total_cost"`
+}
+
+type DatabaseUsageCostWithDates struct {
+	Timestamp     string  `json:"timestamp"`
 	ReadWriteCost float64 `json:"read_write_cost"`
 	CPUCost       float64 `json:"cpu_cost"`
 	TotalCost     float64 `json:"total_cost"`

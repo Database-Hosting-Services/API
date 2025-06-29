@@ -96,7 +96,7 @@ func DatabaseUsage(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		stats, apiErr := GetDatabaseUsageStats(r.Context(), config.DB, projectOid)
+		stats, apiErr := GetALLDatabaseUsageStats(r.Context(), config.DB, projectOid)
 		if apiErr.Error() != nil {
 			utils.ResponseHandler(w, r, apiErr)
 			return

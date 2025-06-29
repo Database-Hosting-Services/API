@@ -156,7 +156,7 @@ func GetALLExecutionTimeStats(ctx context.Context, db *pgxpool.Pool, projectOid 
 		executionTimeRecords = append(executionTimeRecords, record)
 	}
 
-	if  len(executionTimeRecords) == 0 {
+	if len(executionTimeRecords) == 0 {
 		return nil, *api.NewApiError("No execution time records found", 404, errors.New("no execution time records found for the project"))
 	}
 
@@ -165,4 +165,45 @@ func GetALLExecutionTimeStats(ctx context.Context, db *pgxpool.Pool, projectOid 
 	}
 
 	return executionTimeRecords, api.ApiError{} // Return empty ApiError to indicate success
+}
+
+func GetALLDatabaseUsageStats(ctx context.Context, db *pgxpool.Pool, projectOid string) ([]DatabaseUsageCostWithDates, api.ApiError) {
+	owner_id, ok := ctx.Value("user-id").(int64)
+	if !ok || owner_id == 0 {
+		return nil, *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
+	}
+
+	id, err := projects.GetProjectID(ctx, db, owner_id, projectOid)
+	if err != nil {
+		if errors.Is(err, projects.ErrorProjectNotFound) {
+			return nil, *api.NewApiError("Project not found", 404, err)
+		}
+		return nil, *api.NewApiError("Internal server error", 500, err)
+	}
+
+	// Get all database usage records for the project
+	rows, err := config.DB.Query(ctx, GET_ALL_DATABASE_USAGE_STATS, id)
+	if err != nil {
+		return nil, *api.NewApiError("Internal server error", 500, errors.New("failed to retrieve database usage records: "+err.Error()))
+	}
+	defer rows.Close()
+
+	var usageRecords []DatabaseUsageCostWithDates
+	for rows.Next() {
+		var record DatabaseUsageCostWithDates
+		if err := rows.Scan(&record.Timestamp, &record.ReadWriteCost, &record.CPUCost, &record.TotalCost); err != nil {
+			return nil, *api.NewApiError("Internal server error", 500, errors.New("failed to scan database usage record: "+err.Error()))
+		}
+		usageRecords = append(usageRecords, record)
+	}
+
+	if len(usageRecords) == 0 {
+		return nil, *api.NewApiError("No database usage records found", 404, errors.New("no database usage records found for the project"))
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, *api.NewApiError("Internal server error", 500, errors.New("error iterating over database usage records: "+err.Error()))
+	}
+
+	return usageRecords, api.ApiError{} // Return empty ApiError to indicate success
 }
