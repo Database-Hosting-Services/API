@@ -65,7 +65,7 @@ func CreateTable(ctx context.Context, projectOID string, table *Table, servDb *p
 	return table.OID, nil
 }
 
-func UpdateTable(ctx context.Context, projectOID string, tableOID string, updates *TableUpdate, servDb *pgxpool.Pool) error {
+func UpdateTable(ctx context.Context, projectOID string, tableOID string, newSchema *UpdateTableSchema, servDb *pgxpool.Pool) error {
 	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return response.ErrUnauthorized
@@ -76,13 +76,12 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 		return err
 	}
 
-	tableName, err := GetTableName(ctx, tableOID, servDb)
+	oldSchema, err := utils.GetTableSchema(ctx, tableOID, servDb)
 	if err != nil {
 		return err
 	}
 
-	// Call the service function to read the table
-	table, err := ReadTableColumns(ctx, tableName, userDb)
+	DDLUpdate, err := utils.CompareTableSchemas(oldSchema, &newSchema.Schema, newSchema.Renames)
 	if err != nil {
 		return err
 	}
@@ -92,9 +91,19 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 		return err
 	}
 	defer tx.Rollback(ctx)
-	if err := ExecuteUpdate(tableName, table, updates, tx); err != nil {
+
+	if _, err := tx.Exec(ctx, DDLUpdate); err != nil {
 		return err
 	}
+
+	// Update the table name in the service database
+	if oldSchema.TableName != newSchema.Schema.TableName {
+		if _, err := servDb.Exec(ctx, "UPDATE \"Ptable\" SET name = $1 WHERE oid = $2",
+			newSchema.Schema.TableName, tableOID); err != nil {
+			return err
+		}
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		return err
 	}

@@ -10,6 +10,7 @@ import (
 
 var (
 	CheckOwnershipStmt = `SELECT COUNT(*) FROM "projects" WHERE oid = $1 AND owner_id = $2;`
+	CheckOwnershipTableStmt = `SELECT COUNT(*) FROM "Ptable" WHERE oid = $1 AND project_id = $2;`
 )
 
 func UpdateDataInDatabase(ctx context.Context, db Querier, query string, dest ...interface{}) error {
@@ -17,18 +18,27 @@ func UpdateDataInDatabase(ctx context.Context, db Querier, query string, dest ..
 	return err
 }
 
-func CheckOwnershipQuery(ctx context.Context, projectId string, userId int64, db Querier) (bool, error) {
+func CheckOwnershipQuery(ctx context.Context, projectOID string, userId int64, db Querier) (bool, error) {
 	var count int
-	err := db.QueryRow(ctx, CheckOwnershipStmt, projectId, userId).Scan(&count)
+	err := db.QueryRow(ctx, CheckOwnershipStmt, projectOID, userId).Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("failed to check ownership: %w", err)
 	}
 	return count > 0, nil
 }
 
-func GetProjectNameID(ctx context.Context, projectId string, db Querier) (interface{}, interface{}, error) {
+func CheckOwnershipQueryTable(ctx context.Context, tableOID string, projectOID string, db Querier) (bool, error) {
+	var count int
+	err := db.QueryRow(ctx, CheckOwnershipTableStmt, tableOID, projectOID).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("failed to check ownership: %w", err)
+	}
+	return count > 0, nil
+}
+
+func GetProjectNameID(ctx context.Context, projectOID string, db Querier) (interface{}, interface{}, error) {
 	var name, id interface{}
-	err := db.QueryRow(ctx, "SELECT id, name FROM projects WHERE oid = $1", projectId).Scan(&id, &name)
+	err := db.QueryRow(ctx, "SELECT id, name FROM projects WHERE oid = $1", projectOID).Scan(&id, &name)
 	if err != nil {
 		return nil, nil, err
 	}

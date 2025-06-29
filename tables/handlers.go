@@ -122,25 +122,6 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 	}
 }
 
-/*
-	"insert": {
-		"columns" : [
-
-		]
-	},
-	"update": [
-		{
-			"oldName": "oldName",
-			"columns": [
-				// Only include the changed parts
-			]
-		}
-	],
-	"delete": [
-		"columnName1",
-		"columnName2"
-	]
-*/
 
 // UpdateTableHandler godoc
 // @Summary Update an existing table
@@ -150,17 +131,18 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 // @Produce json
 // @Param project_id path string true "Project ID"
 // @Param table_id path string true "Table ID"
-// @Param updates body TableUpdate true "Table update information"
+// @Param updates body UpdateTableSchema true "new table schema updates"
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400 {object} response.ErrorResponse400
+// @Failure 401 {object} response.ErrorResponse401
+// @Failure 404 {object} response.ErrorResponse404
+// @Failure 500 {object} response.ErrorResponse500
 // @Router /api/projects/{project_id}/tables/{table_id} [put]
 func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		updates := TableUpdate{}
+		updates := UpdateTableSchema{}
 		// Parse the request body to populate the UpdateTable struct
 		if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
 			response.BadRequest(w, "Invalid request body", err)
@@ -169,15 +151,15 @@ func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 
 		// Get the project ID and Table id from the URL
 		urlVariables := mux.Vars(r)
-		projectId := urlVariables["project_id"]
+		projectOID := urlVariables["project_id"]
 		tableId := urlVariables["table_id"]
-		if projectId == "" || tableId == "" {
+		if projectOID == "" || tableId == "" {
 			response.BadRequest(w, "Project ID and Table ID are required", nil)
 			return
 		}
 
 		// Call the service function to update the table
-		if err := UpdateTable(r.Context(), projectId, tableId, &updates, config.DB); err != nil {
+		if err := UpdateTable(r.Context(), projectOID, tableId, &updates, config.DB); err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
 				response.UnAuthorized(w, "Unauthorized", nil)
 				return

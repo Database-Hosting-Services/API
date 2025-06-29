@@ -1,12 +1,15 @@
 package tables
 
 import (
+	"DBHS/config"
 	"DBHS/utils"
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -131,4 +134,53 @@ func ExecuteUpdate(tableName string, table map[string]DbColumn, updates *TableUp
 
 func CreateUniqueConstraintName(tableName string, columnName string) string {
 	return fmt.Sprintf("%s_%s_key", tableName, columnName)
+}
+
+
+func SyncTableSchemas(ctx context.Context, projectId int64, servDb utils.Querier, userDb utils.Querier) error {
+	var tables []Table
+	err := pgxscan.Select(ctx, servDb, &tables, `SELECT id, oid, name FROM "Ptable" WHERE project_id = $1`, projectId)
+	if err != nil {
+		return err
+	}
+    
+	// extract the table schema
+	tableSchema, err := utils.GetTables(ctx, userDb)
+	if err != nil {
+		return err
+	}
+
+	presentTables := make(map[string]bool)
+	// delete the table recored if they are not present in the schema
+	for i := 0; i < len(tables); i++ {
+		presentTables[tables[i].Name] = true
+		if _, ok := tableSchema[tables[i].Name]; !ok {
+			// delete the table record from the database
+			if err := DeleteTableRecord(ctx, tables[i].ID, servDb); err != nil {
+				config.App.ErrorLog.Printf("Failed to delete table record %s: %v", tables[i].OID, err)
+			}
+			// remove the table from the list
+			tables = slices.Delete(tables, i, i+1)
+			i-- // adjust index after removal
+		}
+	}
+
+	// insert new table entries if they are present in the schema but not in the database
+	for name, _ := range tableSchema {
+		if presentTables[name] {
+            continue // skip if the table is already present
+        }
+        // create a new table record
+        newTable := &Table{
+            Name:      name,
+            ProjectID: projectId,
+            OID:       utils.GenerateOID(),
+        }
+        if err := InsertNewTable(ctx, newTable, &newTable.ID, servDb); err != nil {
+            config.App.ErrorLog.Printf("Failed to insert new table %s: %v", name, err)
+        }
+        tables = append(tables, *newTable)
+	}
+
+	return nil
 }

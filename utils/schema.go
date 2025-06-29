@@ -142,6 +142,89 @@ const (
 			)
 		ORDER BY 
 			t.relname, i.relname;`
+
+	// Query to get the table schema by name
+	getTableSchemaQuery = `
+		SELECT 
+			t.table_name AS table_name,
+			c.column_name AS column_name,
+			c.data_type AS data_type,
+			c.is_nullable = 'YES' AS is_nullable,
+			c.column_default AS column_default,
+			c.character_maximum_length AS character_maximum_length,
+			c.numeric_precision AS numeric_precision,
+			c.numeric_scale AS numeric_scale,
+			c.ordinal_position AS ordinal_position
+		FROM 
+			information_schema.tables t
+		JOIN 
+			information_schema.columns c ON t.table_name = c.table_name 
+			AND t.table_schema = c.table_schema
+		WHERE 
+			t.table_schema = 'public' 
+			AND t.table_type = 'BASE TABLE'
+			AND t.table_name = $1
+		ORDER BY 
+			t.table_name, c.ordinal_position;`
+	
+	// Query to get constraints for a specific table
+	getTableConstraintsQuery = `
+		SELECT 
+			tc.table_name AS table_name,
+			tc.constraint_name AS constraint_name,
+			tc.constraint_type AS constraint_type,
+			kcu.column_name AS column_name,
+			ccu.table_name AS foreign_table_name,
+			ccu.column_name AS foreign_column_name,
+			cc.check_clause AS check_clause,
+			kcu.ordinal_position AS ordinal_position
+		FROM 
+			information_schema.table_constraints tc
+		LEFT JOIN 
+			information_schema.key_column_usage kcu 
+			ON tc.constraint_name = kcu.constraint_name 
+			AND tc.table_schema = kcu.table_schema
+		LEFT JOIN 
+			information_schema.constraint_column_usage ccu 
+			ON tc.constraint_name = ccu.constraint_name 
+			AND tc.table_schema = ccu.table_schema
+		LEFT JOIN 
+			information_schema.check_constraints cc 
+			ON tc.constraint_name = cc.constraint_name 
+			AND tc.table_schema = cc.constraint_schema
+		WHERE 
+			tc.table_schema = 'public'
+			AND tc.table_name = $1
+			AND tc.constraint_type IN ('PRIMARY KEY', 'FOREIGN KEY', 'UNIQUE', 'CHECK')
+		ORDER BY 
+			tc.table_name, tc.constraint_type, kcu.ordinal_position;`
+
+	// Query to get indexes for a specific table
+	getTableIndexesQuery = `
+		SELECT 
+			t.relname AS table_name,
+			i.relname AS index_name,
+			a.attname AS column_name,
+			ix.indisunique AS is_unique,
+			am.amname AS index_type,
+			ix.indisprimary AS is_primary
+		FROM 
+			pg_class t,
+			pg_class i,
+			pg_index ix,
+			pg_attribute a,
+			pg_am am
+		WHERE 
+			t.oid = ix.indrelid
+			AND i.oid = ix.indexrelid
+			AND a.attrelid = t.oid
+			AND a.attnum = ANY(ix.indkey)
+			AND t.relkind = 'r'
+			AND am.oid = i.relam
+			AND t.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
+			AND t.relname = $1
+		ORDER BY 
+			t.relname, i.relname;`
 )
 
 /*
@@ -226,6 +309,91 @@ func GetTables(ctx context.Context, db Querier) (map[string]Table, error) {
 	}
 
 	return tablesMap, nil
+}
+
+func GetTableSchema(ctx context.Context, tableName string, db Querier) (*Table, error) {
+	// Get the table schema
+	schemaRows, err := db.Query(ctx, getTableSchemaQuery, tableName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query table schema: %w", err)
+	}
+	defer schemaRows.Close()
+
+	var columns []TableColumn
+	err = pgxscan.ScanAll(&columns, schemaRows)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan table schema: %w", err)
+	}
+
+	if len(columns) == 0 {
+		return nil, fmt.Errorf("table %s does not exist", tableName)
+	}
+
+	return &Table{
+		TableName: tableName,
+		Columns:   columns,
+	}, nil
+}
+
+func GetTableConstraints(ctx context.Context, tableName string, db Querier) ([]ConstraintInfo, error) {
+	// Get the table constraints
+	constraintsRows, err := db.Query(ctx, getTableConstraintsQuery, tableName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query table constraints: %w", err)
+	}
+	defer constraintsRows.Close()
+
+	var constraints []ConstraintInfo
+	err = pgxscan.ScanAll(&constraints, constraintsRows)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan table constraints: %w", err)
+	}
+
+	return constraints, nil
+}
+
+func GetTableIndexes(ctx context.Context, tableName string, db Querier) ([]IndexInfo, error) {
+	// Get the table indexes
+	indexesRows, err := db.Query(ctx, getTableIndexesQuery, tableName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query table indexes: %w", err)
+	}
+	defer indexesRows.Close()
+
+	var indexes []IndexInfo
+	err = pgxscan.ScanAll(&indexes, indexesRows)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan table indexes: %w", err)
+	}
+
+	return indexes, nil
+}
+
+func GetTable(ctx context.Context, db Querier, tableName string) (*Table, error) {
+	// Get the table schema
+	tableSchema, err := GetTableSchema(ctx, tableName, db)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the table constraints
+	constraints, err := GetTableConstraints(ctx, tableName, db)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the table indexes
+	indexes, err := GetTableIndexes(ctx, tableName, db)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Table{
+		TableName:   tableName,
+		Columns:     tableSchema.Columns,
+		Constraints: constraints,
+		Indexes:     indexes,
+	}, nil
 }
 
 func GetConstraints(ctx context.Context, db Querier) ([]ConstraintInfo, error) {
@@ -492,7 +660,7 @@ func formatConstraint(constraint *ConstraintInfo) string {
 }
 
 // function that compares two tables schema and returns the DDL statements to update the schema to turn old -> new
-func CompareTableSchemas(oldTable, newTable Table, renames []RenameRelation) (string, error) {
+func CompareTableSchemas(oldTable, newTable *Table, renames []RenameRelation) (string, error) {
 	// each of the three aspects of the schema (columns, constraints, indexes) will be compared separately
 	// the result will be three actions: add, drop and alter
 	// and a spiecial case for the renaming of the table itself
