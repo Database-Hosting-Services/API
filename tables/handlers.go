@@ -9,27 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 )
-// old body
-/*
-	body
-	tableName: "",
-	cols: [
-		{
-			name: "",
-			type: "",
-			isUnique: "",
-			isNullable: "",
-			isPrimaryKey: "",
-			foriegnKey: {
-				tableName: "",
-				columnName: "",
-			},
-		}
-	]
 
-*/
-
-// new body Table struct
 
 // GetAllTablesHanlder godoc
 // @Summary Get all tables in a project
