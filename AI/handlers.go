@@ -86,3 +86,9 @@ func Agent(app *config.Application) http.HandlerFunc {
 		response.OK(w, "Agent query successful", AIresponse)
 	}
 }
+
+func AgentAccept(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		
+	}
+}
