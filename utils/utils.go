@@ -129,7 +129,7 @@ func ReplaceWhiteSpacesWithUnderscore(str string) string {
 	return replaced
 }
 
-func UserServerDbFormat(dbname string, userId int) string {
+func UserServerDbFormat(dbname string, userId int64) string {
 	dbname = strings.ToLower(dbname)
-	return dbname + "_" + strconv.Itoa(userId)
+	return dbname + "_" + strconv.FormatInt(userId, 10)
 }

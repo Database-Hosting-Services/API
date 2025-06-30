@@ -173,22 +173,22 @@ const docTemplate = `{
                             ]
                         }
                     },
-                    "400": {
-                        "description": "Project ID is required",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse401"
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse404"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse500"
                         }
                     }
                 }
@@ -224,7 +224,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/tables.ClientTable"
+                            "$ref": "#/definitions/tables.Table"
                         }
                     }
                 ],
@@ -2224,20 +2224,6 @@ const docTemplate = `{
                 }
             }
         },
-        "tables.ClientTable": {
-            "type": "object",
-            "properties": {
-                "columns": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tables.Column"
-                    }
-                },
-                "tableName": {
-                    "type": "string"
-                }
-            }
-        },
         "tables.Column": {
             "type": "object",
             "properties": {
@@ -2314,6 +2300,10 @@ const docTemplate = `{
         },
         "tables.Table": {
             "type": "object",
+            "required": [
+                "name",
+                "schema"
+            ],
             "properties": {
                 "description": {
                     "type": "string"
@@ -2329,6 +2319,9 @@ const docTemplate = `{
                 },
                 "project_id": {
                     "type": "integer"
+                },
+                "schema": {
+                    "$ref": "#/definitions/utils.Table"
                 }
             }
         },
@@ -2360,6 +2353,116 @@ const docTemplate = `{
                 },
                 "update": {
                     "$ref": "#/definitions/tables.Column"
+                }
+            }
+        },
+        "utils.ConstraintInfo": {
+            "type": "object",
+            "properties": {
+                "CheckClause": {
+                    "type": "string"
+                },
+                "ColumnName": {
+                    "type": "string"
+                },
+                "ConstraintName": {
+                    "type": "string"
+                },
+                "ConstraintType": {
+                    "type": "string"
+                },
+                "ForeignColumnName": {
+                    "type": "string"
+                },
+                "ForeignTableName": {
+                    "type": "string"
+                },
+                "OrdinalPosition": {
+                    "type": "integer"
+                },
+                "TableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.IndexInfo": {
+            "type": "object",
+            "properties": {
+                "ColumnName": {
+                    "type": "string"
+                },
+                "IndexName": {
+                    "type": "string"
+                },
+                "IndexType": {
+                    "type": "string"
+                },
+                "IsPrimary": {
+                    "type": "boolean"
+                },
+                "IsUnique": {
+                    "type": "boolean"
+                },
+                "TableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.Table": {
+            "type": "object",
+            "properties": {
+                "Columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.TableColumn"
+                    }
+                },
+                "Constraints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.ConstraintInfo"
+                    }
+                },
+                "Indexes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.IndexInfo"
+                    }
+                },
+                "TableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.TableColumn": {
+            "type": "object",
+            "properties": {
+                "CharacterMaximumLength": {
+                    "type": "integer"
+                },
+                "ColumnDefault": {
+                    "type": "string"
+                },
+                "ColumnName": {
+                    "type": "string"
+                },
+                "DataType": {
+                    "type": "string"
+                },
+                "IsNullable": {
+                    "type": "boolean"
+                },
+                "NumericPrecision": {
+                    "type": "integer"
+                },
+                "NumericScale": {
+                    "type": "integer"
+                },
+                "OrdinalPosition": {
+                    "type": "integer"
+                },
+                "TableName": {
+                    "type": "string"
                 }
             }
         }

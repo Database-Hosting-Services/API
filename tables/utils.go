@@ -6,10 +6,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func CreateColumnDefinition(column *Column) string {
@@ -38,8 +39,8 @@ func ParseTableIntoSQLCreate(table *ClientTable) (string, error) {
 	return createTableSQL, nil
 }
 
-func CreateTableIntoHostingServer(ctx context.Context, table *ClientTable, tx pgx.Tx) error {
-	DDLQuery, err := ParseTableIntoSQLCreate(table)
+func CreateTableIntoHostingServer(ctx context.Context, table *Table, tx pgx.Tx) error {
+	DDLQuery, err := utils.GenerateCreateTableDDL(table.Schema)
 	if err != nil {
 		return err
 	}
@@ -51,31 +52,16 @@ func CreateTableIntoHostingServer(ctx context.Context, table *ClientTable, tx pg
 	return nil
 }
 
-func CheckForValidTable(table *ClientTable) bool {
-	if table.TableName == "" || len(table.Columns) == 0 {
+func CheckForValidTable(table *Table) bool {
+	if table.Name == "" || len(table.Schema.Columns) == 0 {
 		return false
 	}
-	for _, column := range table.Columns {
-		if column.Name == "" || column.Type == "" {
+	for _, column := range table.Schema.Columns {
+		if column.ColumnName == "" || column.DataType == "" {
 			return false
 		}
 	}
 	return true
-}
-
-func ExtractDb(ctx context.Context, projectOID string, UserID int, servDb *pgxpool.Pool) (int64, *pgxpool.Pool, error) {
-	// get the dbname to connect to
-	dbName, projectId, err := GetProjectNameID(ctx, projectOID, servDb)
-	if err != nil {
-		return 0, nil, err
-	}
-	// get the db connection
-	userDb, err := config.ConfigManager.GetDbConnection(ctx, utils.UserServerDbFormat(dbName.(string), UserID))
-	if err != nil {
-		return 0, nil, err
-	}
-
-	return projectId.(int64), userDb, nil
 }
 
 func ExecuteUpdate(tableName string, table map[string]DbColumn, updates *TableUpdate, db utils.Querier) error {
@@ -148,4 +134,53 @@ func ExecuteUpdate(tableName string, table map[string]DbColumn, updates *TableUp
 
 func CreateUniqueConstraintName(tableName string, columnName string) string {
 	return fmt.Sprintf("%s_%s_key", tableName, columnName)
+}
+
+
+func SyncTableSchemas(ctx context.Context, projectId int64, servDb utils.Querier, userDb utils.Querier) error {
+	var tables []Table
+	err := pgxscan.Select(ctx, servDb, &tables, `SELECT id, oid, name FROM "Ptable" WHERE project_id = $1`, projectId)
+	if err != nil {
+		return err
+	}
+    
+	// extract the table schema
+	tableSchema, err := utils.GetTables(ctx, userDb)
+	if err != nil {
+		return err
+	}
+
+	presentTables := make(map[string]bool)
+	// delete the table recored if they are not present in the schema
+	for i := 0; i < len(tables); i++ {
+		presentTables[tables[i].Name] = true
+		if _, ok := tableSchema[tables[i].Name]; !ok {
+			// delete the table record from the database
+			if err := DeleteTableRecord(ctx, tables[i].ID, servDb); err != nil {
+				config.App.ErrorLog.Printf("Failed to delete table record %s: %v", tables[i].OID, err)
+			}
+			// remove the table from the list
+			tables = slices.Delete(tables, i, i+1)
+			i-- // adjust index after removal
+		}
+	}
+
+	// insert new table entries if they are present in the schema but not in the database
+	for name, _ := range tableSchema {
+		if presentTables[name] {
+            continue // skip if the table is already present
+        }
+        // create a new table record
+        newTable := &Table{
+            Name:      name,
+            ProjectID: projectId,
+            OID:       utils.GenerateOID(),
+        }
+        if err := InsertNewTable(ctx, newTable, &newTable.ID, servDb); err != nil {
+            config.App.ErrorLog.Printf("Failed to insert new table %s: %v", name, err)
+        }
+        tables = append(tables, *newTable)
+	}
+
+	return nil
 }

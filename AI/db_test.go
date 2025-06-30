@@ -1,7 +1,7 @@
 package ai_test
 
 import (
-	ai "DBHS/AI"
+	"DBHS/utils"
 	"context"
 	"fmt"
 	"log"
@@ -44,7 +44,7 @@ func TestExtractDatabaseSchema(t *testing.T) {
 	})
 
 	// extract schema
-	schema, err := ai.ExtractDatabaseSchema(context.Background(), db)
+	schema, err := utils.ExtractDatabaseSchema(context.Background(), db)
 	if err != nil {
 		t.Fatalf("Failed to extract database schema: %v", err)
 	}

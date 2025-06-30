@@ -316,15 +316,6 @@ definitions:
         example: Operation successful
         type: string
     type: object
-  tables.ClientTable:
-    properties:
-      columns:
-        items:
-          $ref: '#/definitions/tables.Column'
-        type: array
-      tableName:
-        type: string
-    type: object
   tables.Column:
     properties:
       foreignKey:
@@ -385,6 +376,11 @@ definitions:
         type: string
       project_id:
         type: integer
+      schema:
+        $ref: '#/definitions/utils.Table'
+    required:
+    - name
+    - schema
     type: object
   tables.TableUpdate:
     properties:
@@ -405,6 +401,78 @@ definitions:
         type: string
       update:
         $ref: '#/definitions/tables.Column'
+    type: object
+  utils.ConstraintInfo:
+    properties:
+      CheckClause:
+        type: string
+      ColumnName:
+        type: string
+      ConstraintName:
+        type: string
+      ConstraintType:
+        type: string
+      ForeignColumnName:
+        type: string
+      ForeignTableName:
+        type: string
+      OrdinalPosition:
+        type: integer
+      TableName:
+        type: string
+    type: object
+  utils.IndexInfo:
+    properties:
+      ColumnName:
+        type: string
+      IndexName:
+        type: string
+      IndexType:
+        type: string
+      IsPrimary:
+        type: boolean
+      IsUnique:
+        type: boolean
+      TableName:
+        type: string
+    type: object
+  utils.Table:
+    properties:
+      Columns:
+        items:
+          $ref: '#/definitions/utils.TableColumn'
+        type: array
+      Constraints:
+        items:
+          $ref: '#/definitions/utils.ConstraintInfo'
+        type: array
+      Indexes:
+        items:
+          $ref: '#/definitions/utils.IndexInfo'
+        type: array
+      TableName:
+        type: string
+    type: object
+  utils.TableColumn:
+    properties:
+      CharacterMaximumLength:
+        type: integer
+      ColumnDefault:
+        type: string
+      ColumnName:
+        type: string
+      DataType:
+        type: string
+      IsNullable:
+        type: boolean
+      NumericPrecision:
+        type: integer
+      NumericScale:
+        type: integer
+      OrdinalPosition:
+        type: integer
+      TableName:
+        type: string
     type: object
 info:
   contact: {}
@@ -507,18 +575,18 @@ paths:
                     $ref: '#/definitions/tables.Table'
                   type: array
               type: object
-        "400":
-          description: Project ID is required
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Project not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Get all tables in a project
@@ -539,7 +607,7 @@ paths:
         name: table
         required: true
         schema:
-          $ref: '#/definitions/tables.ClientTable'
+          $ref: '#/definitions/tables.Table'
       produces:
       - application/json
       responses:

@@ -1,13 +1,25 @@
 package tables
 
+import (
+	"DBHS/utils"
+)
+
 // Table struct is a row record of the tables table in the database
 type Table struct {
-	ID          int    `json:"id" db:"id"`
-	ProjectID   int64  `json:"project_id" db:"project_id"`
-	OID         string `json:"oid" db:"oid"`
-	Name        string `json:"name" db:"name"`
-	Description string `json:"description" db:"description"`
+	ID          int64       `json:"id" db:"id"`
+	ProjectID   int64       `json:"project_id" db:"project_id"`
+	OID         string      `json:"oid" db:"oid"`
+	Name        string      `json:"name" db:"name" validate:"required"`
+	Description string      `json:"description" db:"description"`
+	Schema      *utils.Table `json:"schema" validate:"required"`
 }
+
+type UpdateTableSchema struct {
+	Table
+	Renames []utils.RenameRelation `json:"renames"`
+}
+
+
 
 type ShortTable struct {
 	OID  string `json:"oid" db:"oid"`

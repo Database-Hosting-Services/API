@@ -29,7 +29,7 @@ func Report(app *config.Application) http.HandlerFunc {
 		projectID := vars["project_id"]
 
 		// get user id from context
-		userID := r.Context().Value("user-id").(int)
+		userID := r.Context().Value("user-id").(int64)
 
 		Analytics := getAnalytics() // TODO: get real analytics
 		AI := config.AI

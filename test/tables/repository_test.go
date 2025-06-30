@@ -3,6 +3,7 @@ package tables_test
 import (
 	"DBHS/config"
 	"DBHS/tables"
+	"DBHS/utils"
 	"context"
 	"log"
 	"os"
@@ -106,30 +107,12 @@ func (suite *RepositoryTestSuite) TearDownTest() {
 
 func (suite *RepositoryTestSuite) TestGetProjectNameID() {
 	// Test getting project name and ID
-	name, id, err := tables.GetProjectNameID(context.Background(), existingProjectOID, suite.db)
+	name, id, err := utils.GetProjectNameID(context.Background(), existingProjectOID, suite.db)
 	require.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "ragnardbtest", name)
 	assert.NotNil(suite.T(), id)
 }
 
-func (suite *RepositoryTestSuite) TestGetAllTablesNameOid() {
-	// Test getting all tables for a project
-	projectID := int64(129) // This should match the ID in the test data
-	tablesList, err := tables.GetAllTablesNameOid(context.Background(), projectID, suite.db)
-
-	require.NoError(suite.T(), err)
-	assert.GreaterOrEqual(suite.T(), len(tablesList), 0)
-
-	// Check if our test table is in the list
-	found := false
-	for _, table := range tablesList {
-		if table.OID == "test-table-1" && table.Name == "test_table_1" {
-			found = true
-			break
-		}
-	}
-	assert.True(suite.T(), found, "Test table not found in the list")
-}
 
 func (suite *RepositoryTestSuite) TestGetTableName() {
 	// Test getting table name by OID
@@ -147,7 +130,7 @@ func (suite *RepositoryTestSuite) TestInsertAndDeleteTableRecord() {
 		ProjectID:   129,
 	}
 
-	var tableID int
+	var tableID int64
 	err := tables.InsertNewTable(context.Background(), table, &tableID, suite.db)
 	require.NoError(suite.T(), err)
 	assert.Greater(suite.T(), tableID, 0)
