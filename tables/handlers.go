@@ -11,7 +11,7 @@ import (
 )
 
 
-// GetAllTablesHanlder godoc
+// GetAllTablesHandler godoc
 // @Summary Get all tables in a project
 // @Description Get a list of all tables in the specified project
 // @Tags tables
@@ -47,6 +47,20 @@ func GetAllTablesHandler(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// GetTableSchemaHandler godoc
+// @Summary Get the schema of a table
+// @Description Get the schema of the specified table in the project
+// @Tags tables
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param table_id path string true "Table ID"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse{data=Table} "Table schema"
+// @Failure 400 {object} response.ErrorResponse400 "Bad request"
+// @Failure 401 {object} response.ErrorResponse401 "Unauthorized"
+// @Failure 404 {object} response.ErrorResponse404 "Project not found"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
+// @Router /api/projects/{project_id}/tables/{table_id}/schema [get]
 func GetTableSchemaHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
