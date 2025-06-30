@@ -9,11 +9,10 @@ const (
 		WHERE spcname IN ('pg_default', 'pg_global')
 	`
 
-	GET_MAX_AVG_TOTAL_EXECUTION_TIME = `
+	GET_TOTAL_TimeAndQueries = `
 		SELECT
 			ROUND(SUM(total_exec_time)::numeric, 2) as total_time_ms,
-			ROUND(MAX(max_exec_time)::numeric, 2) AS max_time_ms,
-			ROUND(AVG(mean_exec_time)::numeric, 2) AS avg_time_ms
+			SUM(calls) as total_queries
 		FROM pg_stat_statements pss
 		JOIN pg_database pd ON pss.dbid = pd.oid
 		WHERE pd.datname = $1
@@ -29,4 +28,16 @@ const (
 		WHERE pd.datname = current_database()
 		GROUP BY pd.datname;
 	`
+
+	GET_ALL_CURRENT_STORAGE = `SELECT created_at::text, data->>'Management storage', data->>'Actual data' FROM analytics WHERE type = 'Storage' and "projectId" = $1 ORDER BY created_at DESC;`
+
+	GET_ALL_EXECUTION_TIME_STATS = `SELECT created_at::text, (data->>'total_time_ms')::numeric, (data->>'total_queries')::bigint FROM analytics WHERE type = 'ExecutionTimeStats' AND "projectId" = $1;	`
+
+	GET_ALL_DATABASE_USAGE_STATS = `SELECT created_at::text, (data->>'read_write_cost')::numeric, (data->>'cpu_cost')::numeric, (data->>'total_cost')::numeric FROM analytics WHERE type = 'DatabaseUsageStats' AND "projectId" = $1;`
+
+	// Queries to get the last records for each type of analytics
+
+	GET_LAST_EXECUTION_TIME_STATS = `SELECT created_at::text, (data->>'total_time_ms')::numeric, (data->>'total_queries')::bigint FROM analytics WHERE type = 'ExecutionTimeStats' AND "projectId" = $1 ORDER BY created_at DESC LIMIT 1;`
+
+	GET_LAST_DATABASE_USAGE_STATS = `SELECT created_at::text, (data->>'read_write_cost')::numeric, (data->>'cpu_cost')::numeric, (data->>'total_cost')::numeric FROM analytics WHERE type = 'DatabaseUsageStats' AND "projectId" = $1 ORDER BY created_at DESC LIMIT 1;`
 )

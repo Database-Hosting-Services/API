@@ -93,6 +93,8 @@ func main() {
 	infoLog.Printf("Scalar UI available at http://%s/reference", *addr)
 
 	c := cron.New()
+
+	// Cron syntax "0 0 * * *" means: "At 00:00 (midnight) every day"
 	c.AddFunc("0 0 * * *", func() {
 		workers.GatherAnalytics(config.App)
 	})

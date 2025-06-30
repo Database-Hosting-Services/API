@@ -7,10 +7,9 @@ import (
 )
 
 const (
-	STORAGE_ANALYTICS = "Storage"
+	STORAGE_ANALYTICS        = "Storage"
 	EXECUTION_TIME_ANALYTICS = "ExecutionTimeStats"
 	DATABASE_USAGE_ANALYTICS = "DatabaseUsageStats"
-	DATABASE_USAGE_COST = "DatabaseUsageCost"
 )
 
 const (
@@ -22,7 +21,84 @@ const (
 	`
 )
 
+func gatherAndInsertStorageAnalytics(app *config.Application, ctx context.Context, projectId int64, projectOid string) error {
+	// Get current storage data
+	currentStorage, apiErr := analytics.GetDatabaseStorage(ctx, config.DB, projectOid)
+	if apiErr.Error() != nil {
+		return apiErr.Error()
+	}
+
+	_, err := config.DB.Exec(ctx, INSERT_ANALYTICS, projectId, STORAGE_ANALYTICS, currentStorage)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func gatherAndInsertExecutionTimeAnalytics(app *config.Application, ctx context.Context, projectId int64, projectOid string) error {
+	// Get current execution time stats
+	currentStats, apiErr := analytics.GetExecutionTimeStats(ctx, config.DB, projectOid)
+	if apiErr.Error() != nil {
+		return apiErr.Error()
+	}
+
+	// Get last execution time record
+	lastRecord, err := analytics.GetLastExecutionTimeRecord(ctx, config.DB, projectId)
+	if err != nil {
+		// If there's an actual error (not just no rows), return it
+		return err
+	}
+
+	if lastRecord == nil {
+		// If no previous record exists, insert current data directly
+		app.InfoLog.Println("No previous execution time record found, inserting current data")
+	}
+
+	// Calculate difference or use current data
+	finalStats := analytics.CalculateExecutionTimeDifference(currentStats, lastRecord)
+
+	_, err = config.DB.Exec(ctx, INSERT_ANALYTICS, projectId, EXECUTION_TIME_ANALYTICS, finalStats)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func gatherAndInsertDatabaseUsageAnalytics(app *config.Application, ctx context.Context, projectId int64, projectOid string) error {
+	// Get current database usage stats
+	currentUsage, apiErr := analytics.GetDatabaseUsageStats(ctx, config.DB, projectOid)
+	if apiErr.Error() != nil {
+		return apiErr.Error()
+	}
+
+	// Get last database usage record
+	lastRecord, err := analytics.GetLastDatabaseUsageRecord(ctx, config.DB, projectId)
+	if err != nil {
+		// If there's an actual error (not just no rows), return it
+		return err
+	}
+
+	if lastRecord == nil {
+		// If no previous record exists, insert current data directly
+		app.InfoLog.Println("No previous database usage record found, inserting current data")
+	}
+
+	// Calculate difference or use current data
+	finalUsage := analytics.CalculateDatabaseUsageDifference(currentUsage, lastRecord)
+
+	_, err = config.DB.Exec(ctx, INSERT_ANALYTICS, projectId, DATABASE_USAGE_ANALYTICS, finalUsage)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GatherAnalytics(app *config.Application) {
+	app.InfoLog.Println("Starting analytics gathering for all projects...")
+
 	// get all projects from the database
 	projects, err := config.DB.Query(context.Background(), GET_ALL_PROJECTS)
 	if err != nil {
@@ -31,6 +107,7 @@ func GatherAnalytics(app *config.Application) {
 	}
 	defer projects.Close()
 	app.InfoLog.Println("Gathering analytics for all projects 🔍")
+
 	for projects.Next() {
 		var id int64
 		var projectOid string
@@ -40,43 +117,25 @@ func GatherAnalytics(app *config.Application) {
 			app.ErrorLog.Println(err)
 			continue
 		}
+
 		app.InfoLog.Println("Gathering analytics for project", projectOid, "🔍")
-		context := context.WithValue(context.Background(), "user-id", ownerId)
-		// get the storage of the project
-		storage, apiErr := analytics.GetDatabaseStorage(context, config.DB, projectOid)
-		if apiErr.Error() != nil {
-			app.ErrorLog.Println(apiErr.Error())
-			continue
-		}
-		// get the execution time stats of the project
-		executionTimeStats, apiErr := analytics.GetExecutionTimeStats(context, config.DB, projectOid)
-		if apiErr.Error() != nil {
-			app.ErrorLog.Println(apiErr.Error())
-			continue
-		}
-		// get the database usage stats of the project
-		databaseUsageStats, apiErr := analytics.GetDatabaseUsageStats(context, config.DB, projectOid)
-		if apiErr.Error() != nil {
-			app.ErrorLog.Println(apiErr.Error())
+		ctx := context.WithValue(context.Background(), "user-id", ownerId)
+
+		// Gather storage analytics
+		if err := gatherAndInsertStorageAnalytics(app, ctx, id, projectOid); err != nil {
+			app.ErrorLog.Println("Storage analytics error:", err)
 			continue
 		}
 
-		// insert the analytics to the database
-		_, err = config.DB.Exec(context, INSERT_ANALYTICS, id, STORAGE_ANALYTICS, storage)
-		if err != nil {
-			app.ErrorLog.Println(err)
+		// Gather execution time analytics
+		if err := gatherAndInsertExecutionTimeAnalytics(app, ctx, id, projectOid); err != nil {
+			app.ErrorLog.Println("Execution time analytics error:", err)
 			continue
 		}
 
-		_, err = config.DB.Exec(context, INSERT_ANALYTICS, id, EXECUTION_TIME_ANALYTICS, executionTimeStats)
-		if err != nil {
-			app.ErrorLog.Println(err)
-			continue
-		}
-
-		_, err = config.DB.Exec(context, INSERT_ANALYTICS, id, DATABASE_USAGE_ANALYTICS, databaseUsageStats)
-		if err != nil {
-			app.ErrorLog.Println(err)
+		// Gather database usage analytics
+		if err := gatherAndInsertDatabaseUsageAnalytics(app, ctx, id, projectOid); err != nil {
+			app.ErrorLog.Println("Database usage analytics error:", err)
 			continue
 		}
 
