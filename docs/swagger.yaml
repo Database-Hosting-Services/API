@@ -316,28 +316,6 @@ definitions:
         example: Operation successful
         type: string
     type: object
-  tables.Column:
-    properties:
-      foreignKey:
-        $ref: '#/definitions/tables.ForeignKey'
-      isNullable:
-        type: boolean
-      isPrimaryKey:
-        type: boolean
-      isUnique:
-        type: boolean
-      name:
-        type: string
-      type:
-        type: string
-    type: object
-  tables.ColumnCollection:
-    properties:
-      columns:
-        items:
-          $ref: '#/definitions/tables.Column'
-        type: array
-    type: object
   tables.Data:
     properties:
       columns:
@@ -349,13 +327,6 @@ definitions:
           additionalProperties: true
           type: object
         type: array
-    type: object
-  tables.ForeignKey:
-    properties:
-      columnName:
-        type: string
-      tableName:
-        type: string
     type: object
   tables.ShowColumn:
     properties:
@@ -382,25 +353,27 @@ definitions:
     - name
     - schema
     type: object
-  tables.TableUpdate:
+  tables.UpdateTableSchema:
     properties:
-      delete:
-        items:
-          type: string
-        type: array
-      insert:
-        $ref: '#/definitions/tables.ColumnCollection'
-      update:
-        items:
-          $ref: '#/definitions/tables.UpdateColumn'
-        type: array
-    type: object
-  tables.UpdateColumn:
-    properties:
+      description:
+        type: string
+      id:
+        type: integer
       name:
         type: string
-      update:
-        $ref: '#/definitions/tables.Column'
+      oid:
+        type: string
+      project_id:
+        type: integer
+      renames:
+        items:
+          $ref: '#/definitions/utils.RenameRelation'
+        type: array
+      schema:
+        $ref: '#/definitions/utils.Table'
+    required:
+    - name
+    - schema
     type: object
   utils.ConstraintInfo:
     properties:
@@ -434,6 +407,13 @@ definitions:
       IsUnique:
         type: boolean
       TableName:
+        type: string
+    type: object
+  utils.RenameRelation:
+    properties:
+      newName:
+        type: string
+      oldName:
         type: string
     type: object
   utils.Table:
@@ -656,15 +636,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse400'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Delete a table
@@ -749,12 +733,12 @@ paths:
         name: table_id
         required: true
         type: string
-      - description: Table update information
+      - description: new table schema updates
         in: body
         name: updates
         required: true
         schema:
-          $ref: '#/definitions/tables.TableUpdate'
+          $ref: '#/definitions/tables.UpdateTableSchema'
       produces:
       - application/json
       responses:
@@ -765,18 +749,69 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse400'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Update an existing table
+      tags:
+      - tables
+  /api/projects/{project_id}/tables/{table_id}/schema:
+    get:
+      description: Get the schema of the specified table in the project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Table schema
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/tables.Table'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse400'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Project not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
+      security:
+      - BearerAuth: []
+      summary: Get the schema of a table
       tags:
       - tables
   /projects:

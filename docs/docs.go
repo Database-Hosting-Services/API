@@ -391,12 +391,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Table update information",
+                        "description": "new table schema updates",
                         "name": "updates",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/tables.TableUpdate"
+                            "$ref": "#/definitions/tables.UpdateTableSchema"
                         }
                     }
                 ],
@@ -410,19 +410,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse400"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse401"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse404"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse500"
                         }
                     }
                 }
@@ -467,19 +473,102 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse400"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse401"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse404"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse500"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/projects/{project_id}/tables/{table_id}/schema": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the schema of the specified table in the project",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tables"
+                ],
+                "summary": "Get the schema of a table",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Table ID",
+                        "name": "table_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Table schema",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/tables.Table"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse400"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse401"
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse404"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse500"
                         }
                     }
                 }
@@ -2224,40 +2313,6 @@ const docTemplate = `{
                 }
             }
         },
-        "tables.Column": {
-            "type": "object",
-            "properties": {
-                "foreignKey": {
-                    "$ref": "#/definitions/tables.ForeignKey"
-                },
-                "isNullable": {
-                    "type": "boolean"
-                },
-                "isPrimaryKey": {
-                    "type": "boolean"
-                },
-                "isUnique": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "tables.ColumnCollection": {
-            "type": "object",
-            "properties": {
-                "columns": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tables.Column"
-                    }
-                }
-            }
-        },
         "tables.Data": {
             "type": "object",
             "properties": {
@@ -2273,17 +2328,6 @@ const docTemplate = `{
                         "type": "object",
                         "additionalProperties": true
                     }
-                }
-            }
-        },
-        "tables.ForeignKey": {
-            "type": "object",
-            "properties": {
-                "columnName": {
-                    "type": "string"
-                },
-                "tableName": {
-                    "type": "string"
                 }
             }
         },
@@ -2325,34 +2369,36 @@ const docTemplate = `{
                 }
             }
         },
-        "tables.TableUpdate": {
+        "tables.UpdateTableSchema": {
             "type": "object",
+            "required": [
+                "name",
+                "schema"
+            ],
             "properties": {
-                "delete": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "description": {
+                    "type": "string"
                 },
-                "insert": {
-                    "$ref": "#/definitions/tables.ColumnCollection"
+                "id": {
+                    "type": "integer"
                 },
-                "update": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tables.UpdateColumn"
-                    }
-                }
-            }
-        },
-        "tables.UpdateColumn": {
-            "type": "object",
-            "properties": {
                 "name": {
                     "type": "string"
                 },
-                "update": {
-                    "$ref": "#/definitions/tables.Column"
+                "oid": {
+                    "type": "string"
+                },
+                "project_id": {
+                    "type": "integer"
+                },
+                "renames": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.RenameRelation"
+                    }
+                },
+                "schema": {
+                    "$ref": "#/definitions/utils.Table"
                 }
             }
         },
@@ -2404,6 +2450,17 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "TableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.RenameRelation": {
+            "type": "object",
+            "properties": {
+                "newName": {
+                    "type": "string"
+                },
+                "oldName": {
                     "type": "string"
                 }
             }
