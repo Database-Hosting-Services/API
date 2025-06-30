@@ -40,7 +40,7 @@ func ParseTableIntoSQLCreate(table *ClientTable) (string, error) {
 }
 
 func CreateTableIntoHostingServer(ctx context.Context, table *Table, tx pgx.Tx) error {
-	DDLQuery, err := utils.GenerateCreateTableDDL(&table.Schema)
+	DDLQuery, err := utils.GenerateCreateTableDDL(table.Schema)
 	if err != nil {
 		return err
 	}

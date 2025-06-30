@@ -257,7 +257,7 @@ the schema format for the tables is:
 		]
 	}
 */
-func GetTables(ctx context.Context, db Querier) (map[string]Table, error) {
+func GetTables(ctx context.Context, db Querier) (map[string]*Table, error) {
 	// Get all tables and columns
 	columnsRows, err := db.Query(ctx, getTablesAndColumnsQuery)
 	if err != nil {
@@ -298,9 +298,9 @@ func GetTables(ctx context.Context, db Querier) (map[string]Table, error) {
 		tableIndexes[index.TableName] = append(tableIndexes[index.TableName], index)
 	}
 
-	tablesMap := make(map[string]Table)
+	tablesMap := make(map[string]*Table)
 	for tableName, columns := range tableColumns {
-		tablesMap[tableName] = Table{
+		tablesMap[tableName] = &Table{
 			TableName:   tableName,
 			Columns:     columns,
 			Constraints: tableConstraints[tableName],
@@ -369,7 +369,7 @@ func GetTableIndexes(ctx context.Context, tableName string, db Querier) ([]Index
 	return indexes, nil
 }
 
-func GetTable(ctx context.Context, db Querier, tableName string) (*Table, error) {
+func GetTable(ctx context.Context, tableName string, db Querier) (*Table, error) {
 	// Get the table schema
 	tableSchema, err := GetTableSchema(ctx, tableName, db)
 	if err != nil {

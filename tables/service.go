@@ -28,6 +28,34 @@ func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) 
 	return tables, nil
 }
 
+func GetTableSchema(ctx context.Context, projectOID string, tableOID string, servDb *pgxpool.Pool) (*Table, error) {
+	userId, ok := ctx.Value("user-id").(int64)
+	if !ok || userId == 0 {
+		return nil, response.ErrUnauthorized
+	}
+
+	_, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
+	if err != nil {
+		return nil, err
+	}
+
+	tableName, err := GetTableName(ctx, tableOID, servDb)
+	if err != nil {
+		return nil, err
+	}
+
+	schema, err := utils.GetTable(ctx, tableName, userDb)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Table{
+		Schema: schema,
+		OID:    tableOID,
+		Name:   schema.TableName,
+	}, nil
+}
+
 func CreateTable(ctx context.Context, projectOID string, table *Table, servDb *pgxpool.Pool) (string, error) {
 	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
@@ -81,7 +109,7 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, newSch
 		return err
 	}
 
-	DDLUpdate, err := utils.CompareTableSchemas(oldSchema, &newSchema.Schema, newSchema.Renames)
+	DDLUpdate, err := utils.CompareTableSchemas(oldSchema, newSchema.Schema, newSchema.Renames)
 	if err != nil {
 		return err
 	}
@@ -142,7 +170,7 @@ func DeleteTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpo
 		return err
 	}
 	defer servtx.Rollback(ctx)
-	
+
 	if err := DeleteTableFromServerDb(ctx, tableOID, servtx); err != nil {
 		return err
 	}

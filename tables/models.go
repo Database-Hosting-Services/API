@@ -11,7 +11,7 @@ type Table struct {
 	OID         string      `json:"oid" db:"oid"`
 	Name        string      `json:"name" db:"name" validate:"required"`
 	Description string      `json:"description" db:"description"`
-	Schema      utils.Table `json:"schema" validate:"required"`
+	Schema      *utils.Table `json:"schema" validate:"required"`
 }
 
 type UpdateTableSchema struct {

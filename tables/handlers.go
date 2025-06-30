@@ -23,7 +23,7 @@ import (
 // @Failure 401 {object} response.ErrorResponse401 "Unauthorized"
 // @Failure 500 {object} response.ErrorResponse500 "Internal server error"
 // @Router /api/projects/{project_id}/tables [get]
-func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
+func GetAllTablesHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
 		projectId := urlVariables["project_id"]
@@ -44,6 +44,31 @@ func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
 		}
 
 		response.OK(w, "", data)
+	}
+}
+
+func GetTableSchemaHandler(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		projectId := urlVariables["project_id"]
+		tableId := urlVariables["table_id"]
+		if projectId == "" || tableId == "" {
+			response.BadRequest(w, "Project ID and Table ID are required", nil)
+			return
+		}
+
+		data, err := GetTableSchema(r.Context(), projectId, tableId, config.DB)
+		if err != nil {
+			if errors.Is(err, response.ErrUnauthorized) {
+				response.UnAuthorized(w, "Unauthorized", nil)
+				return
+			}
+			app.ErrorLog.Println("Could not read table schema:", err)
+			response.InternalServerError(w, "Could not read table schema", err)
+			return
+		}
+
+		response.OK(w, "Table Schema Read Successfully", data)
 	}
 }
 
