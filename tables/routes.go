@@ -20,7 +20,7 @@ import (
 
 func DefineURLs() {
 	router := config.Router.PathPrefix("/api/projects/{project_id}/tables").Subrouter()
-	router.Use(middleware.JwtAuthMiddleware, middleware.CheckOwnership, SyncTables)
+	router.Use(middleware.JwtAuthMiddleware, middleware.CheckOwnership, SyncTables, middleware.CheckOTableExist)
 
 	router.Handle("", middleware.Route(map[string]http.HandlerFunc{
 		http.MethodPost: CreateTableHandler(config.App),

@@ -53,11 +53,18 @@ func CheckOwnership(next http.Handler) http.Handler {
 			response.UnAuthorized(w, "UnAuthorized", nil)
 			return
 		}
+		next.ServeHTTP(w, r)
+	})
+}
 
+func CheckOTableExist(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		projectOID := urlVariables["project_id"]
 		tableOID := urlVariables["table_id"]
 		if tableOID != "" {
 			//check if the table belongs to the project
-			ok, err = utils.CheckOwnershipQueryTable(r.Context(), tableOID, projectOID, config.DB)
+			ok, err := utils.CheckOwnershipQueryTable(r.Context(), tableOID, projectOID, config.DB)
 			if err != nil {
 				response.InternalServerError(w, err.Error(), err)
 				return
@@ -68,7 +75,6 @@ func CheckOwnership(next http.Handler) http.Handler {
 				return
 			}
 		}
-
 		next.ServeHTTP(w, r)
 	})
 }

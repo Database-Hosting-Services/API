@@ -162,21 +162,22 @@ func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 // @Param table_id path string true "Table ID"
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400 {object} response.ErrorResponse400
+// @Failure 401 {object} response.ErrorResponse401
+// @Failure 404 {object} response.ErrorResponse404
+// @Failure 500 {object} response.ErrorResponse500
 // @Router /api/projects/{project_id}/tables/{table_id} [delete]
 func DeleteTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
-		projectId := urlVariables["project_id"]
-		tableId := urlVariables["table_id"]
-		if projectId == "" || tableId == "" {
+		projectOID := urlVariables["project_id"]
+		tableOID := urlVariables["table_id"]
+		if projectOID == "" || tableOID == "" {
 			response.BadRequest(w, "Project ID and Table ID are required", nil)
 			return
 		}
 		// Call the service function to delete the table
-		if err := DeletTable(r.Context(), projectId, tableId, config.DB); err != nil {
+		if err := DeleteTable(r.Context(), projectOID, tableOID, config.DB); err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
 				response.UnAuthorized(w, "Unauthorized", nil)
 				return

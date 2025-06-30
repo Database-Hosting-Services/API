@@ -111,7 +111,7 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, newSch
 	return nil
 }
 
-func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpool.Pool) error {
+func DeleteTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpool.Pool) error {
 	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return response.ErrUnauthorized
@@ -126,6 +126,7 @@ func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpoo
 	if err != nil {
 		return err
 	}
+
 	usertx, err := userDb.Begin(ctx)
 	if err != nil {
 		return err
@@ -141,6 +142,7 @@ func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpoo
 		return err
 	}
 	defer servtx.Rollback(ctx)
+	
 	if err := DeleteTableFromServerDb(ctx, tableOID, servtx); err != nil {
 		return err
 	}
