@@ -777,6 +777,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/projects/{project_id}/ai/chatbot/ask": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint allows users to ask questions to the chatbot, which will respond using AI. It also saves the chat history for future reference.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI"
+                ],
+                "summary": "Chat Bot Ask",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Chat Bot Request",
+                        "name": "ChatBotRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ai.ChatBotRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Answer generated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/projects/{project_id}/ai/report": {
             "get": {
                 "security": [
@@ -2015,6 +2079,14 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "User verified successfully"
+                }
+            }
+        },
+        "ai.ChatBotRequest": {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "type": "string"
                 }
             }
         },

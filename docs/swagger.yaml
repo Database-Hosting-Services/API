@@ -203,6 +203,11 @@ definitions:
         example: User verified successfully
         type: string
     type: object
+  ai.ChatBotRequest:
+    properties:
+      question:
+        type: string
+    type: object
   indexes.IndexData:
     properties:
       columns:
@@ -842,6 +847,45 @@ paths:
       summary: Update a project
       tags:
       - projects
+  /projects/{project_id}/ai/chatbot/ask:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint allows users to ask questions to the chatbot, which
+        will respond using AI. It also saves the chat history for future reference.
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Chat Bot Request
+        in: body
+        name: ChatBotRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ai.ChatBotRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Answer generated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Chat Bot Ask
+      tags:
+      - AI
   /projects/{project_id}/ai/report:
     get:
       consumes:
