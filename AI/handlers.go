@@ -4,9 +4,8 @@ import (
 	"DBHS/config"
 	"DBHS/response"
 	"encoding/json"
-	"io"
-	"net/http"
 	"github.com/gorilla/mux"
+	"io"
 	"net/http"
 )
 
@@ -45,7 +44,6 @@ func Report(app *config.Application) http.HandlerFunc {
 		response.OK(w, "Report generated successfully", report)
 	}
 }
-
 
 func ChatBotAsk(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -140,4 +138,3 @@ func Agent(app *config.Application) http.HandlerFunc {
 		response.OK(w, "Agent query successful", AIresponse)
 	}
 }
-
