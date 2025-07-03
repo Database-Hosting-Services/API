@@ -46,6 +46,13 @@ func RunSqlQuery(app *config.Application) http.HandlerFunc {
 			return
 		}
 
+		// Validate query for dangerous operations
+		isValid, err := ValidateQuery(RequestBody.Query)
+		if !isValid {
+			response.BadRequest(w, err.Error(), nil)
+			return
+		}
+
 		// Get the query response
 		queryResponse, apiErr := GetQueryResponse(r.Context(), config.DB, projectOid, RequestBody.Query)
 		if apiErr.Error() != nil {
