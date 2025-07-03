@@ -71,7 +71,7 @@ func loadEnv() {
 	}
 }
 
-const deploy = true
+const deploy = false
 
 func Init(infoLog, errorLog *log.Logger) {
 

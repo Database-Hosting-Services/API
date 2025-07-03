@@ -6,9 +6,10 @@ import (
 	"DBHS/utils"
 	"context"
 	"encoding/json"
+	"errors"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/Database-Hosting-Services/AI-Agent/RAG"
-	"github.com/jackc/pgx/v5"
 )
 
 func getReport(projectUUID string, userID int, analytics Analytics, AI RAG.RAGmodel) (string, error) {
@@ -39,7 +40,6 @@ func getReport(projectUUID string, userID int, analytics Analytics, AI RAG.RAGmo
 	return report, nil
 }
 
-
 func SaveChatAction(ctx context.Context, db utils.Querier, chatId, userID int, question string, answer string) error {
 	// here i save the user prompt and the AI response together
 	// the chat action is a combination of the user question and the AI answer
@@ -63,10 +63,10 @@ func GetProjectIDfromOID(ctx context.Context, db utils.Querier, projectOID strin
 
 func GetOrCreateChatData(ctx context.Context, db utils.Querier, userID, projectID int) (ChatData, error) {
 	// i suppose return the chat history if needed, currently it just returns the chat data
-	
+
 	chat, err := GetUserChatForProject(ctx, db, userID, projectID)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			chat, err = CreateNewChat(ctx, db, utils.GenerateOID(), userID, projectID)
 			if err != nil {
 				return ChatData{}, err

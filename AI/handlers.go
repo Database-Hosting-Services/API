@@ -4,6 +4,8 @@ import (
 	"DBHS/config"
 	"DBHS/response"
 	"encoding/json"
+
+	//"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -71,6 +73,7 @@ func ChatBotAsk(app *config.Application) http.HandlerFunc {
 
 		chat_data, err := GetOrCreateChatData(r.Context(), transaction, userID, projectID)
 		if err != nil {
+			app.ErrorLog.Println(err.Error())
 			response.InternalServerError(w, "Failed to get or create chat data", err)
 			return
 		}
