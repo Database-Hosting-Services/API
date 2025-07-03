@@ -10,6 +10,21 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// RunSqlQuery godoc
+// @Summary Execute SQL query on project database
+// @Description Execute a dynamic SQL query against a specific project's PostgreSQL database and return structured JSON results with metadata
+// @Tags sqlEditor
+// @Accept json
+// @Produce json
+// @Param project_id path string true "Project ID (OID)"
+// @Param query body sqleditor.RequestBody true "SQL query to execute"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse "Query executed successfully"
+// @Failure 400 {object} response.ErrorResponse "Project ID is missing or invalid request body"
+// @Failure 401 {object} response.ErrorResponse "Unauthorized access"
+// @Failure 404 {object} response.ErrorResponse "Project not found"
+// @Failure 500 {object} response.ErrorResponse "Internal server error or query execution failed"
+// @Router /projects/{project_id}/sqlEditor/run-query [get]
 func RunSqlQuery(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)

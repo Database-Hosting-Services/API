@@ -316,6 +316,11 @@ definitions:
         example: Operation successful
         type: string
     type: object
+  sqleditor.RequestBody:
+    properties:
+      query:
+        type: string
+    type: object
   tables.Data:
     properties:
       columns:
@@ -1363,6 +1368,52 @@ paths:
       summary: Update the name of a specific index
       tags:
       - indexes
+  /projects/{project_id}/sqlEditor/run-query:
+    get:
+      consumes:
+      - application/json
+      description: Execute a dynamic SQL query against a specific project's PostgreSQL
+        database and return structured JSON results with metadata
+      parameters:
+      - description: Project ID (OID)
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: SQL query to execute
+        in: body
+        name: query
+        required: true
+        schema:
+          $ref: '#/definitions/sqleditor.RequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Query executed successfully
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Project ID is missing or invalid request body
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized access
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Project not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error or query execution failed
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Execute SQL query on project database
+      tags:
+      - sqlEditor
   /user/forget-password/verify:
     post:
       consumes:
