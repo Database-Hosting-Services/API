@@ -1,7 +1,7 @@
 package ai
 
-var SENDER_TYPE_AI string = "ai"
-var SENDER_TYPE_USER string = "user"
+const SENDER_TYPE_AI = "ai"
+const SENDER_TYPE_USER = "user"
 
 
 type Analytics struct {}
