@@ -15,10 +15,26 @@ definitions:
     required:
     - email
     type: object
+  accounts.ErrorNotAuthorized:
+    properties:
+      error:
+        type: string
+      message:
+        example: Authorization failed
+        type: string
+      status:
+        type: integer
+    type: object
   accounts.ErrorResponse:
     properties:
       error:
         example: Invalid request parameters
+        type: string
+    type: object
+  accounts.ErrorResponse400EmailNotFound:
+    properties:
+      error:
+        example: email not found please sign up first
         type: string
     type: object
   accounts.LoginResponse:
@@ -140,6 +156,28 @@ definitions:
     required:
     - email
     - password
+    type: object
+  accounts.UserData:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      image:
+        type: string
+      oid:
+        type: string
+      username:
+        type: string
+    type: object
+  accounts.UserDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/accounts.UserData'
+      message:
+        type: string
+      status:
+        type: integer
     type: object
   accounts.VerificationRequest:
     properties:
@@ -1159,13 +1197,10 @@ paths:
           schema:
             $ref: '#/definitions/accounts.SuccessMessageResponse'
         "400":
-          description: Invalid code or password
+          description: Invalid code or password or email not found please sign up
+            first
           schema:
-            $ref: '#/definitions/accounts.ErrorResponse'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/accounts.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse400EmailNotFound'
       summary: Verify and reset password
       tags:
       - accounts
@@ -1190,10 +1225,6 @@ paths:
             $ref: '#/definitions/accounts.SuccessMessageResponse'
         "400":
           description: User does not exist
-          schema:
-            $ref: '#/definitions/accounts.ErrorResponse'
-        "500":
-          description: Server error
           schema:
             $ref: '#/definitions/accounts.ErrorResponse'
       summary: Initiate password reset
@@ -1314,13 +1345,10 @@ paths:
           schema:
             $ref: '#/definitions/accounts.VerificationSuccessResponse'
         "400":
-          description: Invalid verification code
+          description: Invalid verification code or email not found please sign up
+            first
           schema:
-            $ref: '#/definitions/accounts.ErrorResponse'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/accounts.ErrorResponse'
+            $ref: '#/definitions/accounts.ErrorResponse400EmailNotFound'
       summary: Verify user account
       tags:
       - accounts
@@ -1363,6 +1391,30 @@ paths:
       security:
       - BearerAuth: []
       summary: Update user information
+      tags:
+      - accounts
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Just call the endpoint and pass the user's token in headers and
+        it will bring back the user's data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User data fetched
+          schema:
+            $ref: '#/definitions/accounts.UserDataResponse'
+        "401":
+          description: Authorization failed
+          schema:
+            $ref: '#/definitions/accounts.ErrorNotAuthorized'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/accounts.ErrorResponse'
+      summary: Get user's Data
       tags:
       - accounts
   /users/update-password:

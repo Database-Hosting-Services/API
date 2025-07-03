@@ -42,7 +42,7 @@ func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
 
 */
 
-func GetUser(ctx context.Context, db utils.Querier, SearchField string, query string, dest ...interface{}) error {
+func GetUser(ctx context.Context, db utils.Querier, SearchField interface{}, query string, dest ...interface{}) error {
 	err := db.QueryRow(ctx, query, SearchField).Scan(dest...)
 	if err != nil {
 		if err == pgx.ErrNoRows {
