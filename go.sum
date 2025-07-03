@@ -20,6 +20,12 @@ github.com/Database-Hosting-Services/AI-Agent v1.0.5 h1:WzSdMIVWCzNorlP8IwnlnOJQ
 github.com/Database-Hosting-Services/AI-Agent v1.0.5/go.mod h1:4JoX4wIMVtU9ydEOFS6MiDQKnuRfCxSmuesGhmCokAY=
 github.com/Database-Hosting-Services/AI-Agent v1.0.6 h1:b38d2Z98DX8UvBDE/Km8aEDoGtCM5xVBWCeVNY27NuM=
 github.com/Database-Hosting-Services/AI-Agent v1.0.6/go.mod h1:4JoX4wIMVtU9ydEOFS6MiDQKnuRfCxSmuesGhmCokAY=
+github.com/Database-Hosting-Services/AI-Agent v1.0.0 h1:f3tVVFK4prqewAjr+e616LEKjOSX8JFPH8gUE48E3PM=
+github.com/Database-Hosting-Services/AI-Agent v1.0.0/go.mod h1:4JoX4wIMVtU9ydEOFS6MiDQKnuRfCxSmuesGhmCokAY=
+github.com/Database-Hosting-Services/AI-Agent v1.0.1 h1:nx7cwZs9KTUdje2sTcRM0+ZNOblnVxX8z6GL+WE1JUA=
+github.com/Database-Hosting-Services/AI-Agent v1.0.1/go.mod h1:4JoX4wIMVtU9ydEOFS6MiDQKnuRfCxSmuesGhmCokAY=
+github.com/Database-Hosting-Services/AI-Agent v1.0.2 h1:lAf3mendjBP+1Q6G1bHSUNP7HsoSS+lZLF4bL8b/zkk=
+github.com/Database-Hosting-Services/AI-Agent v1.0.2/go.mod h1:4JoX4wIMVtU9ydEOFS6MiDQKnuRfCxSmuesGhmCokAY=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/MarceloPetrucio/go-scalar-api-reference v0.0.0-20240521013641-ce5d2efe0e06 h1:W4Yar1SUsPmmA51qoIRb174uDO/Xt3C48MB1YX9Y3vM=
@@ -144,6 +150,8 @@ github.com/redis/go-redis/v9 v9.7.1 h1:4LhKRCIduqXqtvCUlaq9c8bdHOkICjDMrr1+Zb3os
 github.com/redis/go-redis/v9 v9.7.1/go.mod h1:f6zhXITC7JUJIlPEiBOTXxJgPLdZcA93GewI7inzyWw=
 github.com/redis/go-redis/v9 v9.11.0 h1:E3S08Gl/nJNn5vkxd2i78wZxWAPNZgUNTp8WIJUAiIs=
 github.com/redis/go-redis/v9 v9.11.0/go.mod h1:huWgSWd8mW6+m0VPhJjSSQ+d6Nh1VICQ6Q5lHuCH/Iw=
+github.com/robfig/cron/v3 v3.0.1 h1:WdRxkvbJztn8LMz/QEvLN5sBU+xKpSqwwUO1Pjr4qDs=
+github.com/robfig/cron/v3 v3.0.1/go.mod h1:eQICP3HwyT7UooqI/z+Ov+PtYAWygg1TEWWzGIFLtro=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/rs/cors v1.11.1 h1:eU3gRzXLRK57F5rKMGMZURNdIG4EoAmX8k94r9wXWHA=

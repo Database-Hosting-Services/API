@@ -14,7 +14,7 @@ func UpdateDataInDatabase(ctx context.Context, db Querier, query string, dest ..
 	return err
 }
 
-func CheckOwnershipQuery(ctx context.Context, projectId string, userId int, db Querier) (bool, error) {
+func CheckOwnershipQuery(ctx context.Context, projectId string, userId int64, db Querier) (bool, error) {
 	var count int
 	err := db.QueryRow(ctx, CheckOwnershipStmt, projectId, userId).Scan(&count)
 	if err != nil {

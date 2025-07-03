@@ -11,7 +11,7 @@ import (
 
 func GetDatabaseStorage(ctx context.Context, db *pgxpool.Pool, projectOid string) (Storage, api.ApiError) {
 	// Get user ID from context
-	UserID, ok := ctx.Value("user-id").(int)
+	UserID, ok := ctx.Value("user-id").(int64)
 	if !ok || UserID == 0 {
 		return Storage{}, *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
 	}

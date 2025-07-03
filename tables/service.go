@@ -11,7 +11,7 @@ import (
 )
 
 func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) ([]ShortTable, error) {
-	userId, ok := ctx.Value("user-id").(int)
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return nil, errors.New("Unauthorized")
 	}
@@ -30,7 +30,7 @@ func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) 
 }
 
 func CreateTable(ctx context.Context, projectOID string, table *ClientTable, servDb *pgxpool.Pool) (string, error) {
-	userId, ok := ctx.Value("user-id").(int)
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return "", errors.New("Unauthorized")
 	}
@@ -68,7 +68,7 @@ func CreateTable(ctx context.Context, projectOID string, table *ClientTable, ser
 }
 
 func UpdateTable(ctx context.Context, projectOID string, tableOID string, updates *TableUpdate, servDb *pgxpool.Pool) error {
-	userId, ok := ctx.Value("user-id").(int)
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return errors.New("Unauthorized")
 	}
@@ -105,7 +105,7 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 }
 
 func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpool.Pool) error {
-	userId, ok := ctx.Value("user-id").(int)
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return errors.New("Unauthorized")
 	}
@@ -175,7 +175,7 @@ func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpoo
 */
 
 func ReadTable(ctx context.Context, projectOID, tableOID string, parameters map[string][]string, servDb *pgxpool.Pool) (*Data, error) {
-	userId, ok := ctx.Value("user-id").(int)
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return nil, response.ErrUnauthorized
 	}

@@ -17,7 +17,7 @@ type Project struct {
 
 type SafeProjectData struct {
 	Oid         string    `json:"oid" db:"oid"`
-	OwnerID     int       `json:"owner_id" db:"owner_id"`
+	OwnerID     int64     `json:"owner_id" db:"owner_id"`
 	Name        string    `json:"name" db:"name"`
 	Description string    `json:"description" db:"description"`
 	Status      string    `json:"status" db:"status"`
@@ -36,7 +36,7 @@ type DatabaseConfig struct {
 	ID        int       `json:"id" db:"id"`
 	Host      string    `json:"host" db:"host"`
 	Port      string    `json:"port" db:"port"`
-	UserID    int       `json:"user_id" db:"user_id"`
+	UserID    int64     `json:"user_id" db:"user_id"`
 	Password  string    `json:"password" db:"password"`
 	DBName    string    `json:"db_name" db:"db_name"`
 	SSLMode   string    `json:"ssl_mode" db:"ssl_mode"`

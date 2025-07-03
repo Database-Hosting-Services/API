@@ -20,7 +20,7 @@ func (d *DatabaseUsageStats) CalculateCosts() DatabaseUsageCost {
 
 func GetConnectionToAnalyticsPool(ctx context.Context, db *pgxpool.Pool, projectOid string) (*pgxpool.Pool, api.ApiError) {
 	// Get user ID from context
-	UserID, ok := ctx.Value("user-id").(int)
+	UserID, ok := ctx.Value("user-id").(int64)
 	if !ok || UserID == 0 {
 		return nil, *api.NewApiError("Unauthorized", 401, errors.New("user is not authorized"))
 	}

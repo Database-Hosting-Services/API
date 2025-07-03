@@ -4,8 +4,8 @@ import (
 	"DBHS/config"
 	"DBHS/response"
 	"encoding/json"
-
-	//"encoding/json"
+	"io"
+	"net/http"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -31,7 +31,7 @@ func Report(app *config.Application) http.HandlerFunc {
 		projectID := vars["project_id"]
 
 		// get user id from context
-		userID := r.Context().Value("user-id").(int)
+		userID := r.Context().Value("user-id").(int64)
 
 		Analytics := getAnalytics() // TODO: get real analytics
 		AI := config.AI
@@ -45,6 +45,7 @@ func Report(app *config.Application) http.HandlerFunc {
 		response.OK(w, "Report generated successfully", report)
 	}
 }
+
 
 func ChatBotAsk(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -99,3 +100,44 @@ func ChatBotAsk(app *config.Application) http.HandlerFunc {
 		response.OK(w, "Answer generated successfully", answer)
 	}
 }
+
+func Agent(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// get the request body
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			response.BadRequest(w, "Failed to read request body", err)
+			return
+		}
+
+		// parse the request body
+		var requestBody map[string]interface{}
+		err = json.Unmarshal(body, &requestBody)
+		if err != nil {
+			response.BadRequest(w, "Failed to parse request body", err)
+			return
+		}
+		// check if the request body is valid
+		if requestBody["prompt"] == nil {
+			response.BadRequest(w, "Prompt is required", nil)
+			return
+		}
+
+		prompt := requestBody["prompt"].(string)
+		// get project id from path
+		vars := mux.Vars(r)
+		projectUID := vars["project_id"]
+
+		// get user id from context
+		userID := r.Context().Value("user-id").(int64)
+
+		AIresponse, err := AgentQuery(projectUID, userID, prompt, config.AI)
+		if err != nil {
+			response.InternalServerError(w, "error while querying agent", err)
+			return
+		}
+
+		response.OK(w, "Agent query successful", AIresponse)
+	}
+}
+

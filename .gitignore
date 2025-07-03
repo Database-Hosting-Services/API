@@ -8,3 +8,5 @@ tmp/main*
 curl.sh
 .qodo
 *.log
+pr.md
+response.md
