@@ -24,7 +24,7 @@ func getAnalytics() Analytics { // this only a placeholder for now
 // @Produce json
 // @Param project_id path string true "Project ID"
 // @Success 200 {object} response.Response{data=object} "Report generated successfully"
-// @Failure 500 {object} response.Response "Internal server error"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
 // @Router /projects/{project_id}/ai/report [get]
 // @Security BearerAuth
 func Report(app *config.Application) http.HandlerFunc {
@@ -78,7 +78,7 @@ func Report(app *config.Application) http.HandlerFunc {
 // @Param project_id path string true "Project ID"
 // @Param ChatBotRequest body ChatBotRequest true "Chat Bot Request"
 // @Success 200 {object} response.Response{data=object} "Answer generated successfully"
-// @Failure 500 {object} response.Response "Internal server error"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
 // @Router /projects/{project_id}/ai/chatbot/ask [post]
 // @Security BearerAuth
 func ChatBotAsk(app *config.Application) http.HandlerFunc {
@@ -147,8 +147,8 @@ func ChatBotAsk(app *config.Application) http.HandlerFunc {
 // @Param project_id path string true "Project ID"
 // @Param Request body Request true "Request"
 // @Success 200 {object} response.Response{data=AgentResponse} "Agent query successful"
-// @Failure 400 {object} response.Response404 "Bad request"
-// @Failure 500 {object} response.Response500 "Internal server error"
+// @Failure 400 {object} response.ErrorResponse400 "Bad request"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
 // @Router /projects/{project_id}/ai/agent [post]
 // @Security JWTAuth
 func Agent(app *config.Application) http.HandlerFunc {
@@ -220,8 +220,8 @@ func Agent(app *config.Application) http.HandlerFunc {
 // @Produce json
 // @Param project_id path string true "Project ID"
 // @Success 200 {object} response.Response "Query executed successfully"
-// @Failure 400 {object} response.Response400 "Bad request"
-// @Failure 500 {object} response.Response500 "Internal server error"
+// @Failure 400 {object} response.ErrorResponse400 "Bad request"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
 // @Router /projects/{project_id}/ai/agent/accept [post]
 // @Security JWTAuth
 func AgentAccept(app *config.Application) http.HandlerFunc {
@@ -272,8 +272,8 @@ func AgentAccept(app *config.Application) http.HandlerFunc {
 // @Produce json
 // @Param project_id path string true "Project ID"
 // @Success 200 {object} response.Response "Agent query cancelled successfully"
-// @Failure 400 {object} response.Response400 "Bad request"
-// @Failure 500 {object} response.Response500 "Internal server error"
+// @Failure 400 {object} response.ErrorResponse400 "Bad request"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
 // @Router /projects/{project_id}/ai/agent/cancel [post]
 // @Security JWTAuth
 func AgentCancel(app *config.Application) http.HandlerFunc {
