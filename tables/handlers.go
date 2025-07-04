@@ -10,25 +10,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/*
-	body
-	tableName: "",
-	cols: [
-		{
-			name: "",
-			type: "",
-			isUnique: "",
-			isNullable: "",
-			isPrimaryKey: "",
-			foriegnKey: {
-				tableName: "",
-				columnName: "",
-			},
-		}
-	]
 
-*/
-// GetAllTablesHanlder godoc
+// GetAllTablesHandler godoc
 // @Summary Get all tables in a project
 // @Description Get a list of all tables in the specified project
 // @Tags tables
@@ -36,18 +19,19 @@ import (
 // @Param project_id path string true "Project ID"
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse{data=[]Table} "List of tables"
-// @Failure 400 {object} response.ErrorResponse "Project ID is required"
-// @Failure 401 {object} response.ErrorResponse "Unauthorized"
-// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Failure 404 {object} response.ErrorResponse404 "Project not found"
+// @Failure 401 {object} response.ErrorResponse401 "Unauthorized"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
 // @Router /api/projects/{project_id}/tables [get]
-func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
+func GetAllTablesHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
 		projectId := urlVariables["project_id"]
 		if projectId == "" {
-			response.BadRequest(w, "Project ID is required", nil)
+			response.NotFound(w, "Project ID is required", nil)
 			return
 		}
+		
 		data, err := GetAllTables(r.Context(), projectId, config.DB)
 		if err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
@@ -63,6 +47,45 @@ func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// GetTableSchemaHandler godoc
+// @Summary Get the schema of a table
+// @Description Get the schema of the specified table in the project
+// @Tags tables
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param table_id path string true "Table ID"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse{data=Table} "Table schema"
+// @Failure 400 {object} response.ErrorResponse400 "Bad request"
+// @Failure 401 {object} response.ErrorResponse401 "Unauthorized"
+// @Failure 404 {object} response.ErrorResponse404 "Project not found"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
+// @Router /api/projects/{project_id}/tables/{table_id}/schema [get]
+func GetTableSchemaHandler(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlVariables := mux.Vars(r)
+		projectId := urlVariables["project_id"]
+		tableId := urlVariables["table_id"]
+		if projectId == "" || tableId == "" {
+			response.BadRequest(w, "Project ID and Table ID are required", nil)
+			return
+		}
+
+		data, err := GetTableSchema(r.Context(), projectId, tableId, config.DB)
+		if err != nil {
+			if errors.Is(err, response.ErrUnauthorized) {
+				response.UnAuthorized(w, "Unauthorized", nil)
+				return
+			}
+			app.ErrorLog.Println("Could not read table schema:", err)
+			response.InternalServerError(w, "Could not read table schema", err)
+			return
+		}
+
+		response.OK(w, "Table Schema Read Successfully", data)
+	}
+}
+
 // CreateTableHandler godoc
 // @Summary Create a new table
 // @Description Create a new table in the specified project
@@ -70,7 +93,7 @@ func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param project_id path string true "Project ID"
-// @Param table body ClientTable true "Table information"
+// @Param table body Table true "Table information"
 // @Security BearerAuth
 // @Success 201 {object} response.SuccessResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -80,7 +103,7 @@ func GetAllTablesHanlder(app *config.Application) http.HandlerFunc {
 func CreateTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Handler logic for creating a table
-		table := ClientTable{}
+		table := Table{}
 		// Parse the request body to populate the table struct
 		if err := json.NewDecoder(r.Body).Decode(&table); err != nil {
 			response.BadRequest(w, "Invalid request body", err)
@@ -100,7 +123,6 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 			response.BadRequest(w, "Project ID is required", nil)
 			return
 		}
-
 		// Call the service function to create the table
 		tableOID, err := CreateTable(r.Context(), projectId, &table, config.DB)
 		if err != nil {
@@ -119,25 +141,6 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 	}
 }
 
-/*
-	"insert": {
-		"columns" : [
-
-		]
-	},
-	"update": [
-		{
-			"oldName": "oldName",
-			"columns": [
-				// Only include the changed parts
-			]
-		}
-	],
-	"delete": [
-		"columnName1",
-		"columnName2"
-	]
-*/
 
 // UpdateTableHandler godoc
 // @Summary Update an existing table
@@ -147,17 +150,18 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 // @Produce json
 // @Param project_id path string true "Project ID"
 // @Param table_id path string true "Table ID"
-// @Param updates body TableUpdate true "Table update information"
+// @Param updates body UpdateTableSchema true "new table schema updates"
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400 {object} response.ErrorResponse400
+// @Failure 401 {object} response.ErrorResponse401
+// @Failure 404 {object} response.ErrorResponse404
+// @Failure 500 {object} response.ErrorResponse500
 // @Router /api/projects/{project_id}/tables/{table_id} [put]
 func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		updates := TableUpdate{}
+		updates := UpdateTableSchema{}
 		// Parse the request body to populate the UpdateTable struct
 		if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
 			response.BadRequest(w, "Invalid request body", err)
@@ -166,15 +170,15 @@ func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 
 		// Get the project ID and Table id from the URL
 		urlVariables := mux.Vars(r)
-		projectId := urlVariables["project_id"]
+		projectOID := urlVariables["project_id"]
 		tableId := urlVariables["table_id"]
-		if projectId == "" || tableId == "" {
+		if projectOID == "" || tableId == "" {
 			response.BadRequest(w, "Project ID and Table ID are required", nil)
 			return
 		}
 
 		// Call the service function to update the table
-		if err := UpdateTable(r.Context(), projectId, tableId, &updates, config.DB); err != nil {
+		if err := UpdateTable(r.Context(), projectOID, tableId, &updates, config.DB); err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
 				response.UnAuthorized(w, "Unauthorized", nil)
 				return
@@ -197,21 +201,22 @@ func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 // @Param table_id path string true "Table ID"
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400 {object} response.ErrorResponse400
+// @Failure 401 {object} response.ErrorResponse401
+// @Failure 404 {object} response.ErrorResponse404
+// @Failure 500 {object} response.ErrorResponse500
 // @Router /api/projects/{project_id}/tables/{table_id} [delete]
 func DeleteTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)
-		projectId := urlVariables["project_id"]
-		tableId := urlVariables["table_id"]
-		if projectId == "" || tableId == "" {
+		projectOID := urlVariables["project_id"]
+		tableOID := urlVariables["table_id"]
+		if projectOID == "" || tableOID == "" {
 			response.BadRequest(w, "Project ID and Table ID are required", nil)
 			return
 		}
 		// Call the service function to delete the table
-		if err := DeletTable(r.Context(), projectId, tableId, config.DB); err != nil {
+		if err := DeleteTable(r.Context(), projectOID, tableOID, config.DB); err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
 				response.UnAuthorized(w, "Unauthorized", nil)
 				return

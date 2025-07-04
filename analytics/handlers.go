@@ -10,14 +10,14 @@ import (
 )
 
 // CurrentStorage godoc
-// @Summary Get current storage information
-// @Description Retrieve the current storage usage information for a specific project
+// @Summary Get historical storage information
+// @Description Retrieve all historical storage usage records for a specific project with timestamps
 // @Tags analytics
 // @Accept json
 // @Produce json
-// @Param project_id path string true "Project ID"
+// @Param project_id path string true "Project ID (OID)"
 // @Security BearerAuth
-// @Success 200 {object} response.SuccessResponse "Current storage retrieved successfully"
+// @Success 200 {object} response.SuccessResponse{data=[]analytics.StorageWithDates} "Storage history retrieved successfully"
 // @Failure 400 {object} response.ErrorResponse "Project ID is missing"
 // @Failure 404 {object} response.ErrorResponse "No storage information found"
 // @Failure 500 {object} response.ErrorResponse "Internal server error"
@@ -31,29 +31,30 @@ func CurrentStorage(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		storage, apiErr := GetDatabaseStorage(r.Context(), config.DB, projectOid)
+		storage, apiErr := GetALLDatabaseStorage(r.Context(), config.DB, projectOid)
 		if apiErr.Error() != nil {
 			utils.ResponseHandler(w, r, apiErr)
 			return
 		}
-		if storage.ManagementStorage == "" && storage.ActualData == "" {
+		if len(storage) == 0 {
 			response.NotFound(w, "No storage information found for the project", nil)
 			return
 		}
-		response.OK(w, "Current storage retrieved successfully", storage)
+		response.OK(w, "Storage history retrieved successfully", storage)
 	}
 }
 
 // ExecutionTime godoc
 // @Summary Get query execution time statistics
-// @Description Retrieve statistics about query execution times for a specific project
+// @Description Retrieve all historical statistics about query execution times for a specific project with timestamps
 // @Tags analytics
 // @Accept json
 // @Produce json
-// @Param project_id path string true "Project ID"
+// @Param project_id path string true "Project ID (OID)"
 // @Security BearerAuth
-// @Success 200 {object} response.SuccessResponse "Execution time statistics retrieved successfully"
+// @Success 200 {object} response.SuccessResponse{data=[]analytics.DatabaseActivityWithDates} "Execution time statistics retrieved successfully"
 // @Failure 400 {object} response.ErrorResponse "Project ID is missing"
+// @Failure 404 {object} response.ErrorResponse "No execution time records found"
 // @Failure 500 {object} response.ErrorResponse "Internal server error"
 // @Router /projects/{project_id}/analytics/execution-time [get]
 func ExecutionTime(app *config.Application) http.HandlerFunc {
@@ -65,7 +66,7 @@ func ExecutionTime(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		stats, apiErr := GetExecutionTimeStats(r.Context(), config.DB, projectOid)
+		stats, apiErr := GetALLExecutionTimeStats(r.Context(), config.DB, projectOid)
 		if apiErr.Error() != nil {
 			utils.ResponseHandler(w, r, apiErr)
 			return
@@ -76,15 +77,16 @@ func ExecutionTime(app *config.Application) http.HandlerFunc {
 }
 
 // DatabaseUsage godoc
-// @Summary Get database usage statistics
-// @Description Retrieve statistics about database usage and associated costs
+// @Summary Get database usage statistics and costs
+// @Description Retrieve all historical statistics about database usage and associated costs for a specific project with timestamps
 // @Tags analytics
 // @Accept json
 // @Produce json
-// @Param project_id path string true "Project ID"
+// @Param project_id path string true "Project ID (OID)"
 // @Security BearerAuth
-// @Success 200 {object} response.SuccessResponse "Database usage statistics retrieved successfully"
+// @Success 200 {object} response.SuccessResponse{data=[]analytics.DatabaseUsageCostWithDates} "Database usage statistics retrieved successfully"
 // @Failure 400 {object} response.ErrorResponse "Project ID is missing"
+// @Failure 404 {object} response.ErrorResponse "No database usage records found"
 // @Failure 500 {object} response.ErrorResponse "Internal server error"
 // @Router /projects/{project_id}/analytics/usage [get]
 func DatabaseUsage(app *config.Application) http.HandlerFunc {
@@ -96,7 +98,7 @@ func DatabaseUsage(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		stats, apiErr := GetDatabaseUsageStats(r.Context(), config.DB, projectOid)
+		stats, apiErr := GetALLDatabaseUsageStats(r.Context(), config.DB, projectOid)
 		if apiErr.Error() != nil {
 			utils.ResponseHandler(w, r, apiErr)
 			return

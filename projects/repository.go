@@ -55,3 +55,25 @@ func getUserSpecificProjectFromDatabase(ctx context.Context, db utils.Querier, u
 	}
 	return &project, nil
 }
+
+
+func GetProjectNameID(ctx context.Context, projectId string, db utils.Querier) (interface{}, interface{}, error) {
+	var name, id interface{}
+	err := db.QueryRow(ctx, "SELECT id, name FROM projects WHERE oid = $1", projectId).Scan(&id, &name)
+	if err != nil {
+		return nil, nil, err
+	}
+	return name, id, nil
+}
+
+func GetProjectID(ctx context.Context, db utils.Querier, userId int64, projectOid string) (int64, error) {
+	var projectID int64
+	err := pgxscan.Get(ctx, db, &projectID, RetrieveProjectID, userId, projectOid)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, ErrorProjectNotFound
+		}
+		return 0, err
+	}
+	return projectID, nil
+}

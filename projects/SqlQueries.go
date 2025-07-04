@@ -21,6 +21,10 @@ const (
 	RetrieveUserSpecificProject = `SELECT oid, owner_id, name, description, status, created_at, api_url, api_key
 									FROM "projects"
 									WHERE owner_id = $1 AND oid = $2`
+
+	RetrieveProjectID = `
+		SELECT id FROM projects WHERE owner_id = $1 AND oid = $2
+	`
 )
 
 func BuildProjectUpdateQuery(projectOid string, feildsToUpdate []string) (string, error) {

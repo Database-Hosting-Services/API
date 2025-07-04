@@ -15,7 +15,7 @@ import (
 	"github.com/robfig/cron/v3"
 	_ "github.com/swaggo/swag"
 
-	"github.com/rs/cors"
+	// "github.com/rs/cors"
 )
 
 // @title DBHS API
@@ -81,18 +81,20 @@ func main() {
 
 	// Set up CORS middleware
 	// Allow all origins, credentials, and headers
-	corsHandler := cors.Default().Handler(handler)
+	// corsHandler := cors.Default().Handler(handler)
 
 	server := &http.Server{
 		Addr:     *addr,
 		ErrorLog: errorLog,
-		Handler:  corsHandler,
+		Handler:  middleware.EnableCORS(handler),
 	}
 
 	infoLog.Printf("starting server on :%s", *addr)
 	infoLog.Printf("Scalar UI available at http://%s/reference", *addr)
 
 	c := cron.New()
+
+	// Cron syntax "0 0 * * *" means: "At 00:00 (midnight) every day"
 	c.AddFunc("0 0 * * *", func() {
 		workers.GatherAnalytics(config.App)
 	})

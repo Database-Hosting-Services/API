@@ -15,13 +15,13 @@ import (
 
 func getReport(projectUUID string, userID int64, analytics Analytics, AI RAG.RAGmodel) (string, error) {
 	// get project name and connection
-	_, userDb, err := tables.ExtractDb(context.Background(), projectUUID, userID, config.DB)
+	_, userDb, err := utils.ExtractDb(context.Background(), projectUUID, userID, config.DB)
 	if err != nil {
 		return "", err
 	}
 
 	// get database schema
-	databaseSchema, err := ExtractDatabaseSchema(context.Background(), userDb)
+	databaseSchema, err := utils.ExtractDatabaseSchema(context.Background(), userDb)
 	if err != nil {
 		return "", err
 	}
