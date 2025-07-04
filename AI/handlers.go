@@ -124,19 +124,18 @@ func Agent(app *config.Application) http.HandlerFunc {
 		}
 
 		// parse the request body
-		var requestBody map[string]interface{}
-		err = json.Unmarshal(body, &requestBody)
+		request := &Request{}
+		err = json.Unmarshal(body, request)
 		if err != nil {
 			response.BadRequest(w, "Failed to parse request body", err)
 			return
 		}
 		// check if the request body is valid
-		if requestBody["prompt"] == nil {
+		if request.Prompt == "" {
 			response.BadRequest(w, "Prompt is required", nil)
 			return
 		}
 
-		prompt := requestBody["prompt"].(string)
 		// get project id from path
 		vars := mux.Vars(r)
 		projectUID := vars["project_id"]
@@ -144,7 +143,7 @@ func Agent(app *config.Application) http.HandlerFunc {
 		// get user id from context
 		userID := r.Context().Value("user-id").(int64)
 
-		AIresponse, err := AgentQuery(projectUID, userID, prompt, config.AI)
+		AIresponse, err := AgentQuery(projectUID, userID, request.Prompt, config.AI)
 		if err != nil {
 			response.InternalServerError(w, "error while querying agent", err)
 			return
@@ -156,6 +155,22 @@ func Agent(app *config.Application) http.HandlerFunc {
 
 func AgentAccept(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		
+		// get project id from path
+		vars := mux.Vars(r)
+		projectUID := vars["project_id"]
+		// get user id from context
+		userID := r.Context().Value("user-id").(int64)
+
+		// execute the agent query
+		err := AgentExec(projectUID, userID, config.AI)
+		if err != nil {
+			if err.Error() == "changes expired or not found" {
+				response.BadRequest(w, "No schema changes found or changes expired", nil)
+			} else {
+				response.InternalServerError(w, "error while executing agent", err)
+			}
+			return
+		}
+		response.OK(w, "query executed successfully", nil)
 	}
 }

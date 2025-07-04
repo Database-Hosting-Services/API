@@ -2,7 +2,6 @@ package ai
 
 import (
 	"DBHS/config"
-	"DBHS/tables"
 	"DBHS/utils"
 	"context"
 	"encoding/json"
@@ -81,7 +80,7 @@ func GetOrCreateChatData(ctx context.Context, db utils.Querier, userID, projectI
 
 func AgentQuery(projectUUID string, userID int64, prompt string, AI RAG.RAGmodel) (*RAG.AgentResponse, error) {
 	// get project name and connection
-	_, userDb, err := tables.ExtractDb(context.Background(), projectUUID, userID, config.DB)
+	_, userDb, err := utils.ExtractDb(context.Background(), projectUUID, userID, config.DB)
 	if err != nil {
 		config.App.ErrorLog.Println("Error extracting database connection:", err)
 		return nil, err
@@ -109,3 +108,42 @@ func AgentQuery(projectUUID string, userID int64, prompt string, AI RAG.RAGmodel
 	return response, nil
 }
 
+func AgentExec(projectUUID string, userID int64, AI RAG.RAGmodel) error {
+	// get project name and connection
+	_, userDb, err := utils.ExtractDb(context.Background(), projectUUID, userID, config.DB)
+	if err != nil {
+		config.App.ErrorLog.Println("Error extracting database connection:", err)
+		return err
+	}
+
+	// get the DDL from the cache
+	ddl, err := config.VerifyCache.Get("schema-changes:"+projectUUID, nil)
+	if err != nil {
+		config.App.ErrorLog.Println("Error getting schema changes from cache:", err)
+		return err
+	}
+
+	if ddl == nil {
+		config.App.ErrorLog.Println("No schema changes found in cache for project:", projectUUID)
+		return errors.New("changes expired or not found")
+	}
+
+	// execute the DDL
+	tx, err := userDb.Begin(context.Background())
+	if err != nil {
+		config.App.ErrorLog.Println("Error starting transaction:", err)
+		return err
+	}
+	defer tx.Rollback(context.Background())
+
+	_, err = tx.Exec(context.Background(), ddl.(string))
+	if err != nil {
+		config.App.ErrorLog.Println("Error executing DDL:", err)
+		return err
+	}
+	if err := tx.Commit(context.Background()); err != nil {
+		config.App.ErrorLog.Println("Error committing transaction:", err)
+		return err
+	}
+	return nil
+}

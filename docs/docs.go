@@ -2240,6 +2240,14 @@ const docTemplate = `{
                 }
             }
         },
+        "ai.ChatBotRequest": {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
         "analytics.DatabaseActivityWithDates": {
             "type": "object",
             "properties": {

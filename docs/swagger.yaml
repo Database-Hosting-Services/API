@@ -203,6 +203,11 @@ definitions:
         example: User verified successfully
         type: string
     type: object
+  ai.ChatBotRequest:
+    properties:
+      question:
+        type: string
+    type: object
   analytics.DatabaseActivityWithDates:
     properties:
       timestamp:

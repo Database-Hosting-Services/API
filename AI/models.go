@@ -16,3 +16,7 @@ type ChatData struct {
 	OwnerID   int    `json:"owner_id"`
 	ProjectID int    `json:"project_id"`
 }
+
+type Request struct {
+	Prompt string `json:"prompt"`
+}

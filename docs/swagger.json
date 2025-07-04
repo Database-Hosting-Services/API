@@ -1550,9 +1550,7 @@
                     },
                     "400": {
                         "description": "Invalid code or password or email not found please sign up first",
-                        "description": "Invalid code or password or email not found please sign up first",
                         "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse400EmailNotFound"
                             "$ref": "#/definitions/accounts.ErrorResponse400EmailNotFound"
                         }
                     }
@@ -1776,9 +1774,7 @@
                     },
                     "400": {
                         "description": "Invalid verification code or email not found please sign up first",
-                        "description": "Invalid verification code or email not found please sign up first",
                         "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse400EmailNotFound"
                             "$ref": "#/definitions/accounts.ErrorResponse400EmailNotFound"
                         }
                     }
@@ -1986,15 +1982,6 @@
                 "error": {
                     "type": "string",
                     "example": "Invalid request parameters"
-                }
-            }
-        },
-        "accounts.ErrorResponse400EmailNotFound": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string",
-                    "example": "email not found please sign up first"
                 }
             }
         },
@@ -2246,6 +2233,14 @@
                 }
             }
         },
+        "ai.ChatBotRequest": {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
         "analytics.DatabaseActivityWithDates": {
             "type": "object",
             "properties": {
@@ -2287,14 +2282,6 @@
                     "type": "string"
                 },
                 "timestamp": {
-                    "type": "string"
-                }
-            }
-        },
-        "ai.ChatBotRequest": {
-            "type": "object",
-            "properties": {
-                "question": {
                     "type": "string"
                 }
             }
