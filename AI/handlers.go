@@ -4,7 +4,6 @@ import (
 	"DBHS/config"
 	"DBHS/response"
 	"encoding/json"
-	"net/http"
 	"time"
 
 	"github.com/axiomhq/axiom-go/axiom"
@@ -46,10 +45,10 @@ func Report(app *config.Application) http.HandlerFunc {
 			config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
 				{
 					ingest.TimestampField: time.Now(),
-					"project_id": projectID,
-					"user_id":    userID,
-					"error":      err.Error(),
-					"message":    "Failed to generate AI report",
+					"project_id":          projectID,
+					"user_id":             userID,
+					"error":               err.Error(),
+					"message":             "Failed to generate AI report",
 				},
 			})
 			return
@@ -58,11 +57,11 @@ func Report(app *config.Application) http.HandlerFunc {
 		config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
 			{
 				ingest.TimestampField: time.Now(),
-				"project_id": projectID,
-				"user_id":    userID,
-				"report":     report,
-				"status":     "success",
-				"message":    "AI report generated successfully",
+				"project_id":          projectID,
+				"user_id":             userID,
+				"report":              report,
+				"status":              "success",
+				"message":             "AI report generated successfully",
 			},
 		})
 
@@ -194,8 +193,27 @@ func AgentAccept(app *config.Application) http.HandlerFunc {
 			} else {
 				response.InternalServerError(w, "error while executing agent", err)
 			}
+			// log the error to Axiom
+			config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
+				{
+					ingest.TimestampField: time.Now(),
+					"project_id":          projectUID,
+					"user_id":             userID,
+					"error":               err.Error(),
+					"message":             "Failed to execute agent query",
+				},
+			})
 			return
 		}
+		// log the success to Axiom
+		config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
+			{
+				ingest.TimestampField: time.Now(),
+				"project_id":          projectUID,
+				"user_id":             userID,
+				"message":             "Agent query executed successfully",
+			},
+		})
 		response.OK(w, "query executed successfully", nil)
 	}
 }
