@@ -4,6 +4,11 @@ import (
 	"DBHS/config"
 	"DBHS/response"
 	"encoding/json"
+	"net/http"
+	"time"
+
+	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/gorilla/mux"
 	"io"
 	"net/http"
@@ -38,8 +43,28 @@ func Report(app *config.Application) http.HandlerFunc {
 		report, err := getReport(projectID, userID, Analytics, AI)
 		if err != nil {
 			response.InternalServerError(w, err.Error(), err)
+			config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
+				{
+					ingest.TimestampField: time.Now(),
+					"project_id": projectID,
+					"user_id":    userID,
+					"error":      err.Error(),
+					"message":    "Failed to generate AI report",
+				},
+			})
 			return
 		}
+
+		config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
+			{
+				ingest.TimestampField: time.Now(),
+				"project_id": projectID,
+				"user_id":    userID,
+				"report":     report,
+				"status":     "success",
+				"message":    "AI report generated successfully",
+			},
+		})
 
 		response.OK(w, "Report generated successfully", report)
 	}
