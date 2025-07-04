@@ -8,11 +8,44 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
-
 	"github.com/gorilla/mux"
 	"github.com/redis/go-redis/v9"
+	"net/http"
 )
+
+// GetUserData godoc
+// @Summary Get user's Data
+// @Description Just call the endpoint and pass the user's token in headers and it will bring back the user's data
+// @Tags accounts
+// @Accept json
+// @Produce json
+// @Success 200 {object} UserDataResponse "User data fetched"
+// @Failure 401 {object} ErrorNotAuthorized "Authorization failed"
+// @Failure 500 {object} ErrorResponse "Server error"
+// @Router /users/me [get]
+func getUserData(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userId := r.Context().Value("user-id")
+
+		user := &User{}
+		err := GetUserDataService(r.Context(), config.DB, userId, user)
+		if err != nil {
+			app.ErrorLog.Println(err.Error())
+			response.InternalServerError(w, "Internal Server Error", err)
+			return
+		}
+
+		ret := map[string]interface{}{
+			"oid":        user.OID,
+			"username":   user.Username,
+			"email":      user.Email,
+			"image":      user.Image,
+			"created_at": user.CreatedAt,
+		}
+
+		response.OK(w, "User data fetched", ret)
+	}
+}
 
 // signUp godoc
 // @Summary Register a new user

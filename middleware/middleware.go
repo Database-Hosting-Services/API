@@ -63,8 +63,14 @@ func CheckOTableExist(next http.Handler) http.Handler {
 		projectOID := urlVariables["project_id"]
 		tableOID := urlVariables["table_id"]
 		if tableOID != "" {
+			// get the project id from the database
+			_, projectId, err := utils.GetProjectNameID(r.Context(), projectOID, config.DB)
+			if err != nil {
+				response.InternalServerError(w, "Failed to get project ID", err)
+				return
+			}
 			//check if the table belongs to the project
-			ok, err := utils.CheckOwnershipQueryTable(r.Context(), tableOID, projectOID, config.DB)
+			ok, err := utils.CheckOwnershipQueryTable(r.Context(), tableOID, projectId.(int64), config.DB)
 			if err != nil {
 				response.InternalServerError(w, err.Error(), err)
 				return

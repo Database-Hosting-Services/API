@@ -158,6 +158,7 @@ func ReadTableData(ctx context.Context, tableName string, parameters map[string]
 	if columns == nil {
 		return nil, err
 	}
+	
 	data := Data{
 		Columns: make([]ShowColumn, len(columns)),
 	}
@@ -219,7 +220,7 @@ func PrepareQuery(tableName string, parameters map[string][]string) (string, err
 
 // filter will be a string in the format "column:op:value"
 func AddFilters(query string, filters []string) (string, error) {
-	if filters == nil || len(filters) == 0 {
+	if len(filters) == 0 {
 		return query, nil
 	}
 	query = query + " WHERE "

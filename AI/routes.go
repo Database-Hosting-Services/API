@@ -11,4 +11,9 @@ func DefineURLs() {
 	AIProtected.Use(middleware.JwtAuthMiddleware, middleware.CheckOwnership)
 
 	AIProtected.Handle("/report", middleware.MethodsAllowed(http.MethodGet)(Report(config.App)))
+	AIProtected.Handle(("/chatbot/ask"), middleware.MethodsAllowed(http.MethodPost)(ChatBotAsk(config.App)))
+	
+	AIProtected.Handle("/agent", middleware.MethodsAllowed(http.MethodPost)(Agent(config.App)))
+	AIProtected.Handle("/agent/accept", middleware.MethodsAllowed(http.MethodPost)(AgentAccept(config.App)))
+	AIProtected.Handle("/agent/cancel", middleware.MethodsAllowed(http.MethodPost)(AgentCancel(config.App)))
 }

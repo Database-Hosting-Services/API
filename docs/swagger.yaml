@@ -15,6 +15,16 @@ definitions:
     required:
     - email
     type: object
+  accounts.ErrorNotAuthorized:
+    properties:
+      error:
+        type: string
+      message:
+        example: Authorization failed
+        type: string
+      status:
+        type: integer
+    type: object
   accounts.ErrorResponse:
     properties:
       error:
@@ -147,6 +157,28 @@ definitions:
     - email
     - password
     type: object
+  accounts.UserData:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      image:
+        type: string
+      oid:
+        type: string
+      username:
+        type: string
+    type: object
+  accounts.UserDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/accounts.UserData'
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
   accounts.VerificationRequest:
     properties:
       code:
@@ -169,6 +201,16 @@ definitions:
         type: object
       message:
         example: User verified successfully
+        type: string
+    type: object
+  ai.ChatBotRequest:
+    properties:
+      question:
+        type: string
+    type: object
+  ai.Request:
+    properties:
+      prompt:
         type: string
     type: object
   analytics.DatabaseActivityWithDates:
@@ -1002,6 +1044,45 @@ paths:
       summary: Update a project
       tags:
       - projects
+  /projects/{project_id}/ai/chatbot/ask:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint allows users to ask questions to the chatbot, which
+        will respond using AI. It also saves the chat history for future reference.
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Chat Bot Request
+        in: body
+        name: ChatBotRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ai.ChatBotRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Answer generated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Chat Bot Ask
+      tags:
+      - AI
   /projects/{project_id}/ai/report:
     get:
       consumes:
@@ -1628,6 +1709,30 @@ paths:
       security:
       - BearerAuth: []
       summary: Update user information
+      tags:
+      - accounts
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Just call the endpoint and pass the user's token in headers and
+        it will bring back the user's data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User data fetched
+          schema:
+            $ref: '#/definitions/accounts.UserDataResponse'
+        "401":
+          description: Authorization failed
+          schema:
+            $ref: '#/definitions/accounts.ErrorNotAuthorized'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/accounts.ErrorResponse'
+      summary: Get user's Data
       tags:
       - accounts
   /users/update-password:

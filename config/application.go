@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/axiomhq/axiom-go/axiom"
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 
@@ -59,6 +60,8 @@ var (
 	ConfigManager *UserDbConfig
 
 	AI Agent.RAGmodel
+
+	AxiomLogger *axiom.Client
 )
 
 func loadEnv() {
@@ -72,7 +75,7 @@ func loadEnv() {
 }
 
 const (
-	deploy = true
+	deploy = false
 )
 
 func Init(infoLog, errorLog *log.Logger) {
@@ -195,6 +198,14 @@ func Init(infoLog, errorLog *log.Logger) {
 		PineconeIndexHost:    os.Getenv("PINECONE_INDEX_HOST"),
 	})
 	infoLog.Println("Connected to AI successfully! ✅")
+
+	AxiomLogger, err = axiom.NewClient(
+		axiom.SetPersonalTokenConfig(os.Getenv("AXIOM_TOKEN"), os.Getenv("AXIOM_ORG_ID")), // Set your Axiom personal token and organization ID
+	)
+	if err != nil {
+		errorLog.Fatalf("Failed to create Axiom client: %v", err)
+	}
+	infoLog.Println("Connected to Axiom successfully! ✅")
 }
 
 func CloseDB() {
