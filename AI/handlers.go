@@ -138,6 +138,19 @@ func ChatBotAsk(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// Agent godoc
+// @Summary AI Agent Query
+// @Description This endpoint allows users to query the AI agent with a prompt. The agent will respond with a schema change suggestion based on the prompt.
+// @Tags AI
+// @Accept json
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param Request body Request true "Request"
+// @Success 200 {object} response.Response{data=AgentResponse} "Agent query successful"
+// @Failure 400 {object} response.Response404 "Bad request"
+// @Failure 500 {object} response.Response500 "Internal server error"
+// @Router /projects/{project_id}/ai/agent [post]
+// @Security JWTAuth
 func Agent(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get the request body
@@ -170,13 +183,47 @@ func Agent(app *config.Application) http.HandlerFunc {
 		AIresponse, err := AgentQuery(projectUID, userID, request.Prompt, config.AI)
 		if err != nil {
 			response.InternalServerError(w, "error while querying agent", err)
+			// log the error to Axiom
+			config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
+				{
+					ingest.TimestampField: time.Now(),
+					"project_id":          projectUID,
+					"user_id":             userID,
+					"error":               err.Error(),
+					"message":             "Failed to query agent",
+				},
+			})
 			return
 		}
+		// log the success to Axiom
+		config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
+			{
+				ingest.TimestampField: time.Now(),
+				"project_id":          projectUID,
+				"user_id":             userID,
+				"message":             "Agent query successful",
+				"ddl":                 AIresponse.SchemaDDL,
+				"prompt":              request.Prompt,
+				"SchemaChanges":       AIresponse.SchemaChanges,
+				"response":            AIresponse.Response,
+			},
+		})
 
 		response.OK(w, "Agent query successful", AIresponse)
 	}
 }
 
+// AgentAccept godoc
+// @Summary Accept AI Agent Query
+// @Description This endpoint allows users to accept the AI agent's query and execute the schema changes
+// @Tags AI
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Success 200 {object} response.Response "Query executed successfully"
+// @Failure 400 {object} response.Response400 "Bad request"
+// @Failure 500 {object} response.Response500 "Internal server error"
+// @Router /projects/{project_id}/ai/agent/accept [post]
+// @Security JWTAuth
 func AgentAccept(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get project id from path
@@ -215,5 +262,53 @@ func AgentAccept(app *config.Application) http.HandlerFunc {
 			},
 		})
 		response.OK(w, "query executed successfully", nil)
+	}
+}
+
+// AgentCancel godoc
+// @Summary Cancel AI Agent Query
+// @Description This endpoint allows users to cancel an AI agent query
+// @Tags AI
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Success 200 {object} response.Response "Agent query cancelled successfully"
+// @Failure 400 {object} response.Response400 "Bad request"
+// @Failure 500 {object} response.Response500 "Internal server error"
+// @Router /projects/{project_id}/ai/agent/cancel [post]
+// @Security JWTAuth
+func AgentCancel(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// get project id from path
+		vars := mux.Vars(r)
+		projectUID := vars["project_id"]
+		// get user id from context
+		userID := r.Context().Value("user-id").(int64)
+		// cancel the agent query
+		err := ClearCacheForProject(projectUID)
+		if err != nil {
+			response.InternalServerError(w, "error while cancelling agent query", err)
+			// log the error to Axiom
+			config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
+				{
+					ingest.TimestampField: time.Now(),
+					"project_id":          projectUID,
+					"user_id":             userID,
+					"error":               err.Error(),
+					"message":             "Failed to cancel agent query",
+				},
+			})
+			return
+		}
+		// log the cancellation to Axiom
+		config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
+			{
+				ingest.TimestampField: time.Now(),
+				"project_id":          projectUID,
+				"user_id":             userID,
+				"message":             "Agent query cancelled",
+			},
+		})
+
+		response.OK(w, "Agent query cancelled successfully", nil)
 	}
 }

@@ -208,6 +208,11 @@ definitions:
       question:
         type: string
     type: object
+  ai.Request:
+    properties:
+      prompt:
+        type: string
+    type: object
   analytics.DatabaseActivityWithDates:
     properties:
       timestamp:

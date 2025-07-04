@@ -147,3 +147,13 @@ func AgentExec(projectUUID string, userID int64, AI RAG.RAGmodel) error {
 	}
 	return nil
 }
+
+func ClearCacheForProject(projectUUID string) error {
+	// clear the cache for the project
+	err := config.VerifyCache.Delete("schema-changes:" + projectUUID)
+	if err != nil {
+		config.App.ErrorLog.Println("Error clearing cache for project:", projectUUID, "Error:", err)
+		return err
+	}
+	return nil
+}

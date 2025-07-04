@@ -2248,6 +2248,14 @@ const docTemplate = `{
                 }
             }
         },
+        "ai.Request": {
+            "type": "object",
+            "properties": {
+                "prompt": {
+                    "type": "string"
+                }
+            }
+        },
         "analytics.DatabaseActivityWithDates": {
             "type": "object",
             "properties": {
