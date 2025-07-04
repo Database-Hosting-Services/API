@@ -1,5 +1,4 @@
 package ai
-
 const SENDER_TYPE_AI = "ai"
 const SENDER_TYPE_USER = "user"
 
@@ -19,4 +18,10 @@ type ChatData struct {
 
 type Request struct {
 	Prompt string `json:"prompt"`
+}
+
+type AgentResponse struct {
+	Response      string `json:"response"`
+    SchemaChanges string `json:"schema_changes"`
+    SchemaDDL     string `json:"schema_ddl"`
 }

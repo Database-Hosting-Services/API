@@ -203,6 +203,15 @@ definitions:
         example: User verified successfully
         type: string
     type: object
+  ai.AgentResponse:
+    properties:
+      response:
+        type: string
+      schema_changes:
+        type: string
+      schema_ddl:
+        type: string
+    type: object
   ai.ChatBotRequest:
     properties:
       question:
@@ -1044,6 +1053,108 @@ paths:
       summary: Update a project
       tags:
       - projects
+  /projects/{project_id}/ai/agent:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint allows users to query the AI agent with a prompt.
+        The agent will respond with a schema change suggestion based on the prompt.
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/ai.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Agent query successful
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ai.AgentResponse'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse400'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
+      security:
+      - JWTAuth: []
+      summary: AI Agent Query
+      tags:
+      - AI
+  /projects/{project_id}/ai/agent/accept:
+    post:
+      description: This endpoint allows users to accept the AI agent's query and execute
+        the schema changes
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Query executed successfully
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse400'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
+      security:
+      - JWTAuth: []
+      summary: Accept AI Agent Query
+      tags:
+      - AI
+  /projects/{project_id}/ai/agent/cancel:
+    post:
+      description: This endpoint allows users to cancel an AI agent query
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Agent query cancelled successfully
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse400'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
+      security:
+      - JWTAuth: []
+      summary: Cancel AI Agent Query
+      tags:
+      - AI
   /projects/{project_id}/ai/chatbot/ask:
     post:
       consumes:
@@ -1077,7 +1188,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/response.Response'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Chat Bot Ask
@@ -1109,7 +1220,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/response.Response'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Generate AI Report
