@@ -777,6 +777,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/projects/{project_id}/ai/chatbot/ask": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint allows users to ask questions to the chatbot, which will respond using AI. It also saves the chat history for future reference.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI"
+                ],
+                "summary": "Chat Bot Ask",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Chat Bot Request",
+                        "name": "ChatBotRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ai.ChatBotRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Answer generated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/projects/{project_id}/ai/report": {
             "get": {
                 "security": [
@@ -1334,15 +1398,9 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid code or password",
+                        "description": "Invalid code or password or email not found please sign up first",
                         "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
+                            "$ref": "#/definitions/accounts.ErrorResponse400EmailNotFound"
                         }
                     }
                 }
@@ -1381,12 +1439,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "User does not exist",
-                        "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
                         "schema": {
                             "$ref": "#/definitions/accounts.ErrorResponse"
                         }
@@ -1570,9 +1622,38 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid verification code",
+                        "description": "Invalid verification code or email not found please sign up first",
                         "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse"
+                            "$ref": "#/definitions/accounts.ErrorResponse400EmailNotFound"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me": {
+            "get": {
+                "description": "Just call the endpoint and pass the user's token in headers and it will bring back the user's data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Get user's Data",
+                "responses": {
+                    "200": {
+                        "description": "User data fetched",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.UserDataResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Authorization failed",
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ErrorNotAuthorized"
                         }
                     },
                     "500": {
@@ -1729,12 +1810,36 @@ const docTemplate = `{
                 }
             }
         },
+        "accounts.ErrorNotAuthorized": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Authorization failed"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
         "accounts.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
                     "type": "string",
                     "example": "Invalid request parameters"
+                }
+            }
+        },
+        "accounts.ErrorResponse400EmailNotFound": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "email not found please sign up first"
                 }
             }
         },
@@ -1908,6 +2013,40 @@ const docTemplate = `{
                 }
             }
         },
+        "accounts.UserData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "oid": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "accounts.UserDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/accounts.UserData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
         "accounts.VerificationRequest": {
             "type": "object",
             "required": [
@@ -1940,6 +2079,14 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "User verified successfully"
+                }
+            }
+        },
+        "ai.ChatBotRequest": {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "type": "string"
                 }
             }
         },

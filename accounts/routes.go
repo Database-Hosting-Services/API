@@ -29,6 +29,7 @@ func protectedRoutes() {
 	// global middleware
 	userProtected.Use(middleware.JwtAuthMiddleware)
 
+	userProtected.Handle("/me", middleware.MethodsAllowed(http.MethodGet)(getUserData(config.App)))
 	userProtected.Handle("/update-password", middleware.MethodsAllowed(http.MethodPost)(UpdatePassword(config.App)))
 	userProtected.Handle("/{id}", middleware.MethodsAllowed(http.MethodPatch)(UpdateUser(config.App)))
 

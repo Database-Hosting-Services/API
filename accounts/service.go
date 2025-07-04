@@ -301,3 +301,16 @@ func UpdateUserData(ctx context.Context, db pgx.Tx, query string, args []interfa
 	}
 	return nil
 }
+
+func GetUserDataService(ctx context.Context, db *pgxpool.Pool, userId interface{}, dist *User) error {
+	return GetUser(ctx, db, userId, SELECT_USER_BY_ID, []interface{}{
+		&dist.ID,
+		&dist.OID,
+		&dist.Username,
+		&dist.Email,
+		&dist.Password,
+		&dist.Image,
+		&dist.CreatedAt,
+		&dist.LastLogin,
+	}...)
+}
