@@ -27,9 +27,9 @@ func CheckOwnershipQuery(ctx context.Context, projectOID string, userId int64, d
 	return count > 0, nil
 }
 
-func CheckOwnershipQueryTable(ctx context.Context, tableOID string, projectOID string, db Querier) (bool, error) {
+func CheckOwnershipQueryTable(ctx context.Context, tableOID string, projectID int64, db Querier) (bool, error) {
 	var count int
-	err := db.QueryRow(ctx, CheckOwnershipTableStmt, tableOID, projectOID).Scan(&count)
+	err := db.QueryRow(ctx, CheckOwnershipTableStmt, tableOID, projectID).Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("failed to check ownership: %w", err)
 	}
