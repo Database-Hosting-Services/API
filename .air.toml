@@ -13,7 +13,7 @@ include_ext = ["go"]
 include_dir = ["main", "accounts", "build", "caching", "config",
                 "middleware", "projects", "response", "scripts",
                 "utils", "test", "indexes", "AI", "analytics",
-                "tables"]
+                "tables", "SqlEditor"]
 exclude_dir = ["tmp", "vendor", "testdata", ".git"]
 
 kill_delay = "1s"
