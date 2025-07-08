@@ -55,8 +55,7 @@ func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message 
 			Status: status,
 			Data:   data,
 		}
-		jsonResponse, _ := json.Marshal(response)
-		event["response"] = string(jsonResponse)
+		event["response"] = response
 	}
 	if message != "" {
 		response.Message = message
