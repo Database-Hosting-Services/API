@@ -8,7 +8,7 @@ import (
 
 func DefineURLs() {
 	router := config.Router.PathPrefix("/api/projects").Subrouter()
-	router.Use(middleware.JwtAuthMiddleware)
+	router.Use(middleware.JwtAuthMiddleware, middleware.CheckOwnership)
 
 	router.Handle("", middleware.Route(map[string]http.HandlerFunc{
 		http.MethodPost: CreateProject(config.App),
