@@ -42,6 +42,8 @@ func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message 
 		"user-name": r.Context().Value("user-name"),
 		"status-code": status,
 		"URI": r.RequestURI,
+		"request-header": r.Header,
+		"request-body": r.Body,
 	}
 	if err != nil {
 		response = &Response{
