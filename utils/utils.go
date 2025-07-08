@@ -21,19 +21,19 @@ import (
 func ResponseHandler(w http.ResponseWriter, r *http.Request, simulatedError api.ApiError) {
 	switch simulatedError.StatusCode {
 	case http.StatusBadRequest: // 400
-		response.BadRequest(w, simulatedError.Message, simulatedError.Error())
+		response.BadRequest(w, r, simulatedError.Message, simulatedError.Error())
 	case http.StatusUnauthorized: // 401
-		response.UnAuthorized(w, simulatedError.Message, simulatedError.Error())
+		response.UnAuthorized(w, r, simulatedError.Message, simulatedError.Error())
 	case http.StatusNotFound: // 404
-		response.NotFound(w, simulatedError.Message, simulatedError.Error())
+		response.NotFound(w, r, simulatedError.Message, simulatedError.Error())
 	case http.StatusTooManyRequests: // 429
-		response.TooManyRequests(w, simulatedError.Message, simulatedError.Error())
+		response.TooManyRequests(w, r, simulatedError.Message, simulatedError.Error())
 	// default:
-	// 	response.InternalServerError(w, simulatedError.Message, simulatedError.Error())
+	// 	response.InternalServerError(w, r, simulatedError.Message, simulatedError.Error())
 	case http.StatusInternalServerError: // 500
-		response.InternalServerError(w, simulatedError.Message, simulatedError.Error())
+		response.InternalServerError(w, r, simulatedError.Message, simulatedError.Error())
 	default:
-		response.CreateResponse(w, simulatedError.StatusCode, simulatedError.Message, simulatedError.Error(), nil, nil)
+		response.CreateResponse(w, r, simulatedError.StatusCode, simulatedError.Message, simulatedError.Error(), nil, nil)
 	}
 }
 
