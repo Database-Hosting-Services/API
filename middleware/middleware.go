@@ -43,6 +43,19 @@ func CheckOwnership(next http.Handler) http.Handler {
 		projectOID := urlVariables["project_id"]
 		userId := r.Context().Value("user-id").(int64)
 		config.App.InfoLog.Printf("Checking ownership for project %s and user %d", projectOID, userId)
+		// check if the project exists
+		exists, err := utils.CheckProjectExist(r.Context(), projectOID, config.DB)
+		if err != nil {
+			response.InternalServerError(w, "Failed to check project existence", err)
+			return
+		}
+
+		if !exists {
+			config.App.ErrorLog.Printf("Project %s does not exist", projectOID)
+			response.NotFound(w, "Project not found", nil)
+			return
+		}
+		// check if the user is the owner of the project
 		ok, err := utils.CheckOwnershipQuery(r.Context(), projectOID, userId, config.DB)
 		if err != nil {
 			response.InternalServerError(w, err.Error(), err)
@@ -67,6 +80,18 @@ func CheckOTableExist(next http.Handler) http.Handler {
 			_, projectId, err := utils.GetProjectNameID(r.Context(), projectOID, config.DB)
 			if err != nil {
 				response.InternalServerError(w, "Failed to get project ID", err)
+				return
+			}
+			// check if the table exists
+			exists, err := utils.CheckTableExist(r.Context(), tableOID, config.DB)
+			if err != nil {
+				response.InternalServerError(w, "Failed to check table existence", err)
+				return
+			}	
+
+			if !exists {
+				config.App.ErrorLog.Printf("Table %s does not exist in project %s", tableOID, projectOID)
+				response.NotFound(w, "Table not found", nil)
 				return
 			}
 			//check if the table belongs to the project
