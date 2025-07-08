@@ -27,7 +27,7 @@ func CurrentStorage(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		projectOid := urlVariables["project_id"]
 		if projectOid == "" {
-			response.BadRequest(w, "Project Id is required", nil)
+			response.BadRequest(w, r, "Project Id is required", nil)
 			return
 		}
 
@@ -37,10 +37,10 @@ func CurrentStorage(app *config.Application) http.HandlerFunc {
 			return
 		}
 		if len(storage) == 0 {
-			response.NotFound(w, "No storage information found for the project", nil)
+			response.NotFound(w, r, "No storage information found for the project", nil)
 			return
 		}
-		response.OK(w, "Storage history retrieved successfully", storage)
+		response.OK(w, r, "Storage history retrieved successfully", storage)
 	}
 }
 
@@ -62,7 +62,7 @@ func ExecutionTime(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		projectOid := urlVariables["project_id"]
 		if projectOid == "" {
-			response.BadRequest(w, "Project Id is required", nil)
+			response.BadRequest(w, r, "Project Id is required", nil)
 			return
 		}
 
@@ -72,7 +72,7 @@ func ExecutionTime(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response.OK(w, "Execution time statistics retrieved successfully", stats)
+		response.OK(w, r, "Execution time statistics retrieved successfully", stats)
 	}
 }
 
@@ -94,7 +94,7 @@ func DatabaseUsage(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		projectOid := urlVariables["project_id"]
 		if projectOid == "" {
-			response.BadRequest(w, "Project Id is required", nil)
+			response.BadRequest(w, r, "Project Id is required", nil)
 			return
 		}
 
@@ -104,6 +104,6 @@ func DatabaseUsage(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response.OK(w, "Database usage statistics retrieved successfully", stats)
+		response.OK(w, r, "Database usage statistics retrieved successfully", stats)
 	}
 }

@@ -17,7 +17,7 @@ func LimitMiddleware(next http.Handler) http.Handler {
 
 		// Check if this request is allowed
 		if !client.Limiter.Allow() {
-			response.TooManyRequests(w, "Rate limit exceeded", errors.New("rate limit exceeded"))
+			response.TooManyRequests(w, r, "Rate limit exceeded", errors.New("rate limit exceeded"))
 			return
 		}
 

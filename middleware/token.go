@@ -28,26 +28,26 @@ func JwtAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authToken := utils.ExtractToken(r)
 		if authToken == "" {
-			response.UnAuthorized(w, "Authorization failed", fmt.Errorf("JWT token is empty"))
+			response.UnAuthorized(w, r, "Authorization failed", fmt.Errorf("JWT token is empty"))
 			return
 		}
 
 		err := token.IsAuthorized(authToken)
 		if err != nil {
-			response.UnAuthorized(w, "Authorization failed", err)
+			response.UnAuthorized(w, r, "Authorization failed", err)
 			return
 		}
 
 		fields, err := token.GetData(authToken, "oid", "username")
 		if err != nil {
-			response.UnAuthorized(w, "Authorization failed", err)
+			response.UnAuthorized(w, r, "Authorization failed", err)
 			return
 		}
 
 		if len(fields) >= 2 {
 			userID, err := GetUserByOid(r.Context(), fields[0].(string))
 			if err != nil {
-				response.UnAuthorized(w, "Authorization failed", errors.New("No user found for this token"))
+				response.UnAuthorized(w, r, "Authorization failed", errors.New("No user found for this token"))
 				return
 			}
 			ctx := utils.AddToContext(r.Context(), map[string]interface{}{

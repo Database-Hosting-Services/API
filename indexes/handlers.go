@@ -29,18 +29,18 @@ func CreateIndex(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		projectOid := urlVariables["project_id"]
 		if projectOid == "" {
-			response.BadRequest(w, "Project Id is required", nil)
+			response.BadRequest(w, r, "Project Id is required", nil)
 			return
 		}
 
 		var indexData IndexData
 		if err := json.NewDecoder(r.Body).Decode(&indexData); err != nil {
-			response.BadRequest(w, "Invalid request body", nil)
+			response.BadRequest(w, r, "Invalid request body", nil)
 			return
 		}
 
 		if indexData.IndexName == "" || indexData.IndexType == "" || len(indexData.Columns) == 0 || indexData.TableName == "" {
-			response.BadRequest(w, "Index name, type, columns and table name are required", nil)
+			response.BadRequest(w, r, "Index name, type, columns and table name are required", nil)
 			return
 		}
 
@@ -52,7 +52,7 @@ func CreateIndex(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response.Created(w, "Index created successfully", nil)
+		response.Created(w, r, "Index created successfully", nil)
 	}
 }
 
@@ -72,7 +72,7 @@ func ProjectIndexes(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		projectOid := urlVariables["project_id"]
 		if projectOid == "" {
-			response.BadRequest(w, "Project Id is required", nil)
+			response.BadRequest(w, r, "Project Id is required", nil)
 			return
 		}
 
@@ -84,7 +84,7 @@ func ProjectIndexes(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response.OK(w, "Indexes retrieved successfully", indexes)
+		response.OK(w, r, "Indexes retrieved successfully", indexes)
 	}
 }
 
@@ -107,7 +107,7 @@ func GetIndex(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		indexOid, projectOid := urlVariables["index_oid"], urlVariables["project_id"]
 		if indexOid == "" || projectOid == "" {
-			response.BadRequest(w, "Index Id and Project Id are required", nil)
+			response.BadRequest(w, r, "Index Id and Project Id are required", nil)
 			return
 		}
 
@@ -118,7 +118,7 @@ func GetIndex(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response.OK(w, "Index retrieved successfully", index)
+		response.OK(w, r, "Index retrieved successfully", index)
 	}
 }
 
@@ -141,7 +141,7 @@ func DeleteIndex(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		indexOid, projectOid := urlVariables["index_oid"], urlVariables["project_id"]
 		if indexOid == "" || projectOid == "" {
-			response.BadRequest(w, "Index Id and Project Id are required", nil)
+			response.BadRequest(w, r, "Index Id and Project Id are required", nil)
 			return
 		}
 
@@ -151,7 +151,7 @@ func DeleteIndex(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response.OK(w, "Index deleted successfully", nil)
+		response.OK(w, r, "Index deleted successfully", nil)
 	}
 }
 
@@ -176,18 +176,18 @@ func UpdateIndexName(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		indexOid, projectOid := urlVariables["index_oid"], urlVariables["project_id"]
 		if indexOid == "" || projectOid == "" {
-			response.BadRequest(w, "Index Id and Project Id are required", nil)
+			response.BadRequest(w, r, "Index Id and Project Id are required", nil)
 			return
 		}
 
 		var indexData UpdateName
 		if err := json.NewDecoder(r.Body).Decode(&indexData); err != nil {
-			response.BadRequest(w, "Invalid request body", nil)
+			response.BadRequest(w, r, "Invalid request body", nil)
 			return
 		}
 
 		if indexData.Name == "" {
-			response.BadRequest(w, "Index name is required", nil)
+			response.BadRequest(w, r, "Index name is required", nil)
 			return
 		}
 
@@ -198,6 +198,6 @@ func UpdateIndexName(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response.OK(w, "Index name updated successfully", nil)
+		response.OK(w, r, "Index name updated successfully", nil)
 	}
 }

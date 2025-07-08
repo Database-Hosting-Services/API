@@ -28,24 +28,24 @@ func GetAllTablesHandler(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		projectId := urlVariables["project_id"]
 		if projectId == "" {
-			response.NotFound(w, "Project ID is required", nil)
+			response.NotFound(w, r, "Project ID is required", nil)
 			return
 		}
 		
 		data, err := GetAllTables(r.Context(), projectId, config.DB)
 		if err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
-				response.UnAuthorized(w, "Unauthorized", nil)
+				response.UnAuthorized(w, r, "Unauthorized", nil)
 				return
 			}
 			app.ErrorLog.Println("Tables reading failed:", err)
-			response.InternalServerError(w, "Failed to read tables", err)
+			response.InternalServerError(w, r, "Failed to read tables", err)
 			return
 		}
 		if data == nil {
 			data = []Table{} // Ensure data is an empty slice if no tables found
 		}
-		response.OK(w, "", data)
+		response.OK(w, r, "", data)
 	}
 }
 
@@ -69,22 +69,22 @@ func GetTableSchemaHandler(app *config.Application) http.HandlerFunc {
 		projectId := urlVariables["project_id"]
 		tableId := urlVariables["table_id"]
 		if projectId == "" || tableId == "" {
-			response.BadRequest(w, "Project ID and Table ID are required", nil)
+			response.BadRequest(w, r, "Project ID and Table ID are required", nil)
 			return
 		}
 
 		data, err := GetTableSchema(r.Context(), projectId, tableId, config.DB)
 		if err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
-				response.UnAuthorized(w, "Unauthorized", nil)
+				response.UnAuthorized(w, r, "Unauthorized", nil)
 				return
 			}
 			app.ErrorLog.Println("Could not read table schema:", err)
-			response.InternalServerError(w, "Could not read table schema", err)
+			response.InternalServerError(w, r, "Could not read table schema", err)
 			return
 		}
 
-		response.OK(w, "Table Schema Read Successfully", data)
+		response.OK(w, r, "Table Schema Read Successfully", data)
 	}
 }
 
@@ -108,13 +108,13 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 		table := Table{}
 		// Parse the request body to populate the table struct
 		if err := json.NewDecoder(r.Body).Decode(&table); err != nil {
-			response.BadRequest(w, "Invalid request body", err)
+			response.BadRequest(w, r, "Invalid request body", err)
 			return
 		}
 
 		// Validate the table struct
 		if !CheckForValidTable(&table) {
-			response.BadRequest(w, "Invalid table definition", nil)
+			response.BadRequest(w, r, "Invalid table definition", nil)
 			return
 		}
 
@@ -122,22 +122,22 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		projectId := urlVariables["project_id"]
 		if projectId == "" {
-			response.BadRequest(w, "Project ID is required", nil)
+			response.BadRequest(w, r, "Project ID is required", nil)
 			return
 		}
 		// Call the service function to create the table
 		tableOID, err := CreateTable(r.Context(), projectId, &table, config.DB)
 		if err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
-				response.UnAuthorized(w, "Unauthorized", nil)
+				response.UnAuthorized(w, r, "Unauthorized", nil)
 				return
 			}
 			app.ErrorLog.Println("Table creation failed:", err)
-			response.InternalServerError(w, "Failed to create table", err)
+			response.InternalServerError(w, r, "Failed to create table", err)
 			return
 		}
 		// Return a success response
-		response.Created(w, "Table created successfully", map[string]string{
+		response.Created(w, r, "Table created successfully", map[string]string{
 			"oid": tableOID,
 		})
 	}
@@ -166,7 +166,7 @@ func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 		updates := UpdateTableSchema{}
 		// Parse the request body to populate the UpdateTable struct
 		if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
-			response.BadRequest(w, "Invalid request body", err)
+			response.BadRequest(w, r, "Invalid request body", err)
 			return
 		}
 
@@ -175,22 +175,22 @@ func UpdateTableHandler(app *config.Application) http.HandlerFunc {
 		projectOID := urlVariables["project_id"]
 		tableId := urlVariables["table_id"]
 		if projectOID == "" || tableId == "" {
-			response.BadRequest(w, "Project ID and Table ID are required", nil)
+			response.BadRequest(w, r, "Project ID and Table ID are required", nil)
 			return
 		}
 
 		// Call the service function to update the table
 		if err := UpdateTable(r.Context(), projectOID, tableId, &updates, config.DB); err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
-				response.UnAuthorized(w, "Unauthorized", nil)
+				response.UnAuthorized(w, r, "Unauthorized", nil)
 				return
 			}
 			app.ErrorLog.Println("Table update failed:", err)
-			response.InternalServerError(w, "Failed to update table", err)
+			response.InternalServerError(w, r, "Failed to update table", err)
 			return
 		}
 		// Return a success response
-		response.OK(w, "Table updated successfully", nil)
+		response.OK(w, r, "Table updated successfully", nil)
 	}
 }
 
@@ -214,21 +214,21 @@ func DeleteTableHandler(app *config.Application) http.HandlerFunc {
 		projectOID := urlVariables["project_id"]
 		tableOID := urlVariables["table_id"]
 		if projectOID == "" || tableOID == "" {
-			response.BadRequest(w, "Project ID and Table ID are required", nil)
+			response.BadRequest(w, r, "Project ID and Table ID are required", nil)
 			return
 		}
 		// Call the service function to delete the table
 		if err := DeleteTable(r.Context(), projectOID, tableOID, config.DB); err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
-				response.UnAuthorized(w, "Unauthorized", nil)
+				response.UnAuthorized(w, r, "Unauthorized", nil)
 				return
 			}
 			app.ErrorLog.Println("Table deletion failed:", err)
-			response.InternalServerError(w, "Failed to delete table", err)
+			response.InternalServerError(w, r, "Failed to delete table", err)
 			return
 		}
 		// Return a success response
-		response.OK(w, "Table deleted successfully", nil)
+		response.OK(w, r, "Table deleted successfully", nil)
 	}
 }
 
@@ -257,13 +257,13 @@ func ReadTableHandler(app *config.Application) http.HandlerFunc {
 		projectId := urlVariables["project_id"]
 		tableId := urlVariables["table_id"]
 		if projectId == "" || tableId == "" {
-			response.BadRequest(w, "Project ID and Table ID are required", nil)
+			response.BadRequest(w, r, "Project ID and Table ID are required", nil)
 			return
 		}
 		// query parameters
 		parameters := r.URL.Query()
 		if parameters == nil || parameters["page"] == nil || parameters["limit"] == nil {
-			response.BadRequest(w, "Page and Limit are required", nil)
+			response.BadRequest(w, r, "Page and Limit are required", nil)
 			return
 		}
 
@@ -271,14 +271,14 @@ func ReadTableHandler(app *config.Application) http.HandlerFunc {
 		data, err := ReadTable(r.Context(), projectId, tableId, parameters, config.DB)
 		if err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
-				response.UnAuthorized(w, "Unauthorized", nil)
+				response.UnAuthorized(w, r, "Unauthorized", nil)
 				return
 			}
 			app.ErrorLog.Println("Could not read table:", err)
-			response.InternalServerError(w, "Could not read table", err)
+			response.InternalServerError(w, r, "Could not read table", err)
 			return
 		}
 
-		response.OK(w, "Table Read Succesfully", data)
+		response.OK(w, r, "Table Read Succesfully", data)
 	}
 }
