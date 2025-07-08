@@ -42,7 +42,9 @@ func GetAllTablesHandler(app *config.Application) http.HandlerFunc {
 			response.InternalServerError(w, "Failed to read tables", err)
 			return
 		}
-
+		if data == nil {
+			data = []Table{} // Ensure data is an empty slice if no tables found
+		}
 		response.OK(w, "", data)
 	}
 }
