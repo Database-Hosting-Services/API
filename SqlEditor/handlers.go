@@ -30,26 +30,26 @@ func RunSqlQuery(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		projectOid := urlVariables["project_id"]
 		if projectOid == "" {
-			response.BadRequest(w, "Project Id is required", nil)
+			response.BadRequest(w, r, "Project Id is required", nil)
 			return
 		}
 
 		// Get the request body
 		var RequestBody RequestBody
 		if err := json.NewDecoder(r.Body).Decode(&RequestBody); err != nil {
-			response.BadRequest(w, "Invalid request body", nil)
+			response.BadRequest(w, r, "Invalid request body", nil)
 			return
 		}
 
 		if RequestBody.Query == "" {
-			response.BadRequest(w, "Query is required", nil)
+			response.BadRequest(w, r, "Query is required", nil)
 			return
 		}
 
 		// Validate query for dangerous operations
 		isValid, err := ValidateQuery(RequestBody.Query)
 		if !isValid {
-			response.BadRequest(w, err.Error(), nil)
+			response.BadRequest(w, r, err.Error(), nil)
 			return
 		}
 
@@ -60,7 +60,7 @@ func RunSqlQuery(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		response.OK(w, "Query executed successfully", queryResponse)
+		response.OK(w, r, "Query executed successfully", queryResponse)
 		config.App.InfoLog.Println("Query executed successfully for project:", projectOid)
 	}
 }

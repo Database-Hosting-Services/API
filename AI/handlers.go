@@ -41,7 +41,7 @@ func Report(app *config.Application) http.HandlerFunc {
 
 		report, err := getReport(projectID, userID, Analytics, AI)
 		if err != nil {
-			response.InternalServerError(w, err.Error(), err)
+			response.InternalServerError(w, r, err.Error(), err)
 			config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
 				{
 					ingest.TimestampField: time.Now(),
@@ -65,7 +65,7 @@ func Report(app *config.Application) http.HandlerFunc {
 			},
 		})
 
-		response.OK(w, "Report generated successfully", report)
+		response.OK(w, r, "Report generated successfully", report)
 	}
 }
 
@@ -88,7 +88,7 @@ func ChatBotAsk(app *config.Application) http.HandlerFunc {
 		projectOID := vars["project_id"]
 		projectID, err := GetProjectIDfromOID(r.Context(), config.DB, projectOID)
 		if err != nil {
-			response.InternalServerError(w, "Failed to get project ID", err)
+			response.InternalServerError(w, r, "Failed to get project ID", err)
 			return
 		}
 		userID64 := r.Context().Value("user-id").(int64)
@@ -96,14 +96,14 @@ func ChatBotAsk(app *config.Application) http.HandlerFunc {
 
 		var userRequest ChatBotRequest
 		if err := json.NewDecoder(r.Body).Decode(&userRequest); err != nil {
-			response.BadRequest(w, "Invalid request body", err)
+			response.BadRequest(w, r, "Invalid request body", err)
 			return
 		}
 
 		transaction, err := config.DB.Begin(r.Context())
 		if err != nil {
 			app.ErrorLog.Println(err.Error())
-			response.InternalServerError(w, "Failed to start database transaction", err)
+			response.InternalServerError(w, r, "Failed to start database transaction", err)
 			return
 		}
 
@@ -111,30 +111,30 @@ func ChatBotAsk(app *config.Application) http.HandlerFunc {
 		chat_data, err := GetOrCreateChatData(r.Context(), transaction, userID, projectID)
 		if err != nil {
 			app.ErrorLog.Println(err.Error())
-			response.InternalServerError(w, "Failed to get or create chat data", err)
+			response.InternalServerError(w, r, "Failed to get or create chat data", err)
 			return
 		}
 		app.InfoLog.Printf("Chat data: %+v", chat_data)
 
 		answer, err := config.AI.QueryChat(userRequest.Question)
 		if err != nil {
-			response.InternalServerError(w, err.Error(), err)
+			response.InternalServerError(w, r, err.Error(), err)
 			return
 		}
 
 		err = SaveChatAction(r.Context(), transaction, chat_data.ID, userID, userRequest.Question, answer.ResponseText)
 		if err != nil {
-			response.InternalServerError(w, err.Error(), err)
+			response.InternalServerError(w, r, err.Error(), err)
 			return
 		}
 
 		if err := transaction.Commit(r.Context()); err != nil {
 			app.ErrorLog.Println(err.Error())
-			response.InternalServerError(w, "Failed to commit database transaction", err)
+			response.InternalServerError(w, r, "Failed to commit database transaction", err)
 			return
 		}
 
-		response.OK(w, "Answer generated successfully", answer)
+		response.OK(w, r, "Answer generated successfully", answer)
 	}
 }
 
@@ -156,7 +156,7 @@ func Agent(app *config.Application) http.HandlerFunc {
 		// get the request body
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			response.BadRequest(w, "Failed to read request body", err)
+			response.BadRequest(w, r, "Failed to read request body", err)
 			return
 		}
 
@@ -164,12 +164,12 @@ func Agent(app *config.Application) http.HandlerFunc {
 		request := &Request{}
 		err = json.Unmarshal(body, request)
 		if err != nil {
-			response.BadRequest(w, "Failed to parse request body", err)
+			response.BadRequest(w, r, "Failed to parse request body", err)
 			return
 		}
 		// check if the request body is valid
 		if request.Prompt == "" {
-			response.BadRequest(w, "Prompt is required", nil)
+			response.BadRequest(w, r, "Prompt is required", nil)
 			return
 		}
 
@@ -182,7 +182,7 @@ func Agent(app *config.Application) http.HandlerFunc {
 
 		AIresponse, err := AgentQuery(projectUID, userID, request.Prompt, config.AI)
 		if err != nil {
-			response.InternalServerError(w, "error while querying agent", err)
+			response.InternalServerError(w, r, "error while querying agent", err)
 			// log the error to Axiom
 			config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
 				{
@@ -209,7 +209,7 @@ func Agent(app *config.Application) http.HandlerFunc {
 			},
 		})
 
-		response.OK(w, "Agent query successful", AIresponse)
+		response.OK(w, r, "Agent query successful", AIresponse)
 	}
 }
 
@@ -236,9 +236,9 @@ func AgentAccept(app *config.Application) http.HandlerFunc {
 		err := AgentExec(projectUID, userID, config.AI)
 		if err != nil {
 			if err.Error() == "changes expired or not found" {
-				response.BadRequest(w, "No schema changes found or changes expired", nil)
+				response.BadRequest(w, r, "No schema changes found or changes expired", nil)
 			} else {
-				response.InternalServerError(w, "error while executing agent", err)
+				response.InternalServerError(w, r, "error while executing agent", err)
 			}
 			// log the error to Axiom
 			config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
@@ -261,7 +261,7 @@ func AgentAccept(app *config.Application) http.HandlerFunc {
 				"message":             "Agent query executed successfully",
 			},
 		})
-		response.OK(w, "query executed successfully", nil)
+		response.OK(w, r, "query executed successfully", nil)
 	}
 }
 
@@ -286,7 +286,7 @@ func AgentCancel(app *config.Application) http.HandlerFunc {
 		// cancel the agent query
 		err := ClearCacheForProject(projectUID)
 		if err != nil {
-			response.InternalServerError(w, "error while cancelling agent query", err)
+			response.InternalServerError(w, r, "error while cancelling agent query", err)
 			// log the error to Axiom
 			config.AxiomLogger.IngestEvents(r.Context(), "ai-logs", []axiom.Event{
 				{
@@ -309,6 +309,6 @@ func AgentCancel(app *config.Application) http.HandlerFunc {
 			},
 		})
 
-		response.OK(w, "Agent query cancelled successfully", nil)
+		response.OK(w, r, "Agent query cancelled successfully", nil)
 	}
 }

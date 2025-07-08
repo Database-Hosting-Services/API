@@ -21,7 +21,7 @@ func MethodsAllowed(methods ...string) func(http.Handler) http.Handler {
 					return
 				}
 			}
-			response.MethodNotAllowed(w, strings.Join(methods, ","), "", nil)
+			response.MethodNotAllowed(w, r, strings.Join(methods, ","), "", nil)
 		})
 	}
 }
@@ -30,7 +30,7 @@ func Route(hundlers map[string]http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handler, ok := hundlers[r.Method]
 		if !ok {
-			response.MethodNotAllowed(w, strings.Join(slices.Collect(maps.Keys(hundlers)), ","), "", nil)
+			response.MethodNotAllowed(w, r, strings.Join(slices.Collect(maps.Keys(hundlers)), ","), "", nil)
 			return
 		}
 		handler.ServeHTTP(w, r)
@@ -46,24 +46,24 @@ func CheckOwnership(next http.Handler) http.Handler {
 		// check if the project exists
 		exists, err := utils.CheckProjectExist(r.Context(), projectOID, config.DB)
 		if err != nil {
-			response.InternalServerError(w, "Failed to check project existence", err)
+			response.InternalServerError(w, r, "Failed to check project existence", err)
 			return
 		}
 
 		if !exists {
 			config.App.ErrorLog.Printf("Project %s does not exist", projectOID)
-			response.NotFound(w, "Project not found", nil)
+			response.NotFound(w, r, "Project not found", nil)
 			return
 		}
 		// check if the user is the owner of the project
 		ok, err := utils.CheckOwnershipQuery(r.Context(), projectOID, userId, config.DB)
 		if err != nil {
-			response.InternalServerError(w, err.Error(), err)
+			response.InternalServerError(w, r, err.Error(), err)
 			return
 		}
 		config.App.InfoLog.Printf("Ownership check for project %s by user %d: %t", projectOID, userId, ok)
 		if !ok {
-			response.UnAuthorized(w, "UnAuthorized", nil)
+			response.UnAuthorized(w, r, "UnAuthorized", nil)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -79,30 +79,30 @@ func CheckOTableExist(next http.Handler) http.Handler {
 			// get the project id from the database
 			_, projectId, err := utils.GetProjectNameID(r.Context(), projectOID, config.DB)
 			if err != nil {
-				response.InternalServerError(w, "Failed to get project ID", err)
+				response.InternalServerError(w, r, "Failed to get project ID", err)
 				return
 			}
 			// check if the table exists
 			exists, err := utils.CheckTableExist(r.Context(), tableOID, config.DB)
 			if err != nil {
-				response.InternalServerError(w, "Failed to check table existence", err)
+				response.InternalServerError(w, r, "Failed to check table existence", err)
 				return
 			}	
 
 			if !exists {
 				config.App.ErrorLog.Printf("Table %s does not exist in project %s", tableOID, projectOID)
-				response.NotFound(w, "Table not found", nil)
+				response.NotFound(w, r, "Table not found", nil)
 				return
 			}
 			//check if the table belongs to the project
 			ok, err := utils.CheckOwnershipQueryTable(r.Context(), tableOID, projectId.(int64), config.DB)
 			if err != nil {
-				response.InternalServerError(w, err.Error(), err)
+				response.InternalServerError(w, r, err.Error(), err)
 				return
 			}
 
 			if !ok {
-				response.NotFound(w, "Table not found", nil)
+				response.NotFound(w, r, "Table not found", nil)
 				return
 			}
 		}
