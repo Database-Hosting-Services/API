@@ -70,7 +70,7 @@ func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message 
 	SendResponse(w, status, headers, response)
 }
 
-func JsonString(body io.ReadCloser) (map[string]interface{}, error) {
+func JsonString(body io.ReadCloser) (map[string]any, error) {
 
     bodyBytes, err := io.ReadAll(body)
     if err != nil {
@@ -78,7 +78,7 @@ func JsonString(body io.ReadCloser) (map[string]interface{}, error) {
     }
     defer body.Close()
 
-    var data map[string]interface{}
+    var data map[string]any
     if err := json.Unmarshal(bodyBytes, &data); err != nil {
         return nil, err
     }
