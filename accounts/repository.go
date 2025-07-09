@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"DBHS/utils"
+
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -42,8 +44,8 @@ func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
 
 */
 
-func GetUser(ctx context.Context, db utils.Querier, SearchField interface{}, query string, dest ...interface{}) error {
-	err := db.QueryRow(ctx, query, SearchField).Scan(dest...)
+func GetUser(ctx context.Context, db utils.Querier, SearchField interface{}, query string, dest *User) error {
+	err := pgxscan.Get(ctx, db, dest, query, SearchField)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return fmt.Errorf("user with %s not found", SearchField)

@@ -57,16 +57,7 @@ func SignInUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 	}
 
 	var authenticatedUser User
-	err = GetUser(ctx, db, user.Email, SELECT_USER_BY_Email, []interface{}{
-		&authenticatedUser.ID,
-		&authenticatedUser.OID,
-		&authenticatedUser.Username,
-		&authenticatedUser.Email,
-		&authenticatedUser.Password,
-		&authenticatedUser.Image,
-		&authenticatedUser.CreatedAt,
-		&authenticatedUser.LastLogin,
-	}...)
+	err = GetUser(ctx, db, user.Email, SELECT_USER_BY_Email, &authenticatedUser)
 
 	if err != nil {
 		if err.Error() == "user with "+user.Email+" not found" {
@@ -187,7 +178,7 @@ func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 		return nil, err
 	}
 
-	if err := GetUser(ctx, transaction, user.Email, SELECT_ID_FROM_USER_BY_EMAIL, []interface{}{&user.ID}...); err != nil {
+	if err := GetUser(ctx, transaction, user.Email, SELECT_ID_FROM_USER_BY_EMAIL, &user.User); err != nil {
 		return nil, err
 	}
 
@@ -223,16 +214,7 @@ func VerifyUser(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClien
 func ForgetPasswordService(ctx context.Context, db *pgxpool.Pool, cache *caching.RedisClient, email string) error {
 	// check if a user exist with this email
 	var user UserUnVerified
-	err := GetUser(ctx, db, email, SELECT_USER_BY_Email, []interface{}{
-		&user.ID,
-		&user.OID,
-		&user.Username,
-		&user.Email,
-		&user.Password,
-		&user.Image,
-		&user.CreatedAt,
-		&user.LastLogin,
-	}...)
+	err := GetUser(ctx, db, email, SELECT_USER_BY_Email, &user.User)
 
 	if err != nil {
 		return fmt.Errorf("User does not exist")
@@ -261,16 +243,7 @@ func ForgetPasswordVerifyService(ctx context.Context, db *pgxpool.Pool, cache *c
 		return fmt.Errorf("Wrong verification code")
 	}
 
-	if err := GetUser(ctx, db, resetForm.Email, SELECT_USER_BY_Email, []interface{}{
-		&user.ID,
-		&user.OID,
-		&user.Username,
-		&user.Email,
-		&user.Password,
-		&user.Image,
-		&user.CreatedAt,
-		&user.LastLogin,
-	}...); err != nil {
+	if err := GetUser(ctx, db, resetForm.Email, SELECT_USER_BY_Email, &user.User); err != nil {
 		return err
 	}
 
@@ -303,14 +276,5 @@ func UpdateUserData(ctx context.Context, db pgx.Tx, query string, args []interfa
 }
 
 func GetUserDataService(ctx context.Context, db *pgxpool.Pool, userId interface{}, dist *User) error {
-	return GetUser(ctx, db, userId, SELECT_USER_BY_ID, []interface{}{
-		&dist.ID,
-		&dist.OID,
-		&dist.Username,
-		&dist.Email,
-		&dist.Password,
-		&dist.Image,
-		&dist.CreatedAt,
-		&dist.LastLogin,
-	}...)
+	return GetUser(ctx, db, userId, SELECT_USER_BY_ID, dist)
 }
