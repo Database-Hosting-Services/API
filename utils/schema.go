@@ -349,6 +349,12 @@ func GetTableConstraints(ctx context.Context, tableName string, db Querier) ([]C
 		return nil, fmt.Errorf("failed to scan table constraints: %w", err)
 	}
 
+	for i := range len(constraints) {
+		if constraints[i].ConstraintType == "CHECK" {
+			constraints[i].ColumnName = &strings.Split(*constraints[i].CheckClause, " ")[0]
+		}
+	}
+
 	return constraints, nil
 }
 
