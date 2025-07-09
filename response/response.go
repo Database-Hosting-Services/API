@@ -3,6 +3,7 @@ package response
 import (
 	"DBHS/config"
 	"encoding/json"
+	"io"
 	"net/http"
 	"time"
 
@@ -35,6 +36,7 @@ func SendResponse(w http.ResponseWriter, status int, headers map[string]string, 
 
 func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message string, err error, data interface{}, headers map[string]string) {
 	var response *Response
+	bodydata, _ := JsonString(r.Body)
 	event := axiom.Event{
 		ingest.TimestampField: time.Now(),
 		"user-id":   r.Context().Value("user-id"),
@@ -43,7 +45,7 @@ func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message 
 		"status-code": status,
 		"URI": r.RequestURI,
 		"request-header": r.Header,
-		"request-body": r.Body,
+		"request-body": bodydata,
 	}
 	if err != nil {
 		response = &Response{
@@ -66,4 +68,19 @@ func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message 
 	event["massage"] = response.Message
 	config.AxiomLogger.IngestEvents(r.Context(), "api", []axiom.Event{event})
 	SendResponse(w, status, headers, response)
+}
+
+func JsonString(body io.ReadCloser) (map[string]interface{}, error) {
+
+    bodyBytes, err := io.ReadAll(body)
+    if err != nil {
+        return nil, err
+    }
+    defer body.Close()
+
+    var data map[string]interface{}
+    if err := json.Unmarshal(bodyBytes, &data); err != nil {
+        return nil, err
+    }
+	return data, nil
 }
