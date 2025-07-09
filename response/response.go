@@ -52,6 +52,7 @@ func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message 
 		}
 		// log the error to axiom
 		event["error"] = err.Error()
+		event["level"] = "error"
 	} else {
 		response = &Response{
 			Status: status,
