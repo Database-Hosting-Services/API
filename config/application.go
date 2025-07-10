@@ -75,7 +75,7 @@ func loadEnv() {
 }
 
 const (
-	deploy = false // Set to true if running in production, false for development
+	deploy = true // Set to true if running in production, false for development
 )
 
 func Init(infoLog, errorLog *log.Logger) {
