@@ -71,17 +71,17 @@ func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message 
 	SendResponse(w, status, headers, response)
 }
 
-func JsonString(body io.ReadCloser) (map[string]any, error) {
+func JsonString(body io.ReadCloser) (string, error) {
 
     bodyBytes, err := io.ReadAll(body)
     if err != nil {
-        return nil, err
+        return "nil", err
     }
     defer body.Close()
 
-    var data map[string]any
-    if err := json.Unmarshal(bodyBytes, &data); err != nil {
-        return nil, err
+    var data []byte
+    if data, err = json.Marshal(bodyBytes); err != nil {
+        return "", err
     }
-	return data, nil
+	return string(data), nil
 }
