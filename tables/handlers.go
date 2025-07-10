@@ -267,6 +267,15 @@ func ReadTableHandler(app *config.Application) http.HandlerFunc {
 			return
 		}
 
+		if err := CheckForNonNegativeNumber(parameters["page"][0]); err != nil {
+			response.BadRequest(w, r, "enter a valid page number", nil)
+			return
+		}
+		if err := CheckForNonNegativeNumber(parameters["limit"][0]); err != nil {
+			response.BadRequest(w, r, "enter a valid limit number", nil)
+			return
+		}
+		
 		// Call the service function to read the table
 		data, err := ReadTable(r.Context(), projectId, tableId, parameters, config.DB)
 		if err != nil {

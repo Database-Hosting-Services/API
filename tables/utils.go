@@ -4,9 +4,11 @@ import (
 	"DBHS/config"
 	"DBHS/utils"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
@@ -180,6 +182,19 @@ func SyncTableSchemas(ctx context.Context, projectId int64, servDb utils.Querier
             config.App.ErrorLog.Printf("Failed to insert new table %s: %v", name, err)
         }
         tables = append(tables, *newTable)
+	}
+
+	return nil
+}
+
+func CheckForNonNegativeNumber(s string) (error) {
+	num, err := strconv.Atoi(s);
+	if err != nil {
+		return err
+	}
+
+	if num < 0 {
+		return errors.New("out of bound")
 	}
 
 	return nil

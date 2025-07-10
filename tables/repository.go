@@ -18,7 +18,7 @@ func GetAllTablesRepository(ctx context.Context, projectId int64, userDb utils.Q
 	if err != nil {
 		return nil, err
 	}
-    
+
 	// extract the table schema
 	tableSchema, err := utils.GetTables(ctx, userDb)
 	if err != nil {
@@ -43,20 +43,19 @@ func GetAllTablesRepository(ctx context.Context, projectId int64, userDb utils.Q
 	// insert new table entries if they are present in the schema but not in the database
 	for name, _ := range tableSchema {
 		if presentTables[name] {
-            continue // skip if the table is already present
-        }
-        // create a new table record
-        newTable := &Table{
-            Name:      name,
-            ProjectID: projectId,
-            OID:       utils.GenerateOID(),
-        }
-        if err := InsertNewTable(ctx, newTable, &newTable.ID, servDb); err != nil {
-            config.App.ErrorLog.Printf("Failed to insert new table %s: %v", name, err)
-        }
-        tables = append(tables, *newTable)
+			continue // skip if the table is already present
+		}
+		// create a new table record
+		newTable := &Table{
+			Name:      name,
+			ProjectID: projectId,
+			OID:       utils.GenerateOID(),
+		}
+		if err := InsertNewTable(ctx, newTable, &newTable.ID, servDb); err != nil {
+			config.App.ErrorLog.Printf("Failed to insert new table %s: %v", name, err)
+		}
+		tables = append(tables, *newTable)
 	}
-
 
 	// convert the table schema to the table model
 	for i := range tables {
@@ -158,7 +157,7 @@ func ReadTableData(ctx context.Context, tableName string, parameters map[string]
 	if columns == nil {
 		return nil, err
 	}
-	
+
 	data := Data{
 		Columns: make([]ShowColumn, len(columns)),
 	}
@@ -213,6 +212,7 @@ func PrepareQuery(tableName string, parameters map[string][]string) (string, err
 		return "", err
 	}
 
+	page--
 	query = query + fmt.Sprintf(" LIMIT %d OFFSET %d;", limit, page*limit)
 
 	return query, nil
