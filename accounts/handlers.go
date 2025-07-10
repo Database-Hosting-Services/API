@@ -8,9 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/gorilla/mux"
 	"github.com/redis/go-redis/v9"
-	"net/http"
 )
 
 // GetUserData godoc
@@ -136,7 +138,7 @@ func SignIn(app *config.Application) http.HandlerFunc {
 
 		resp, err := SignInUser(r.Context(), config.DB, config.VerifyCache, &user)
 		if err != nil {
-			if err.Error() == "no rows in result set" || err.Error() == "InCorrect Email or Password" {
+			if strings.Contains(err.Error(), "scan") || err.Error() == "no rows in result set" || err.Error() == "InCorrect Email or Password" {
 				response.BadRequest(w, r, "InCorrect Email or Password", nil)
 				return
 			}
