@@ -299,7 +299,7 @@ func ReadTableHandler(app *config.Application) http.HandlerFunc {
 // @Produce json
 // @Param project_id path string true "Project ID"
 // @Param table_id path string true "Table ID"
-// @Param table body []RowValue true "Row information"
+// @Param table body RowValue true "Row information"
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse
 // @Failure 400 {object} response.ErrorResponse400
