@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-
 // GetAllTablesHandler godoc
 // @Summary Get all tables in a project
 // @Description Get a list of all tables in the specified project
@@ -31,7 +30,7 @@ func GetAllTablesHandler(app *config.Application) http.HandlerFunc {
 			response.NotFound(w, r, "Project ID is required", nil)
 			return
 		}
-		
+
 		data, err := GetAllTables(r.Context(), projectId, config.DB)
 		if err != nil {
 			if errors.Is(err, response.ErrUnauthorized) {
@@ -142,7 +141,6 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 		})
 	}
 }
-
 
 // UpdateTableHandler godoc
 // @Summary Update an existing table
@@ -275,7 +273,7 @@ func ReadTableHandler(app *config.Application) http.HandlerFunc {
 			response.BadRequest(w, r, "enter a valid limit number", nil)
 			return
 		}
-		
+
 		// Call the service function to read the table
 		data, err := ReadTable(r.Context(), projectId, tableId, parameters, config.DB)
 		if err != nil {
@@ -289,5 +287,41 @@ func ReadTableHandler(app *config.Application) http.HandlerFunc {
 		}
 
 		response.OK(w, r, "Table Read Succesfully", data)
+	}
+}
+
+func InsertRowHandler(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// url variables
+		urlVariables := mux.Vars(r)
+		projectOid := urlVariables["project_id"]
+		tableOid := urlVariables["table_id"]
+		if projectOid == "" || tableOid == "" {
+			response.BadRequest(w, r, "Project ID and Table ID are required", nil)
+			return
+		}
+
+		row := make(map[string]interface{})
+		if err := json.NewDecoder(r.Body).Decode(&row); err != nil {
+			response.BadRequest(w, r, "bad request body", nil)
+			return
+		}
+
+		if err := InserNewRow(r.Context(), projectOid, tableOid, row, config.DB); err != nil {
+			if err == response.ErrBadRequest {
+				response.BadRequest(w, r, "bad request body", nil)
+				return
+			}
+
+			if err == response.ErrUnauthorized {
+				response.UnAuthorized(w, r, "Unauthorized", nil)
+				return
+			}
+
+			response.InternalServerError(w, r, "Could not insert row", err)
+			return
+		}
+
+		response.Created(w, r, "row created succefully", nil)
 	}
 }

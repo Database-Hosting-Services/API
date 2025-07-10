@@ -276,3 +276,25 @@ func AddOrder(query string, orders []string) (string, error) {
 
 	return query + strings.Join(predicates, ", "), nil
 }
+
+func InserRow(ctx context.Context, tableNmae string, data map[string]interface{}, db utils.Querier) error {
+	columns := make([]string, 0, len(data))
+	placeholders := make([]string, 0, len(data))
+	values := make([]interface{}, 0, len(data))
+	i := 1
+	for k, v := range data {
+		columns = append(columns, k)
+		placeholders = append(placeholders, fmt.Sprintf("$%d", i)) // Use ? if not PostgreSQL
+		values = append(values, v)
+		i++
+	}
+
+	query := fmt.Sprintf(InsertNewRowStmt,
+		tableNmae,
+		strings.Join(columns, ", "),
+		strings.Join(placeholders, ","),
+	)
+
+	_, err := db.Exec(ctx, query, values...)
+	return err
+}

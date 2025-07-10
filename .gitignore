@@ -10,3 +10,4 @@ curl.sh
 *.log
 pr.md
 response.*
+/tmp
