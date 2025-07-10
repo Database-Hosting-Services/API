@@ -1,4 +1,9 @@
 package ai
+
+import (
+	"github.com/Database-Hosting-Services/AI-Agent/RAG"
+)
+
 const SENDER_TYPE_AI = "ai"
 const SENDER_TYPE_USER = "user"
 
@@ -21,7 +26,5 @@ type Request struct {
 }
 
 type AgentResponse struct {
-	Response      string `json:"response"`
-    SchemaChanges string `json:"schema_changes"`
-    SchemaDDL     string `json:"schema_ddl"`
+	RAG.AgentResponse
 }
