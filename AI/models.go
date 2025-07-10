@@ -1,7 +1,7 @@
 package ai
 
 import (
-	"github.com/Database-Hosting-Services/AI-Agent/RAG"
+	"DBHS/utils"
 )
 
 const SENDER_TYPE_AI = "ai"
@@ -26,5 +26,7 @@ type Request struct {
 }
 
 type AgentResponse struct {
-	RAG.AgentResponse
+	Response      string  `json:"response"`
+    SchemaChanges []utils.Table `json:"schema_changes"`
+    SchemaDDL     string  `json:"schema_ddl"`
 }
