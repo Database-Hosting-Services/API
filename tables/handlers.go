@@ -88,8 +88,8 @@ func GetTableSchemaHandler(app *config.Application) http.HandlerFunc {
 }
 
 // CreateTableHandler godoc
-// @Summary Create a new table
-// @Description Create a new table in the specified project
+// @Summary insert new row
+// @Description insert new row in the specified project
 // @Tags tables
 // @Accept json
 // @Produce json
@@ -244,9 +244,10 @@ func DeleteTableHandler(app *config.Application) http.HandlerFunc {
 // @Param filter query string false "Filter condition (e.g. name=value)"
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse{data=Data}
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400 {object} response.ErrorResponse400
+// @Failure 401 {object} response.ErrorResponse401
+// @Failure 404 {object} response.ErrorResponse404
+// @Failure 500 {object} response.ErrorResponse500
 // @Router /api/projects/{project_id}/tables/{table_id} [get]
 func ReadTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -290,6 +291,22 @@ func ReadTableHandler(app *config.Application) http.HandlerFunc {
 	}
 }
 
+// InsertRowHandler godoc
+// @Summary insert new row
+// @Description insert new row in the specified project table
+// @Tags tables
+// @Accept json
+// @Produce json
+// @Param project_id path string true "Project ID"
+// @Param table_id path string true "Table ID"
+// @Param table body []RowValue true "Row information"
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse400
+// @Failure 401 {object} response.ErrorResponse401
+// @Failure 404 {object} response.ErrorResponse404
+// @Failure 500 {object} response.ErrorResponse500
+// @Router /api/projects/{project_id}/tables/{table_id} [post]
 func InsertRowHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// url variables
