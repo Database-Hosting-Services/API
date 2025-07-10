@@ -352,6 +352,9 @@ func GetTableConstraints(ctx context.Context, tableName string, db Querier) ([]C
 	for i := range len(constraints) {
 		if constraints[i].ConstraintType == "CHECK" {
 			constraints[i].ColumnName = &strings.Split(*constraints[i].CheckClause, " ")[0]
+			if strings.Contains(*constraints[i].CheckClause, "IS NOT NULL") {
+				constraints[i].ConstraintType = "NOT NULL"
+			}
 		}
 	}
 
