@@ -234,3 +234,37 @@ func ReadTable(ctx context.Context, projectOID, tableOID string, parameters map[
 
 	return data, nil
 }
+
+func InserNewRow(ctx context.Context, projectOID, tableOID string, data map[string]interface{}, servDb *pgxpool.Pool) (error) {
+	userId, ok := ctx.Value("user-id").(int64)
+	if !ok || userId == 0 {
+		return response.ErrUnauthorized
+	}
+
+	_, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
+	if err != nil {
+		return err
+	}
+
+	tableName, err := GetTableName(ctx, tableOID, servDb)
+	if err != nil {
+		return err
+	}
+
+	tableColumns, err := ReadTableColumns(ctx, tableName, userDb)
+	if err != nil {
+		return err
+	}
+
+	for column := range tableColumns {
+		if _, ok := data[column]; !ok {
+			data[column] = nil
+		}
+	}
+
+	if len(data) > len(tableColumns) {
+		return response.ErrBadRequest
+	}
+
+	return InserRow(ctx, tableName, data, userDb)
+}

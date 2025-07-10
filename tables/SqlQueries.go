@@ -50,4 +50,7 @@ const (
 						AND c.table_schema = 'public'
 					ORDER BY 
 						c.column_name;`
+	InsertNewRowStmt = `
+		INSERT INTO %s(%s) VALUES(%s)
+	`
 )

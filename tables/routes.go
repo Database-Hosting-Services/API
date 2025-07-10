@@ -32,6 +32,7 @@ func DefineURLs() {
 		http.MethodGet:    ReadTableHandler(config.App),
 		http.MethodPut:    UpdateTableHandler(config.App),
 		http.MethodDelete: DeleteTableHandler(config.App),
+		http.MethodPost:   InsertRowHandler(config.App),
 	}))
 
 	router.Handle("/{table_id}/schema", middleware.Route(map[string]http.HandlerFunc{
