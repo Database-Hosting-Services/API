@@ -384,6 +384,12 @@ definitions:
           type: object
         type: array
     type: object
+  tables.RowValue:
+    properties:
+      columnName:
+        type: string
+      value: {}
+    type: object
   tables.ShowColumn:
     properties:
       name:
@@ -631,7 +637,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new table in the specified project
+      description: Create new table in the specified project
       parameters:
       - description: Project ID
         in: path
@@ -652,20 +658,24 @@ paths:
           schema:
             $ref: '#/definitions/response.SuccessResponse'
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse400'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Project not found
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse404'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
-      summary: Create a new table
+      summary: Create new table
       tags:
       - tables
   /api/projects/{project_id}/tables/{table_id}:
@@ -760,18 +770,73 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse400'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Read table data
+      tags:
+      - tables
+    post:
+      consumes:
+      - application/json
+      description: insert new row in the specified project table
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      - description: Row information
+        in: body
+        name: row
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/tables.RowValue'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse400'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
+      security:
+      - BearerAuth: []
+      summary: insert new row
       tags:
       - tables
     put:

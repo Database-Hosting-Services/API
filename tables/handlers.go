@@ -88,8 +88,8 @@ func GetTableSchemaHandler(app *config.Application) http.HandlerFunc {
 }
 
 // CreateTableHandler godoc
-// @Summary insert new row
-// @Description insert new row in the specified project
+// @Summary Create new table
+// @Description Create new table in the specified project
 // @Tags tables
 // @Accept json
 // @Produce json
@@ -97,9 +97,10 @@ func GetTableSchemaHandler(app *config.Application) http.HandlerFunc {
 // @Param table body Table true "Table information"
 // @Security BearerAuth
 // @Success 201 {object} response.SuccessResponse
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse
-// @Failure 500 {object} response.ErrorResponse
+// @Failure 400 {object} response.ErrorResponse400 "Bad request"
+// @Failure 401 {object} response.ErrorResponse401 "Unauthorized"
+// @Failure 404 {object} response.ErrorResponse404 "Project not found"
+// @Failure 500 {object} response.ErrorResponse500 "Internal server error"
 // @Router /api/projects/{project_id}/tables [post]
 func CreateTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -299,7 +300,7 @@ func ReadTableHandler(app *config.Application) http.HandlerFunc {
 // @Produce json
 // @Param project_id path string true "Project ID"
 // @Param table_id path string true "Table ID"
-// @Param row body RowValue true "Row information"
+// @Param row body []RowValue true "Row information"
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse
 // @Failure 400 {object} response.ErrorResponse400
