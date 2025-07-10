@@ -79,9 +79,5 @@ func JsonString(body io.ReadCloser) (string, error) {
     }
     defer body.Close()
 
-    var data []byte
-    if data, err = json.Marshal(bodyBytes); err != nil {
-        return "", err
-    }
-	return string(data), nil
+	return string(bodyBytes), nil
 }
