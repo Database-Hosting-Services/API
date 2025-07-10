@@ -5,6 +5,7 @@ import (
 	"DBHS/utils"
 	"context"
 	"fmt"
+	"log"
 	"slices"
 	"strconv"
 	"strings"
@@ -142,6 +143,7 @@ func ReadTableData(ctx context.Context, tableName string, parameters map[string]
 	if err != nil {
 		return nil, err
 	}
+	log.Println(query)
 
 	if err != nil {
 		return nil, err
@@ -176,8 +178,8 @@ func ReadTableData(ctx context.Context, tableName string, parameters map[string]
 		ptr[i] = &values[i]
 	}
 
-	row := make(map[string]interface{})
 	for rows.Next() {
+		row := make(map[string]interface{})
 		if err := rows.Scan(ptr...); err != nil {
 			return nil, err
 		}
