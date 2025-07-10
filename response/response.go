@@ -43,6 +43,7 @@ func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message 
 		"user-oid":  r.Context().Value("user-oid"),
 		"user-name": r.Context().Value("user-name"),
 		"status-code": status,
+		"method": r.Method,
 		"URI": r.RequestURI,
 		"request-header": r.Header,
 		"request-body": bodydata,
