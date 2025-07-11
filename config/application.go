@@ -207,5 +207,4 @@ func CloseDB() {
 		AdminDB.Close()
 		App.InfoLog.Println("Admin database connection closed. 🔌")
 	}
-	// config.CloseAllPools();
 }
