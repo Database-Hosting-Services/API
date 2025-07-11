@@ -1783,7 +1783,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Execute a dynamic SQL query against a specific project's PostgreSQL database and return structured JSON results with metadata",
+                "description": "Execute a dynamic SQL query against a specific project's PostgreSQL database and return structured JSON results with metadata including column names and execution time",
                 "consumes": [
                     "application/json"
                 ],
@@ -1814,13 +1814,25 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Query executed successfully",
+                        "description": "Query executed successfully with results, column names, and execution time",
                         "schema": {
-                            "$ref": "#/definitions/response.SuccessResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sqleditor.ResponseBodySwagger"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "Project ID is missing or invalid request body",
+                        "description": "Project ID missing, invalid request body, empty query, or dangerous SQL operations detected",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1832,13 +1844,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Project not found",
+                        "description": "Project not found or referenced table/column does not exist",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error or query execution failed",
+                        "description": "Internal server error, query execution failed, or error parsing results",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -2821,6 +2833,33 @@ const docTemplate = `{
             "properties": {
                 "query": {
                     "type": "string"
+                }
+            }
+        },
+        "sqleditor.ResponseBodySwagger": {
+            "description": "SQL query execution response with results and metadata",
+            "type": "object",
+            "properties": {
+                "column_names": {
+                    "description": "Names of columns in the result set",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[\"id\"",
+                        "\"name\"]"
+                    ]
+                },
+                "execution_time": {
+                    "description": "Query execution time in milliseconds",
+                    "type": "number",
+                    "example": 10.45
+                },
+                "result": {
+                    "description": "The JSON result of the query execution",
+                    "type": "string",
+                    "example": "[{\"id\":1,\"name\":\"test\"}]"
                 }
             }
         },

@@ -374,6 +374,26 @@ definitions:
       query:
         type: string
     type: object
+  sqleditor.ResponseBodySwagger:
+    description: SQL query execution response with results and metadata
+    properties:
+      column_names:
+        description: Names of columns in the result set
+        example:
+        - '["id"'
+        - '"name"]'
+        items:
+          type: string
+        type: array
+      execution_time:
+        description: Query execution time in milliseconds
+        example: 10.45
+        type: number
+      result:
+        description: The JSON result of the query execution
+        example: '[{"id":1,"name":"test"}]'
+        type: string
+    type: object
   tables.Data:
     properties:
       columns:
@@ -1632,7 +1652,8 @@ paths:
       consumes:
       - application/json
       description: Execute a dynamic SQL query against a specific project's PostgreSQL
-        database and return structured JSON results with metadata
+        database and return structured JSON results with metadata including column
+        names and execution time
       parameters:
       - description: Project ID (OID)
         in: path
@@ -1649,11 +1670,18 @@ paths:
       - application/json
       responses:
         "200":
-          description: Query executed successfully
+          description: Query executed successfully with results, column names, and
+            execution time
           schema:
-            $ref: '#/definitions/response.SuccessResponse'
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/sqleditor.ResponseBodySwagger'
+              type: object
         "400":
-          description: Project ID is missing or invalid request body
+          description: Project ID missing, invalid request body, empty query, or dangerous
+            SQL operations detected
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "401":
@@ -1661,11 +1689,12 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "404":
-          description: Project not found
+          description: Project not found or referenced table/column does not exist
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
-          description: Internal server error or query execution failed
+          description: Internal server error, query execution failed, or error parsing
+            results
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       security:
