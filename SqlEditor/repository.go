@@ -5,19 +5,50 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pingcap/tidb/parser"
+	// "github.com/pingcap/tidb/parser/ast"
+	_ "github.com/pingcap/tidb/parser/test_driver"
 )
 
+// validateSQLWithParser validates SQL syntax using TiDB SQL parser
+func validateSQLWithParser(query string) error {
+	p := parser.New()
+
+	// Parse the SQL statement
+	stmts, _, err := p.Parse(query, "", "")
+	if err != nil {
+		return fmt.Errorf("SQL syntax error: %v", err)
+	}
+
+	// Check if we have any statements
+	if len(stmts) == 0 {
+		return errors.New("empty SQL statement")
+	}
+
+	return nil
+}
+
 func FetchQueryData(ctx context.Context, conn *pgxpool.Pool, query string) (ResponseBody, api.ApiError) {
-	startTime := time.Now()
-	query = WrapQueryWithJSONAgg(query)
+	// Validate SQL syntax using parser
+	if err := validateSQLWithParser(query); err != nil {
+		return ResponseBody{}, *api.NewApiError("Invalid SQL syntax", 400, err)
+	}
+
+	wrappedQuery := WrapQueryWithJSONAgg(query)
 
 	var result string
-	err := conn.QueryRow(ctx, query).Scan(&result)
+	startTime := time.Now()
+	err := conn.QueryRow(ctx, wrappedQuery).Scan(&result)
 	if err != nil {
-		return ResponseBody{}, *api.NewApiError("Internal server error", 500, errors.New("failed to execute query: "+err.Error()))
+		if strings.Contains(err.Error(), "does not exist") {
+			return ResponseBody{}, *api.NewApiError("Table/Column not found", 404, errors.New("Table or column does not exist: "+err.Error()))
+		}
+		return ResponseBody{}, *api.NewApiError("Query execution failed", 500, errors.New("failed to execute query: "+err.Error()))
 	}
 
 	// Extract column names from the JSON result
