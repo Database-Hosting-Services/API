@@ -2,6 +2,7 @@ package response
 
 import (
 	"DBHS/config"
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -72,12 +73,12 @@ func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message 
 }
 
 func JsonString(body io.ReadCloser) (string, error) {
-
-    bodyBytes, err := io.ReadAll(body)
-    if err != nil {
-        return "nil", err
-    }
+	buf := new(bytes.Buffer)
+    _, err := io.Copy(buf, body)
+	if err != nil {
+		return "", nil
+	}
     defer body.Close()
 
-	return string(bodyBytes), nil
+	return buf.String(), nil
 }
