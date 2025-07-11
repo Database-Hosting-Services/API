@@ -95,7 +95,4 @@ type Data struct {
 	Rows    []map[string]interface{} `json:"rows"`
 }
 
-type RowValue struct {
-	ColumnName string `json: "column"`
-	Value interface{} `json: "value"`
-}
+type RowValue []map[string]interface{}
