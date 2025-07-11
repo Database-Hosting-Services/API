@@ -5,6 +5,7 @@ import (
 	"DBHS/response"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -240,9 +241,8 @@ func DeleteTableHandler(app *config.Application) http.HandlerFunc {
 // @Param table_id path string true "Table ID"
 // @Param page query int true "Page number"
 // @Param limit query int true "Number of records per page"
-// @Param order_by query string false "Column to order by"
-// @Param order query string false "Sort order (asc or desc)"
-// @Param filter query string false "Filter condition (e.g. name=value)"
+// @Param order query string false "Sort order example: ?order=id:asc&order=name:desc , this sort first by id then name"
+// @Param filter query string false "Filter condition example: ?filter=id:gt:2&filter=name:like:ragnar, this gets records with ids greater than 2 and with name equal ragnar, valid operators [eq: =, neq: !=, lt: <, lte: <=, gt: >, gte: >=, like: LIKE]"
 // @Security BearerAuth
 // @Success 200 {object} response.SuccessResponse{data=Data}
 // @Failure 400 {object} response.ErrorResponse400
@@ -266,6 +266,7 @@ func ReadTableHandler(app *config.Application) http.HandlerFunc {
 			response.BadRequest(w, r, "Page and Limit are required", nil)
 			return
 		}
+		log.Println(parameters)
 
 		if err := CheckForNonNegativeNumber(parameters["page"][0]); err != nil {
 			response.BadRequest(w, r, "enter a valid page number", nil)

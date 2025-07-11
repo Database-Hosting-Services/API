@@ -308,19 +308,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Column to order by",
-                        "name": "order_by",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort order (asc or desc)",
+                        "description": "Sort order example: ?order=id:asc\u0026order=name:desc , this sort first by id then name",
                         "name": "order",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter condition (e.g. name=value)",
+                        "description": "Filter condition example: ?filter=id:gt:2\u0026filter=name:like:ragnar, this gets records with ids greater than 2 and with name equal ragnar, valid operators [eq: =, neq: !=, lt: \u003c, lte: \u003c=, gt: \u003e, gte: \u003e=, like: LIKE]",
                         "name": "filter",
                         "in": "query"
                     }
@@ -485,7 +479,8 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/tables.RowValue"
+                                "type": "object",
+                                "additionalProperties": true
                             }
                         }
                     }
@@ -2879,15 +2874,6 @@ const docTemplate = `{
                         "additionalProperties": true
                     }
                 }
-            }
-        },
-        "tables.RowValue": {
-            "type": "object",
-            "properties": {
-                "columnName": {
-                    "type": "string"
-                },
-                "value": {}
             }
         },
         "tables.ShowColumn": {

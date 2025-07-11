@@ -406,12 +406,6 @@ definitions:
           type: object
         type: array
     type: object
-  tables.RowValue:
-    properties:
-      columnName:
-        type: string
-      value: {}
-    type: object
   tables.ShowColumn:
     properties:
       name:
@@ -765,15 +759,14 @@ paths:
         name: limit
         required: true
         type: integer
-      - description: Column to order by
-        in: query
-        name: order_by
-        type: string
-      - description: Sort order (asc or desc)
+      - description: 'Sort order example: ?order=id:asc&order=name:desc , this sort
+          first by id then name'
         in: query
         name: order
         type: string
-      - description: Filter condition (e.g. name=value)
+      - description: 'Filter condition example: ?filter=id:gt:2&filter=name:like:ragnar,
+          this gets records with ids greater than 2 and with name equal ragnar, valid
+          operators [eq: =, neq: !=, lt: <, lte: <=, gt: >, gte: >=, like: LIKE]'
         in: query
         name: filter
         type: string
@@ -831,7 +824,8 @@ paths:
         required: true
         schema:
           items:
-            $ref: '#/definitions/tables.RowValue'
+            additionalProperties: true
+            type: object
           type: array
       produces:
       - application/json

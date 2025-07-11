@@ -241,7 +241,7 @@ func AddFilters(query string, filters []string) (string, error) {
 		parts := strings.Split(filter, ":")
 		column, op, value := parts[0], parts[1], parts[2]
 		if op == "like" {
-			predicates = append(predicates, fmt.Sprintf("%s %s %s", column, opMap[op], value))
+			predicates = append(predicates, fmt.Sprintf("%s %s '%s'", column, opMap[op], value))
 		} else {
 			intV, err := strconv.Atoi(value)
 			if err != nil {
