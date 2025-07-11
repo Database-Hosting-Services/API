@@ -24,7 +24,7 @@ import (
 // @Failure 401 {object} response.ErrorResponse "Unauthorized access"
 // @Failure 404 {object} response.ErrorResponse "Project not found"
 // @Failure 500 {object} response.ErrorResponse "Internal server error or query execution failed"
-// @Router /projects/{project_id}/sqlEditor/run-query [get]
+// @Router /projects/{project_id}/sqlEditor/run-query [post]
 func RunSqlQuery(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlVariables := mux.Vars(r)

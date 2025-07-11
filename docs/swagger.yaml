@@ -208,7 +208,9 @@ definitions:
       response:
         type: string
       schema_changes:
-        type: string
+        items:
+          $ref: '#/definitions/utils.Table'
+        type: array
       schema_ddl:
         type: string
     type: object
@@ -1626,7 +1628,7 @@ paths:
       tags:
       - indexes
   /projects/{project_id}/sqlEditor/run-query:
-    get:
+    post:
       consumes:
       - application/json
       description: Execute a dynamic SQL query against a specific project's PostgreSQL

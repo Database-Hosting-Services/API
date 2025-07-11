@@ -1777,7 +1777,7 @@ const docTemplate = `{
             }
         },
         "/projects/{project_id}/sqlEditor/run-query": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -2569,7 +2569,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "schema_changes": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.Table"
+                    }
                 },
                 "schema_ddl": {
                     "type": "string"
