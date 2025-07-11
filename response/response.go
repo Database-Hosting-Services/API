@@ -2,8 +2,8 @@ package response
 
 import (
 	"DBHS/config"
-	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -73,12 +73,20 @@ func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message 
 }
 
 func JsonString(body io.ReadCloser) (string, error) {
-	buf := new(bytes.Buffer)
-    _, err := io.Copy(buf, body)
-	if err != nil {
-		return "", nil
+	defer body.Close()
+	
+	// Try to seek back to the beginning if possible
+	if seeker, ok := body.(io.ReadSeeker); ok {
+		_, err := seeker.Seek(0, io.SeekStart)
+		if err != nil {
+			return "", fmt.Errorf("failed to seek to beginning: %w", err)
+		}
 	}
-    defer body.Close()
-
-	return buf.String(), nil
+	
+	data, err := io.ReadAll(body)
+	if err != nil {
+		return "", err
+	}
+	
+	return string(data), nil
 }
