@@ -332,9 +332,18 @@ func InsertRowHandler(app *config.Application) http.HandlerFunc {
 			response.BadRequest(w, r, "Project ID and Table ID are required", nil)
 			return
 		}
+		bodyData, err := io.ReadAll(r.Body)
+		if err != nil {
+			response.BadRequest(w, r, "Invalid request body", err)
+			return
+		}
 
+		ctx := utils.AddToContext(r.Context(), map[string]interface{}{
+				"body": string(bodyData),
+		})
+		r = r.WithContext(ctx)
 		row := make(map[string]interface{})
-		if err := json.NewDecoder(r.Body).Decode(&row); err != nil {
+		if err := json.Unmarshal(bodyData, &row); err != nil {
 			response.BadRequest(w, r, "bad request body", nil)
 			return
 		}
