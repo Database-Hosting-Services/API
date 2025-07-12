@@ -48,6 +48,9 @@ func FetchQueryData(ctx context.Context, conn *pgxpool.Pool, query string) (Resp
 		if strings.Contains(err.Error(), "does not exist") {
 			return ResponseBody{}, *api.NewApiError("Table/Column not found", 404, errors.New("Table or column does not exist: "+err.Error()))
 		}
+		if strings.Contains(err.Error(), "cannot scan NULL into *string") {
+			return ResponseBody{}, *api.NewApiError("There is no data", 200, errors.New("No data found for the query"))
+		}
 		return ResponseBody{}, *api.NewApiError("Query execution failed", 500, errors.New("failed to execute query: "+err.Error()))
 	}
 
