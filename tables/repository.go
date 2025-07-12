@@ -193,7 +193,7 @@ func ReadTableData(ctx context.Context, tableName string, parameters map[string]
 }
 
 func PrepareQuery(tableName string, parameters map[string][]string) (string, error) {
-	query := fmt.Sprintf("SELECT * FROM %s", tableName)
+	query := fmt.Sprintf(`SELECT * FROM "%s"`, tableName)
 	query, err := AddFilters(query, parameters["filter"])
 	if err != nil {
 		return "", err
