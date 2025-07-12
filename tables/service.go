@@ -232,6 +232,10 @@ func ReadTable(ctx context.Context, projectOID, tableOID string, parameters map[
 		return nil, err
 	}
 
+	if data.Rows == nil {
+		data.Rows = make([]map[string]interface{}, 0)
+	}
+
 	return data, nil
 }
 
