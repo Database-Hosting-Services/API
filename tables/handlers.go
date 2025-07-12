@@ -3,8 +3,10 @@ package tables
 import (
 	"DBHS/config"
 	"DBHS/response"
+	"DBHS/utils"
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"net/http"
 
@@ -107,8 +109,19 @@ func CreateTableHandler(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Handler logic for creating a table
 		table := Table{}
+		bodyData, err := io.ReadAll(r.Body)
+		if err != nil {
+			response.BadRequest(w, r, "Invalid request body", err)
+			return
+		}
+
+		ctx := utils.AddToContext(r.Context(), map[string]interface{}{
+				"body": string(bodyData),
+		})
+		r = r.WithContext(ctx)
+
 		// Parse the request body to populate the table struct
-		if err := json.NewDecoder(r.Body).Decode(&table); err != nil {
+		if err := json.Unmarshal(bodyData, &table); err != nil {
 			response.BadRequest(w, r, "Invalid request body", err)
 			return
 		}

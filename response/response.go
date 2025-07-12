@@ -37,7 +37,6 @@ func SendResponse(w http.ResponseWriter, status int, headers map[string]string, 
 
 func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message string, err error, data interface{}, headers map[string]string) {
 	var response *Response
-	bodydata, _ := JsonString(r.Body)
 	event := axiom.Event{
 		ingest.TimestampField: time.Now(),
 		"user-id":   r.Context().Value("user-id"),
@@ -47,7 +46,7 @@ func CreateResponse(w http.ResponseWriter, r *http.Request, status int, message 
 		"method": r.Method,
 		"URI": r.RequestURI,
 		"request-header": r.Header,
-		"request-body": bodydata,
+		"request-body": r.Context().Value("body"),
 	}
 	if err != nil {
 		response = &Response{
