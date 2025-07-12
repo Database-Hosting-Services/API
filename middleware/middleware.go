@@ -87,7 +87,7 @@ func CheckOTableExist(next http.Handler) http.Handler {
 			if err != nil {
 				response.InternalServerError(w, r, "Failed to check table existence", err)
 				return
-			}	
+			}
 
 			if !exists {
 				config.App.ErrorLog.Printf("Table %s does not exist in project %s", tableOID, projectOID)
@@ -111,20 +111,26 @@ func CheckOTableExist(next http.Handler) http.Handler {
 }
 
 func EnableCORS(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        origin := r.Header.Get("Origin")
-        if strings.HasPrefix(origin, "http://localhost") {
-            w.Header().Set("Access-Control-Allow-Origin", origin)
-            w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-            w.Header().Set("Access-Control-Allow-Credentials", "true")
-        }
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Allow all origins
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 
-        if r.Method == "OPTIONS" {
-            w.WriteHeader(http.StatusNoContent)
-            return
-        }
+		// Allow all common HTTP methods used by the API
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
 
-        next.ServeHTTP(w, r)
-    })
+		// Allow common headers used by the API
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin")
+
+		// Note: When using "*" for Allow-Origin, we cannot use Allow-Credentials: true
+		// If you need credentials, you'll need to specify specific origins instead of "*"
+		// w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		// Handle preflight OPTIONS requests
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
