@@ -6,8 +6,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/jackc/pgx/v5"
+	"regexp"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/Database-Hosting-Services/AI-Agent/RAG"
 )
@@ -99,6 +101,9 @@ func AgentQuery(projectUUID string, userID int64, prompt string, AI RAG.RAGmodel
 		return nil, err
 	}
 
+	// remove the json code segment with all the code from the response
+	response.Response = removeJSONCodeSegments(response.Response)
+
 	// add the schema changes to the cache
 	err = config.VerifyCache.Set("schema-changes:"+projectUUID, response.SchemaDDL, 10*time.Minute)
 	if err != nil {
@@ -156,4 +161,20 @@ func ClearCacheForProject(projectUUID string) error {
 		return err
 	}
 	return nil
+}
+
+func removeJSONCodeSegments(text string) string {
+	// Remove JSON code blocks (```json...``` or ```...``` containing JSON)
+	jsonCodeBlockRegex := regexp.MustCompile("(?s)```(?:json)?\\s*\\{.*?\\}```")
+	text = jsonCodeBlockRegex.ReplaceAllString(text, "")
+
+	// Remove any remaining triple backticks blocks that might contain JSON
+	codeBlockRegex := regexp.MustCompile("(?s)```[^`]*```")
+	text = codeBlockRegex.ReplaceAllString(text, "")
+
+	// Remove inline JSON code segments (single backticks containing JSON-like content)
+	inlineJSONRegex := regexp.MustCompile("`[^`]*\\{[^}]*\\}[^`]*`")
+	text = inlineJSONRegex.ReplaceAllString(text, "")
+
+	return text
 }
