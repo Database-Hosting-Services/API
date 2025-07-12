@@ -40,7 +40,7 @@ func CreateProject(app *config.Application) http.HandlerFunc {
 			} else if err.Error() == "database name must start with a letter or underscore and contain only letters, numbers, underscores, or $" {
 				response.BadRequest(w, r, "database name must start with a letter or underscore and contain only letters, numbers, underscores, or $", errors.New("Project creation failed"))
 			} else {
-				response.InternalServerError(w, r, "Internal Server Error", errors.New("Project creation failed"))
+				response.InternalServerError(w, r, "Internal Server Error", err)
 			}
 			return
 		}
