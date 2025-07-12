@@ -283,7 +283,7 @@ func InserRow(ctx context.Context, tableNmae string, data map[string]interface{}
 	values := make([]interface{}, 0, len(data))
 	i := 1
 	for k, v := range data {
-		columns = append(columns, k)
+		columns = append(columns, "\""+k+"\"")
 		placeholders = append(placeholders, fmt.Sprintf("$%d", i)) // Use ? if not PostgreSQL
 		values = append(values, v)
 		i++
