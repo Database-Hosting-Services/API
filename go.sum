@@ -13,6 +13,8 @@ cloud.google.com/go/longrunning v0.5.7/go.mod h1:8GClkudohy1Fxm3owmBGid8W0pSgodE
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Database-Hosting-Services/AI-Agent v1.0.7 h1:y8kROFN8sVfhzThGmFybuWD6KUvXnoJAhOdU55oT2uA=
 github.com/Database-Hosting-Services/AI-Agent v1.0.7/go.mod h1:4JoX4wIMVtU9ydEOFS6MiDQKnuRfCxSmuesGhmCokAY=
+github.com/Database-Hosting-Services/AI-Agent v1.0.8 h1:gVg5ZiK1oNwDdEYUWPCPlYNZjeLtUqkdBuD3RhHPLug=
+github.com/Database-Hosting-Services/AI-Agent v1.0.8/go.mod h1:4JoX4wIMVtU9ydEOFS6MiDQKnuRfCxSmuesGhmCokAY=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/MarceloPetrucio/go-scalar-api-reference v0.0.0-20240521013641-ce5d2efe0e06 h1:W4Yar1SUsPmmA51qoIRb174uDO/Xt3C48MB1YX9Y3vM=

@@ -8,7 +8,7 @@ toolchain go1.24.5
 // update go version to 1.24.0
 
 require (
-	github.com/Database-Hosting-Services/AI-Agent v1.0.7
+	github.com/Database-Hosting-Services/AI-Agent v1.0.8
 	github.com/MarceloPetrucio/go-scalar-api-reference v0.0.0-20240521013641-ce5d2efe0e06
 	github.com/axiomhq/axiom-go v0.25.0
 	github.com/georgysavva/scany/v2 v2.1.4
