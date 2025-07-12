@@ -51,6 +51,6 @@ const (
 					ORDER BY 
 						c.column_name;`
 	InsertNewRowStmt = `
-		INSERT INTO %s(%s) VALUES(%s)
+		INSERT INTO "%s"(%s) VALUES(%s)
 	`
 )
