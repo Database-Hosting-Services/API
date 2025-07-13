@@ -45,57 +45,57 @@ type DatabaseUsageCostWithDates struct {
 }
 
 var (
-	// Storage dummy data - showing growth over time
+	// Storage dummy data - showing growth over time (all in KB)
 	StorageResponse = []StorageWithDates{
 		{
 			Timestamp:         "2025-01-01T00:00:00Z",
-			ManagementStorage: "125 MB",
-			ActualData:        "2.1 GB",
+			ManagementStorage: "128000 kB",
+			ActualData:        "2202010 kB",
 		},
 		{
 			Timestamp:         "2025-01-02T00:00:00Z",
-			ManagementStorage: "128 MB",
-			ActualData:        "2.3 GB",
+			ManagementStorage: "131072 kB",
+			ActualData:        "2411724 kB",
 		},
 		{
 			Timestamp:         "2025-01-03T00:00:00Z",
-			ManagementStorage: "132 MB",
-			ActualData:        "2.6 GB",
+			ManagementStorage: "135168 kB",
+			ActualData:        "2730394 kB",
 		},
 		{
 			Timestamp:         "2025-01-04T00:00:00Z",
-			ManagementStorage: "135 MB",
-			ActualData:        "2.8 GB",
+			ManagementStorage: "138240 kB",
+			ActualData:        "2939002 kB",
 		},
 		{
 			Timestamp:         "2025-01-05T00:00:00Z",
-			ManagementStorage: "141 MB",
-			ActualData:        "3.1 GB",
+			ManagementStorage: "144384 kB",
+			ActualData:        "3257671 kB",
 		},
 		{
 			Timestamp:         "2025-01-06T00:00:00Z",
-			ManagementStorage: "144 MB",
-			ActualData:        "3.4 GB",
+			ManagementStorage: "147456 kB",
+			ActualData:        "3576340 kB",
 		},
 		{
 			Timestamp:         "2025-01-07T00:00:00Z",
-			ManagementStorage: "148 MB",
-			ActualData:        "3.7 GB",
+			ManagementStorage: "151552 kB",
+			ActualData:        "3895009 kB",
 		},
 		{
 			Timestamp:         "2025-01-08T00:00:00Z",
-			ManagementStorage: "152 MB",
-			ActualData:        "4.0 GB",
+			ManagementStorage: "155648 kB",
+			ActualData:        "4194304 kB",
 		},
 		{
 			Timestamp:         "2025-01-09T00:00:00Z",
-			ManagementStorage: "156 MB",
-			ActualData:        "4.2 GB",
+			ManagementStorage: "159744 kB",
+			ActualData:        "4403021 kB",
 		},
 		{
 			Timestamp:         "2025-01-10T00:00:00Z",
-			ManagementStorage: "160 MB",
-			ActualData:        "4.5 GB",
+			ManagementStorage: "163840 kB",
+			ActualData:        "4718592 kB",
 		},
 	}
 
