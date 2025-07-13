@@ -1,8 +1,9 @@
 package main
 
 import (
-	"DBHS/accounts"
 	"DBHS/AI"
+	sqleditor "DBHS/SqlEditor"
+	"DBHS/accounts"
 	"DBHS/analytics"
 	"DBHS/indexes"
 	"DBHS/projects"
@@ -18,4 +19,5 @@ func defineURLs() {
 	tables.DefineURLs()
 	ai.DefineURLs()
 	analytics.DefineURLs()
+	sqleditor.DefineURLs()
 }

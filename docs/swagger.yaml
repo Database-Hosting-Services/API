@@ -203,6 +203,27 @@ definitions:
         example: User verified successfully
         type: string
     type: object
+  ai.AgentResponse:
+    properties:
+      response:
+        type: string
+      schema_changes:
+        items:
+          $ref: '#/definitions/utils.Table'
+        type: array
+      schema_ddl:
+        type: string
+    type: object
+  ai.ChatBotRequest:
+    properties:
+      question:
+        type: string
+    type: object
+  ai.Request:
+    properties:
+      prompt:
+        type: string
+    type: object
   analytics.DatabaseActivityWithDates:
     properties:
       timestamp:
@@ -348,36 +369,30 @@ definitions:
         example: Operation successful
         type: string
     type: object
-  tables.ClientTable:
+  sqleditor.RequestBody:
     properties:
-      columns:
-        items:
-          $ref: '#/definitions/tables.Column'
-        type: array
-      tableName:
+      query:
         type: string
     type: object
-  tables.Column:
+  sqleditor.ResponseBodySwagger:
+    description: SQL query execution response with results and metadata
     properties:
-      foreignKey:
-        $ref: '#/definitions/tables.ForeignKey'
-      isNullable:
-        type: boolean
-      isPrimaryKey:
-        type: boolean
-      isUnique:
-        type: boolean
-      name:
-        type: string
-      type:
-        type: string
-    type: object
-  tables.ColumnCollection:
-    properties:
-      columns:
+      column_names:
+        description: Names of columns in the result set
+        example:
+        - '["id"'
+        - '"name"]'
         items:
-          $ref: '#/definitions/tables.Column'
+          type: string
         type: array
+      execution_time:
+        description: Query execution time in milliseconds
+        example: 10.45
+        type: number
+      result:
+        description: The JSON result of the query execution
+        example: '[{"id":1,"name":"test"}]'
+        type: string
     type: object
   tables.Data:
     properties:
@@ -390,13 +405,6 @@ definitions:
           additionalProperties: true
           type: object
         type: array
-    type: object
-  tables.ForeignKey:
-    properties:
-      columnName:
-        type: string
-      tableName:
-        type: string
     type: object
   tables.ShowColumn:
     properties:
@@ -417,26 +425,112 @@ definitions:
         type: string
       project_id:
         type: integer
+      schema:
+        $ref: '#/definitions/utils.Table'
+    required:
+    - name
+    - schema
     type: object
-  tables.TableUpdate:
+  tables.UpdateTableSchema:
     properties:
-      delete:
-        items:
-          type: string
-        type: array
-      insert:
-        $ref: '#/definitions/tables.ColumnCollection'
-      update:
-        items:
-          $ref: '#/definitions/tables.UpdateColumn'
-        type: array
-    type: object
-  tables.UpdateColumn:
-    properties:
+      description:
+        type: string
+      id:
+        type: integer
       name:
         type: string
-      update:
-        $ref: '#/definitions/tables.Column'
+      oid:
+        type: string
+      project_id:
+        type: integer
+      renames:
+        items:
+          $ref: '#/definitions/utils.RenameRelation'
+        type: array
+      schema:
+        $ref: '#/definitions/utils.Table'
+    required:
+    - name
+    - schema
+    type: object
+  utils.ConstraintInfo:
+    properties:
+      CheckClause:
+        type: string
+      ColumnName:
+        type: string
+      ConstraintName:
+        type: string
+      ConstraintType:
+        type: string
+      ForeignColumnName:
+        type: string
+      ForeignTableName:
+        type: string
+      OrdinalPosition:
+        type: integer
+      TableName:
+        type: string
+    type: object
+  utils.IndexInfo:
+    properties:
+      ColumnName:
+        type: string
+      IndexName:
+        type: string
+      IndexType:
+        type: string
+      IsPrimary:
+        type: boolean
+      IsUnique:
+        type: boolean
+      TableName:
+        type: string
+    type: object
+  utils.RenameRelation:
+    properties:
+      newName:
+        type: string
+      oldName:
+        type: string
+    type: object
+  utils.Table:
+    properties:
+      Columns:
+        items:
+          $ref: '#/definitions/utils.TableColumn'
+        type: array
+      Constraints:
+        items:
+          $ref: '#/definitions/utils.ConstraintInfo'
+        type: array
+      Indexes:
+        items:
+          $ref: '#/definitions/utils.IndexInfo'
+        type: array
+      TableName:
+        type: string
+    type: object
+  utils.TableColumn:
+    properties:
+      CharacterMaximumLength:
+        type: integer
+      ColumnDefault:
+        type: string
+      ColumnName:
+        type: string
+      DataType:
+        type: string
+      IsNullable:
+        type: boolean
+      NumericPrecision:
+        type: integer
+      NumericScale:
+        type: integer
+      OrdinalPosition:
+        type: integer
+      TableName:
+        type: string
     type: object
 info:
   contact: {}
@@ -539,18 +633,18 @@ paths:
                     $ref: '#/definitions/tables.Table'
                   type: array
               type: object
-        "400":
-          description: Project ID is required
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Project not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Get all tables in a project
@@ -559,7 +653,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new table in the specified project
+      description: Create new table in the specified project
       parameters:
       - description: Project ID
         in: path
@@ -571,7 +665,7 @@ paths:
         name: table
         required: true
         schema:
-          $ref: '#/definitions/tables.ClientTable'
+          $ref: '#/definitions/tables.Table'
       produces:
       - application/json
       responses:
@@ -580,20 +674,24 @@ paths:
           schema:
             $ref: '#/definitions/response.SuccessResponse'
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse400'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Project not found
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse404'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
-      summary: Create a new table
+      summary: Create new table
       tags:
       - tables
   /api/projects/{project_id}/tables/{table_id}:
@@ -620,15 +718,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse400'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Delete a table
@@ -657,15 +759,14 @@ paths:
         name: limit
         required: true
         type: integer
-      - description: Column to order by
-        in: query
-        name: order_by
-        type: string
-      - description: Sort order (asc or desc)
+      - description: 'Sort order example: ?order=id:asc&order=name:desc , this sort
+          first by id then name'
         in: query
         name: order
         type: string
-      - description: Filter condition (e.g. name=value)
+      - description: 'Filter condition example: ?filter=id:gt:2&filter=name:like:ragnar,
+          this gets records with ids greater than 2 and with name equal ragnar, valid
+          operators [eq: =, neq: !=, lt: <, lte: <=, gt: >, gte: >=, like: LIKE]'
         in: query
         name: filter
         type: string
@@ -684,18 +785,74 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse400'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Read table data
+      tags:
+      - tables
+    post:
+      consumes:
+      - application/json
+      description: insert new row in the specified project table
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      - description: Row information
+        in: body
+        name: row
+        required: true
+        schema:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse400'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
+      security:
+      - BearerAuth: []
+      summary: insert new row
       tags:
       - tables
     put:
@@ -713,12 +870,12 @@ paths:
         name: table_id
         required: true
         type: string
-      - description: Table update information
+      - description: new table schema updates
         in: body
         name: updates
         required: true
         schema:
-          $ref: '#/definitions/tables.TableUpdate'
+          $ref: '#/definitions/tables.UpdateTableSchema'
       produces:
       - application/json
       responses:
@@ -729,18 +886,69 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse400'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Update an existing table
+      tags:
+      - tables
+  /api/projects/{project_id}/tables/{table_id}/schema:
+    get:
+      description: Get the schema of the specified table in the project
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Table ID
+        in: path
+        name: table_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Table schema
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/tables.Table'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse400'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse401'
+        "404":
+          description: Project not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse404'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
+      security:
+      - BearerAuth: []
+      summary: Get the schema of a table
       tags:
       - tables
   /projects:
@@ -926,6 +1134,147 @@ paths:
       summary: Update a project
       tags:
       - projects
+  /projects/{project_id}/ai/agent:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint allows users to query the AI agent with a prompt.
+        The agent will respond with a schema change suggestion based on the prompt.
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/ai.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Agent query successful
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ai.AgentResponse'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse400'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
+      security:
+      - JWTAuth: []
+      summary: AI Agent Query
+      tags:
+      - AI
+  /projects/{project_id}/ai/agent/accept:
+    post:
+      description: This endpoint allows users to accept the AI agent's query and execute
+        the schema changes
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Query executed successfully
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse400'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
+      security:
+      - JWTAuth: []
+      summary: Accept AI Agent Query
+      tags:
+      - AI
+  /projects/{project_id}/ai/agent/cancel:
+    post:
+      description: This endpoint allows users to cancel an AI agent query
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Agent query cancelled successfully
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse400'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
+      security:
+      - JWTAuth: []
+      summary: Cancel AI Agent Query
+      tags:
+      - AI
+  /projects/{project_id}/ai/chatbot/ask:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint allows users to ask questions to the chatbot, which
+        will respond using AI. It also saves the chat history for future reference.
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Chat Bot Request
+        in: body
+        name: ChatBotRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ai.ChatBotRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Answer generated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse500'
+      security:
+      - BearerAuth: []
+      summary: Chat Bot Ask
+      tags:
+      - AI
   /projects/{project_id}/ai/report:
     get:
       consumes:
@@ -952,7 +1301,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/response.Response'
+            $ref: '#/definitions/response.ErrorResponse500'
       security:
       - BearerAuth: []
       summary: Generate AI Report
@@ -1292,6 +1641,61 @@ paths:
       summary: Update the name of a specific index
       tags:
       - indexes
+  /projects/{project_id}/sqlEditor/run-query:
+    post:
+      consumes:
+      - application/json
+      description: Execute a dynamic SQL query against a specific project's PostgreSQL
+        database and return structured JSON results with metadata including column
+        names and execution time
+      parameters:
+      - description: Project ID (OID)
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: SQL query to execute
+        in: body
+        name: query
+        required: true
+        schema:
+          $ref: '#/definitions/sqleditor.RequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Query executed successfully with results, column names, and
+            execution time
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/sqleditor.ResponseBodySwagger'
+              type: object
+        "400":
+          description: Project ID missing, invalid request body, empty query, or dangerous
+            SQL operations detected
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized access
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Project not found or referenced table/column does not exist
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error, query execution failed, or error parsing
+            results
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Execute SQL query on project database
+      tags:
+      - sqlEditor
   /user/forget-password/verify:
     post:
       consumes:

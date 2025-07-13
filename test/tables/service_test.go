@@ -51,7 +51,7 @@ func mockCreateTable(ctx context.Context, projectOID string, table *tables.Clien
 		OID:       tableOID,
 	}
 
-	var tableId int
+	var tableId int64
 	if err := tables.InsertNewTable(ctx, &tableRecord, &tableId, db); err != nil {
 		return "", err
 	}

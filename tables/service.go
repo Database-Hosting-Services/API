@@ -5,23 +5,22 @@ import (
 	"DBHS/response"
 	"DBHS/utils"
 	"context"
-	"errors"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) ([]ShortTable, error) {
-	userId, ok := ctx.Value("user-id").(int)
+func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) ([]Table, error) {
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
-		return nil, errors.New("Unauthorized")
+		return nil, response.ErrUnauthorized
 	}
 
-	_, projectId, err := GetProjectNameID(ctx, projectOID, servDb)
+	projectId, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return nil, err
 	}
 
-	tables, err := GetAllTablesNameOid(ctx, projectId.(int64), servDb)
+	tables, err := GetAllTablesRepository(ctx, projectId, userDb, servDb)
 	if err != nil {
 		return nil, err
 	}
@@ -29,13 +28,41 @@ func GetAllTables(ctx context.Context, projectOID string, servDb *pgxpool.Pool) 
 	return tables, nil
 }
 
-func CreateTable(ctx context.Context, projectOID string, table *ClientTable, servDb *pgxpool.Pool) (string, error) {
-	userId, ok := ctx.Value("user-id").(int)
+func GetTableSchema(ctx context.Context, projectOID string, tableOID string, servDb *pgxpool.Pool) (*Table, error) {
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
-		return "", errors.New("Unauthorized")
+		return nil, response.ErrUnauthorized
 	}
 
-	projectId, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
+	_, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
+	if err != nil {
+		return nil, err
+	}
+
+	tableName, err := GetTableName(ctx, tableOID, servDb)
+	if err != nil {
+		return nil, err
+	}
+
+	schema, err := utils.GetTable(ctx, tableName, userDb)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Table{
+		Schema: schema,
+		OID:    tableOID,
+		Name:   schema.TableName,
+	}, nil
+}
+
+func CreateTable(ctx context.Context, projectOID string, table *Table, servDb *pgxpool.Pool) (string, error) {
+	userId, ok := ctx.Value("user-id").(int64)
+	if !ok || userId == 0 {
+		return "", response.ErrUnauthorized
+	}
+
+	projectId, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return "", err
 	}
@@ -49,42 +76,40 @@ func CreateTable(ctx context.Context, projectOID string, table *ClientTable, ser
 	if err := CreateTableIntoHostingServer(ctx, table, tx); err != nil {
 		return "", err
 	}
-	tableRecord := Table{
-		Name:      table.TableName,
-		ProjectID: projectId,
-		OID:       utils.GenerateOID(),
-	}
-	var tableId int
+
+	table.OID = utils.GenerateOID()
+	table.ProjectID = projectId
+	var tableId int64
 	// insert table row into the tables table
-	if err := InsertNewTable(ctx, &tableRecord, &tableId, servDb); err != nil {
+	if err := InsertNewTable(ctx, table, &tableId, servDb); err != nil {
 		return "", err
 	}
+
 	if err := tx.Commit(ctx); err != nil {
 		DeleteTableRecord(ctx, tableId, servDb)
 		return "", err
 	}
-	config.App.InfoLog.Printf("Table %s created successfully in project %s by user %s", table.TableName, projectOID, ctx.Value("user-name").(string))
-	return tableRecord.OID, nil
+	config.App.InfoLog.Printf("Table %s created successfully in project %s by user %s", table.Name, projectOID, ctx.Value("user-name").(string))
+	return table.OID, nil
 }
 
-func UpdateTable(ctx context.Context, projectOID string, tableOID string, updates *TableUpdate, servDb *pgxpool.Pool) error {
-	userId, ok := ctx.Value("user-id").(int)
+func UpdateTable(ctx context.Context, projectOID string, tableOID string, newSchema *UpdateTableSchema, servDb *pgxpool.Pool) error {
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
-		return errors.New("Unauthorized")
+		return response.ErrUnauthorized
 	}
 
-	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
+	_, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return err
 	}
 
-	tableName, err := GetTableName(ctx, tableOID, servDb)
+	oldSchema, err := utils.GetTableSchema(ctx, tableOID, servDb)
 	if err != nil {
 		return err
 	}
 
-	// Call the service function to read the table
-	table, err := ReadTableColumns(ctx, tableName, userDb)
+	DDLUpdate, err := utils.CompareTableSchemas(oldSchema, newSchema.Schema, newSchema.Renames)
 	if err != nil {
 		return err
 	}
@@ -94,9 +119,19 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 		return err
 	}
 	defer tx.Rollback(ctx)
-	if err := ExecuteUpdate(tableName, table, updates, tx); err != nil {
+
+	if _, err := tx.Exec(ctx, DDLUpdate); err != nil {
 		return err
 	}
+
+	// Update the table name in the service database
+	if oldSchema.TableName != newSchema.Schema.TableName {
+		if _, err := servDb.Exec(ctx, "UPDATE \"Ptable\" SET name = $1 WHERE oid = $2",
+			newSchema.Schema.TableName, tableOID); err != nil {
+			return err
+		}
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		return err
 	}
@@ -104,13 +139,13 @@ func UpdateTable(ctx context.Context, projectOID string, tableOID string, update
 	return nil
 }
 
-func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpool.Pool) error {
-	userId, ok := ctx.Value("user-id").(int)
+func DeleteTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpool.Pool) error {
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
-		return errors.New("Unauthorized")
+		return response.ErrUnauthorized
 	}
 
-	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
+	_, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return err
 	}
@@ -119,6 +154,7 @@ func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpoo
 	if err != nil {
 		return err
 	}
+
 	usertx, err := userDb.Begin(ctx)
 	if err != nil {
 		return err
@@ -134,6 +170,7 @@ func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpoo
 		return err
 	}
 	defer servtx.Rollback(ctx)
+
 	if err := DeleteTableFromServerDb(ctx, tableOID, servtx); err != nil {
 		return err
 	}
@@ -175,12 +212,12 @@ func DeletTable(ctx context.Context, projectOID, tableOID string, servDb *pgxpoo
 */
 
 func ReadTable(ctx context.Context, projectOID, tableOID string, parameters map[string][]string, servDb *pgxpool.Pool) (*Data, error) {
-	userId, ok := ctx.Value("user-id").(int)
+	userId, ok := ctx.Value("user-id").(int64)
 	if !ok || userId == 0 {
 		return nil, response.ErrUnauthorized
 	}
 
-	_, userDb, err := ExtractDb(ctx, projectOID, userId, servDb)
+	_, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
 	if err != nil {
 		return nil, err
 	}
@@ -195,5 +232,43 @@ func ReadTable(ctx context.Context, projectOID, tableOID string, parameters map[
 		return nil, err
 	}
 
+	if data.Rows == nil {
+		data.Rows = make([]map[string]interface{}, 0)
+	}
+
 	return data, nil
+}
+
+func InserNewRow(ctx context.Context, projectOID, tableOID string, data map[string]interface{}, servDb *pgxpool.Pool) (error) {
+	userId, ok := ctx.Value("user-id").(int64)
+	if !ok || userId == 0 {
+		return response.ErrUnauthorized
+	}
+
+	_, userDb, err := utils.ExtractDb(ctx, projectOID, userId, servDb)
+	if err != nil {
+		return err
+	}
+
+	tableName, err := GetTableName(ctx, tableOID, servDb)
+	if err != nil {
+		return err
+	}
+
+	tableColumns, err := ReadTableColumns(ctx, tableName, userDb)
+	if err != nil {
+		return err
+	}
+
+	for column := range tableColumns {
+		if _, ok := data[column]; !ok {
+			data[column] = nil
+		}
+	}
+
+	if len(data) > len(tableColumns) {
+		return response.ErrBadRequest
+	}
+
+	return InserRow(ctx, tableName, data, userDb)
 }

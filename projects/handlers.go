@@ -28,7 +28,7 @@ func CreateProject(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		project := Project{}
 		if err := json.NewDecoder(r.Body).Decode(&project); err != nil {
-			response.BadRequest(w, "Invalid Input", err)
+			response.BadRequest(w, r, "Invalid Input", err)
 			return
 		}
 
@@ -36,21 +36,21 @@ func CreateProject(app *config.Application) http.HandlerFunc {
 		if err != nil {
 			app.ErrorLog.Println("Project creation failed:", err)
 			if err.Error() == "Project already exists" {
-				response.BadRequest(w, "Project already exists", errors.New("Project creation failed"))
+				response.BadRequest(w, r, "Project already exists", errors.New("Project creation failed"))
 			} else if err.Error() == "database name must start with a letter or underscore and contain only letters, numbers, underscores, or $" {
-				response.BadRequest(w, "database name must start with a letter or underscore and contain only letters, numbers, underscores, or $", errors.New("Project creation failed"))
+				response.BadRequest(w, r, "database name must start with a letter or underscore and contain only letters, numbers, underscores, or $", errors.New("Project creation failed"))
 			} else {
-				response.InternalServerError(w, "Internal Server Error", errors.New("Project creation failed"))
+				response.InternalServerError(w, r, "Internal Server Error", err)
 			}
 			return
 		}
 
 		if has {
-			response.BadRequest(w, "Project with this name already exists", nil)
+			response.BadRequest(w, r, "Project with this name already exists", nil)
 			return
 		}
 
-		response.Created(w, "Project Created Successfully", ProjectData)
+		response.Created(w, r, "Project Created Successfully", ProjectData)
 	}
 }
 
@@ -73,7 +73,7 @@ func DeleteProject(app *config.Application) http.HandlerFunc {
 		urlVariables := mux.Vars(r)
 		projectOid := urlVariables["project_id"]
 		if projectOid == "" {
-			response.BadRequest(w, "Project Id is required", nil)
+			response.BadRequest(w, r, "Project Id is required", nil)
 			return
 		}
 
@@ -84,15 +84,15 @@ func DeleteProject(app *config.Application) http.HandlerFunc {
 
 			switch err.Error() {
 			case "Project not found":
-				response.NotFound(w, "Project not found", err)
+				response.NotFound(w, r, "Project not found", err)
 			case "Unauthorized":
-				response.UnAuthorized(w, "Unauthorized", err)
+				response.UnAuthorized(w, r, "Unauthorized", err)
 			default:
-				response.InternalServerError(w, "Internal Server Error", errors.New("Project deletion failed"))
+				response.InternalServerError(w, r, "Internal Server Error", errors.New("Project deletion failed"))
 			}
 			return
 		}
-		response.OK(w, "Project Deleted Successfully", nil)
+		response.OK(w, r, "Project Deleted Successfully", nil)
 	}
 }
 
@@ -113,11 +113,11 @@ func GetProjects(app *config.Application) http.HandlerFunc {
 		data, err := getUserProjects(r.Context(), config.DB, userId)
 		if err != nil {
 			app.ErrorLog.Println(err)
-			response.InternalServerError(w, "Internal Server Error", nil)
+			response.InternalServerError(w, r, "Internal Server Error", nil)
 			return
 		}
 
-		response.OK(w, "Projects Retrieved Successfully", data)
+		response.OK(w, r, "Projects Retrieved Successfully", data)
 	}
 }
 
@@ -140,22 +140,22 @@ func getSpecificProject(app *config.Application) http.HandlerFunc {
 
 		projectOid := urlVariables["project_id"]
 		if projectOid == "" {
-			response.BadRequest(w, "Project Id is required", nil)
+			response.BadRequest(w, r, "Project Id is required", nil)
 			return
 		}
 
 		data, err := GetUserSpecificProject(r.Context(), config.DB, userId, projectOid)
 		if err != nil {
 			if errors.Is(err, ErrorProjectNotFound) {
-				response.NotFound(w, "Project not found", nil)
+				response.NotFound(w, r, "Project not found", nil)
 				return
 			}
 			app.ErrorLog.Println(err)
-			response.InternalServerError(w, "Internal Server Error", nil)
+			response.InternalServerError(w, r, "Internal Server Error", nil)
 			return
 		}
 
-		response.OK(w, "Project Retrieved Successfully", data)
+		response.OK(w, r, "Project Retrieved Successfully", data)
 	}
 }
 
@@ -179,20 +179,20 @@ func updateProject(app *config.Application) http.HandlerFunc {
 
 		projectOid := urlVariables["project_id"]
 		if projectOid == "" {
-			response.BadRequest(w, "Project Id is required", nil)
+			response.BadRequest(w, r, "Project Id is required", nil)
 			return
 		}
 
 		var data updateProjectDataModel
 		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-			response.BadRequest(w, "Invalid Input", errors.New("The request body is empty"))
+			response.BadRequest(w, r, "Invalid Input", errors.New("The request body is empty"))
 			return
 		}
 		defer r.Body.Close()
 
 		fieldsToUpdate, Values, err := utils.GetNonZeroFieldsFromStruct(&data)
 		if err != nil {
-			response.BadRequest(w, "Invalid Input", err)
+			response.BadRequest(w, r, "Invalid Input", err)
 			return
 		}
 
@@ -202,7 +202,7 @@ func updateProject(app *config.Application) http.HandlerFunc {
 			if field == "name" {
 				err := validateProjectData(r.Context(), config.DB, Values[idx].(string), userId)
 				if err != nil {
-					response.BadRequest(w, "Invalid Input Data", err)
+					response.BadRequest(w, r, "Invalid Input Data", err)
 					return
 				}
 			}
@@ -211,37 +211,37 @@ func updateProject(app *config.Application) http.HandlerFunc {
 		query, err := BuildProjectUpdateQuery(projectOid, fieldsToUpdate)
 		if err != nil {
 			app.ErrorLog.Println(err)
-			response.InternalServerError(w, "Internal Server Error", errors.New("error in generating the updating query"))
+			response.InternalServerError(w, r, "Internal Server Error", errors.New("error in generating the updating query"))
 			return
 		}
 
 		transaction, err := config.DB.Begin(r.Context())
 		if err != nil {
 			app.ErrorLog.Println(err)
-			response.InternalServerError(w, "Internal Server Error", errors.New("Cannot begin transaction"))
+			response.InternalServerError(w, r, "Internal Server Error", errors.New("Cannot begin transaction"))
 			return
 		}
 
 		err = updateProjectData(r.Context(), transaction, query, Values)
 		if err != nil {
 			app.ErrorLog.Println(err)
-			response.InternalServerError(w, "Internal Server Error", errors.New("Cannot update project data"))
+			response.InternalServerError(w, r, "Internal Server Error", errors.New("Cannot update project data"))
 			return
 		}
 
 		projectData, err := GetUserSpecificProject(r.Context(), transaction, userId, projectOid)
 		if err != nil {
 			app.ErrorLog.Println(err)
-			response.InternalServerError(w, "Internal Server Error", nil)
+			response.InternalServerError(w, r, "Internal Server Error", nil)
 			return
 		}
 
 		if err := transaction.Commit(r.Context()); err != nil {
 			app.ErrorLog.Println(err)
-			response.InternalServerError(w, "Internal Server Error", errors.New("Cannot commit transaction"))
+			response.InternalServerError(w, r, "Internal Server Error", errors.New("Cannot commit transaction"))
 			return
 		}
 
-		response.OK(w, "Project Retrieved Successfully", projectData)
+		response.OK(w, r, "Project Retrieved Successfully", projectData)
 	}
 }

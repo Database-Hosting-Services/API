@@ -132,6 +132,24 @@ const (
 			)
 		ORDER BY 
 			t.relname, i.relname;`
+
+
+	GET_USER_CHAT_FOR_PROJECT_QUERY = `
+		SELECT id, oid, owner_id, project_id
+		FROM ai_chats
+		WHERE owner_id = $1 AND project_id = $2
+	`
+
+	CREATE_NEW_CHAT_QUERY = `
+		INSERT INTO ai_chats (oid, owner_id, project_id)
+		VALUES ($1, $2, $3)
+		RETURNING id, oid, owner_id, project_id;
+	`
+
+	SAVE_CHAT_MESSAGE_QUERY = `
+		INSERT INTO chat_messages (chat_id, sender_type, content)
+		VALUES ($1, $2, $3)
+	`
 )
 
 // ExtractDatabaseSchema extracts the complete database schema as DDL statements
@@ -325,4 +343,35 @@ func formatDataType(col TableColumn) string {
 	default:
 		return dataType
 	}
+}
+
+func GetUserChatForProject(ctx context.Context, db utils.Querier, userID, projectID int) (ChatData, error) {
+	var data ChatData
+	err := pgxscan.Get(ctx, db, &data, GET_USER_CHAT_FOR_PROJECT_QUERY, userID, projectID)
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows in result set") {
+			return ChatData{}, err
+		}
+		return ChatData{}, fmt.Errorf("failed to get user chat for project: %w", err)
+	}
+	return data, nil
+}
+
+func CreateNewChat(ctx context.Context, db utils.Querier, oid string, userID, projectID int) (ChatData, error) {
+	var chat ChatData
+	err := pgxscan.Get(ctx, db, &chat, CREATE_NEW_CHAT_QUERY, oid, userID, projectID)
+	if err != nil {
+		return ChatData{}, fmt.Errorf("failed to create new chat: %w", err)
+	}
+	return chat, nil
+}
+
+func SaveUserChatMessage(ctx context.Context, db utils.Querier, chatId int, message string) error {
+	_, err := db.Exec(ctx, SAVE_CHAT_MESSAGE_QUERY, chatId, SENDER_TYPE_USER, message)
+	return err
+}
+
+func SaveAIChatMessage(ctx context.Context, db utils.Querier, chatId int, message string) error {
+	_, err := db.Exec(ctx, SAVE_CHAT_MESSAGE_QUERY, chatId, SENDER_TYPE_AI, message)
+	return err
 }

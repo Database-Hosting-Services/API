@@ -194,6 +194,16 @@ func GetALLDatabaseUsageStats(ctx context.Context, db *pgxpool.Pool, projectOid 
 		if err := rows.Scan(&record.Timestamp, &record.ReadWriteCost, &record.CPUCost, &record.TotalCost); err != nil {
 			return nil, *api.NewApiError("Internal server error", 500, errors.New("failed to scan database usage record: "+err.Error()))
 		}
+		record.CPUCost *= 10000000
+		record.ReadWriteCost *= 10000000
+		if record.CPUCost < 0 {
+			record.CPUCost *= -1
+		}
+
+		if record.ReadWriteCost < 0 {
+			record.ReadWriteCost *= -1
+		}
+		record.TotalCost = record.CPUCost + record.ReadWriteCost
 		usageRecords = append(usageRecords, record)
 	}
 

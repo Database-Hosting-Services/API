@@ -5,32 +5,68 @@ import (
 	"DBHS/utils"
 	"context"
 	"fmt"
+	"log"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
 )
 
-func GetProjectNameID(ctx context.Context, projectId string, db utils.Querier) (interface{}, interface{}, error) {
-	var name, id interface{}
-	err := db.QueryRow(ctx, "SELECT id, name FROM projects WHERE oid = $1", projectId).Scan(&id, &name)
-	if err != nil {
-		return nil, nil, err
-	}
-	return name, id, nil
-}
-
-func GetAllTablesNameOid(ctx context.Context, projectId int64, db pgxscan.Querier) ([]ShortTable, error) {
-	var tables []ShortTable
-	err := pgxscan.Select(ctx, db, &tables, `SELECT oid, name FROM "Ptable" WHERE project_id = $1`, projectId)
+func GetAllTablesRepository(ctx context.Context, projectId int64, userDb utils.Querier, servDb utils.Querier) ([]Table, error) {
+	var tables []Table
+	err := pgxscan.Select(ctx, servDb, &tables, `SELECT id, oid, name FROM "Ptable" WHERE project_id = $1`, projectId)
 	if err != nil {
 		return nil, err
+	}
+
+	// extract the table schema
+	tableSchema, err := utils.GetTables(ctx, userDb)
+	if err != nil {
+		return nil, err
+	}
+
+	presentTables := make(map[string]bool)
+	// delete the table recored if they are not present in the schema
+	for i := 0; i < len(tables); i++ {
+		presentTables[tables[i].Name] = true
+		if _, ok := tableSchema[tables[i].Name]; !ok {
+			// delete the table record from the database
+			if err := DeleteTableRecord(ctx, tables[i].ID, servDb); err != nil {
+				config.App.ErrorLog.Printf("Failed to delete table record %s: %v", tables[i].OID, err)
+			}
+			// remove the table from the list
+			tables = slices.Delete(tables, i, i+1)
+			i-- // adjust index after removal
+		}
+	}
+
+	// insert new table entries if they are present in the schema but not in the database
+	for name, _ := range tableSchema {
+		if presentTables[name] {
+			continue // skip if the table is already present
+		}
+		// create a new table record
+		newTable := &Table{
+			Name:      name,
+			ProjectID: projectId,
+			OID:       utils.GenerateOID(),
+		}
+		if err := InsertNewTable(ctx, newTable, &newTable.ID, servDb); err != nil {
+			config.App.ErrorLog.Printf("Failed to insert new table %s: %v", name, err)
+		}
+		tables = append(tables, *newTable)
+	}
+
+	// convert the table schema to the table model
+	for i := range tables {
+		tables[i].Schema = tableSchema[tables[i].Name]
 	}
 
 	return tables, err
 }
 
-func InsertNewTable(ctx context.Context, table *Table, TableId *int, db utils.Querier) error {
+func InsertNewTable(ctx context.Context, table *Table, TableId *int64, db utils.Querier) error {
 	err := db.QueryRow(ctx, InsertNewTableRecordStmt, table.OID, table.Name, table.Description, table.ProjectID).Scan(TableId)
 	if err != nil {
 		return fmt.Errorf("failed to insert new table: %w", err)
@@ -38,7 +74,7 @@ func InsertNewTable(ctx context.Context, table *Table, TableId *int, db utils.Qu
 	return nil
 }
 
-func DeleteTableRecord(ctx context.Context, tableId int, db utils.Querier) error {
+func DeleteTableRecord(ctx context.Context, tableId int64, db utils.Querier) error {
 	_, err := db.Exec(ctx, fmt.Sprintf(DeleteTableStmt, "id"), tableId)
 	if err != nil {
 		return fmt.Errorf("failed to delete table record: %w", err)
@@ -107,6 +143,7 @@ func ReadTableData(ctx context.Context, tableName string, parameters map[string]
 	if err != nil {
 		return nil, err
 	}
+	log.Println(query)
 
 	if err != nil {
 		return nil, err
@@ -122,6 +159,7 @@ func ReadTableData(ctx context.Context, tableName string, parameters map[string]
 	if columns == nil {
 		return nil, err
 	}
+
 	data := Data{
 		Columns: make([]ShowColumn, len(columns)),
 	}
@@ -140,8 +178,8 @@ func ReadTableData(ctx context.Context, tableName string, parameters map[string]
 		ptr[i] = &values[i]
 	}
 
-	row := make(map[string]interface{})
 	for rows.Next() {
+		row := make(map[string]interface{})
 		if err := rows.Scan(ptr...); err != nil {
 			return nil, err
 		}
@@ -155,7 +193,7 @@ func ReadTableData(ctx context.Context, tableName string, parameters map[string]
 }
 
 func PrepareQuery(tableName string, parameters map[string][]string) (string, error) {
-	query := fmt.Sprintf("SELECT * FROM %s", tableName)
+	query := fmt.Sprintf(`SELECT * FROM "%s"`, tableName)
 	query, err := AddFilters(query, parameters["filter"])
 	if err != nil {
 		return "", err
@@ -176,6 +214,7 @@ func PrepareQuery(tableName string, parameters map[string][]string) (string, err
 		return "", err
 	}
 
+	page--
 	query = query + fmt.Sprintf(" LIMIT %d OFFSET %d;", limit, page*limit)
 
 	return query, nil
@@ -183,7 +222,7 @@ func PrepareQuery(tableName string, parameters map[string][]string) (string, err
 
 // filter will be a string in the format "column:op:value"
 func AddFilters(query string, filters []string) (string, error) {
-	if filters == nil || len(filters) == 0 {
+	if len(filters) == 0 {
 		return query, nil
 	}
 	query = query + " WHERE "
@@ -202,7 +241,7 @@ func AddFilters(query string, filters []string) (string, error) {
 		parts := strings.Split(filter, ":")
 		column, op, value := parts[0], parts[1], parts[2]
 		if op == "like" {
-			predicates = append(predicates, fmt.Sprintf("%s %s %s", column, opMap[op], value))
+			predicates = append(predicates, fmt.Sprintf("%s %s '%s'", column, opMap[op], value))
 		} else {
 			intV, err := strconv.Atoi(value)
 			if err != nil {
@@ -236,4 +275,26 @@ func AddOrder(query string, orders []string) (string, error) {
 	}
 
 	return query + strings.Join(predicates, ", "), nil
+}
+
+func InserRow(ctx context.Context, tableNmae string, data map[string]interface{}, db utils.Querier) error {
+	columns := make([]string, 0, len(data))
+	placeholders := make([]string, 0, len(data))
+	values := make([]interface{}, 0, len(data))
+	i := 1
+	for k, v := range data {
+		columns = append(columns, "\""+k+"\"")
+		placeholders = append(placeholders, fmt.Sprintf("$%d", i)) // Use ? if not PostgreSQL
+		values = append(values, v)
+		i++
+	}
+
+	query := fmt.Sprintf(InsertNewRowStmt,
+		tableNmae,
+		strings.Join(columns, ", "),
+		strings.Join(placeholders, ","),
+	)
+
+	_, err := db.Exec(ctx, query, values...)
+	return err
 }

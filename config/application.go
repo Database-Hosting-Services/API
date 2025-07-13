@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/axiomhq/axiom-go/axiom"
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 
@@ -59,6 +60,8 @@ var (
 	ConfigManager *UserDbConfig
 
 	AI Agent.RAGmodel
+
+	AxiomLogger *axiom.Client
 )
 
 func loadEnv() {
@@ -71,7 +74,9 @@ func loadEnv() {
 	}
 }
 
-const deploy = true
+const (
+	deploy = true // Set to true if running in production, false for development
+)
 
 func Init(infoLog, errorLog *log.Logger) {
 
@@ -136,18 +141,7 @@ func Init(infoLog, errorLog *log.Logger) {
 		errorLog.Fatalf("Unable to parse database URL: %v", err)
 	}
 
-	// this clear the cached prepared statement
-	//محدش يعدل فيها عشان انا اتبضنت من كتفم دي لغه
-	// there is an error occurs when you restart the server :
-	// ERROR: prepared statement "stmtcache_d40c25297f5a9db6d92b9594942d1217a18da17e46487cf5" already exists (SQLSTATE 42P05)
-	// it means that the prepared statement already exists and you cannot recache it
-	// so this function should remove all cached prepared statements when the server starts
-	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-		// Clear any existing statements
-		_, err := conn.Exec(ctx, "DISCARD ALL")
-		return err
-	}
-
+	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
 	DB, err = pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		errorLog.Fatalf("Unable to connect to database: %v", err)
@@ -193,6 +187,14 @@ func Init(infoLog, errorLog *log.Logger) {
 		PineconeIndexHost:    os.Getenv("PINECONE_INDEX_HOST"),
 	})
 	infoLog.Println("Connected to AI successfully! ✅")
+
+	AxiomLogger, err = axiom.NewClient(
+		axiom.SetPersonalTokenConfig(os.Getenv("AXIOM_TOKEN"), os.Getenv("AXIOM_ORG_ID")), // Set your Axiom personal token and organization ID
+	)
+	if err != nil {
+		errorLog.Fatalf("Failed to create Axiom client: %v", err)
+	}
+	infoLog.Println("Connected to Axiom successfully! ✅")
 }
 
 func CloseDB() {
@@ -205,5 +207,4 @@ func CloseDB() {
 		AdminDB.Close()
 		App.InfoLog.Println("Admin database connection closed. 🔌")
 	}
-	// config.CloseAllPools();
 }

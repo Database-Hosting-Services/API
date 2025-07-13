@@ -173,22 +173,22 @@ const docTemplate = `{
                             ]
                         }
                     },
-                    "400": {
-                        "description": "Project ID is required",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse401"
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse404"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse500"
                         }
                     }
                 }
@@ -199,7 +199,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a new table in the specified project",
+                "description": "Create new table in the specified project",
                 "consumes": [
                     "application/json"
                 ],
@@ -209,7 +209,7 @@ const docTemplate = `{
                 "tags": [
                     "tables"
                 ],
-                "summary": "Create a new table",
+                "summary": "Create new table",
                 "parameters": [
                     {
                         "type": "string",
@@ -224,7 +224,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/tables.ClientTable"
+                            "$ref": "#/definitions/tables.Table"
                         }
                     }
                 ],
@@ -236,21 +236,27 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse400"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse401"
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse404"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse500"
                         }
                     }
                 }
@@ -302,19 +308,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Column to order by",
-                        "name": "order_by",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort order (asc or desc)",
+                        "description": "Sort order example: ?order=id:asc\u0026order=name:desc , this sort first by id then name",
                         "name": "order",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter condition (e.g. name=value)",
+                        "description": "Filter condition example: ?filter=id:gt:2\u0026filter=name:like:ragnar, this gets records with ids greater than 2 and with name equal ragnar, valid operators [eq: =, neq: !=, lt: \u003c, lte: \u003c=, gt: \u003e, gte: \u003e=, like: LIKE]",
                         "name": "filter",
                         "in": "query"
                     }
@@ -341,19 +341,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse400"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse401"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse404"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse500"
                         }
                     }
                 }
@@ -391,12 +397,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Table update information",
+                        "description": "new table schema updates",
                         "name": "updates",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/tables.TableUpdate"
+                            "$ref": "#/definitions/tables.UpdateTableSchema"
                         }
                     }
                 ],
@@ -410,19 +416,104 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse400"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse401"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse404"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse500"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "insert new row in the specified project table",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tables"
+                ],
+                "summary": "insert new row",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Table ID",
+                        "name": "table_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Row information",
+                        "name": "row",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse400"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse401"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse404"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse500"
                         }
                     }
                 }
@@ -467,19 +558,102 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse400"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse401"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse404"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse500"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/projects/{project_id}/tables/{table_id}/schema": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the schema of the specified table in the project",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tables"
+                ],
+                "summary": "Get the schema of a table",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Table ID",
+                        "name": "table_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Table schema",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/tables.Table"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse400"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse401"
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse404"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse500"
                         }
                     }
                 }
@@ -789,6 +963,232 @@ const docTemplate = `{
                 }
             }
         },
+        "/projects/{project_id}/ai/agent": {
+            "post": {
+                "security": [
+                    {
+                        "JWTAuth": []
+                    }
+                ],
+                "description": "This endpoint allows users to query the AI agent with a prompt. The agent will respond with a schema change suggestion based on the prompt.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI"
+                ],
+                "summary": "AI Agent Query",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ai.Request"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent query successful",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/ai.AgentResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse400"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse500"
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/ai/agent/accept": {
+            "post": {
+                "security": [
+                    {
+                        "JWTAuth": []
+                    }
+                ],
+                "description": "This endpoint allows users to accept the AI agent's query and execute the schema changes",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI"
+                ],
+                "summary": "Accept AI Agent Query",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Query executed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse400"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse500"
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/ai/agent/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "JWTAuth": []
+                    }
+                ],
+                "description": "This endpoint allows users to cancel an AI agent query",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI"
+                ],
+                "summary": "Cancel AI Agent Query",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent query cancelled successfully",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse400"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse500"
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/ai/chatbot/ask": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint allows users to ask questions to the chatbot, which will respond using AI. It also saves the chat history for future reference.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI"
+                ],
+                "summary": "Chat Bot Ask",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Chat Bot Request",
+                        "name": "ChatBotRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ai.ChatBotRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Answer generated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse500"
+                        }
+                    }
+                }
+            }
+        },
         "/projects/{project_id}/ai/report": {
             "get": {
                 "security": [
@@ -838,7 +1238,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/response.Response"
+                            "$ref": "#/definitions/response.ErrorResponse500"
                         }
                     }
                 }
@@ -1371,6 +1771,88 @@ const docTemplate = `{
                 }
             }
         },
+        "/projects/{project_id}/sqlEditor/run-query": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Execute a dynamic SQL query against a specific project's PostgreSQL database and return structured JSON results with metadata including column names and execution time",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sqlEditor"
+                ],
+                "summary": "Execute SQL query on project database",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID (OID)",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "SQL query to execute",
+                        "name": "query",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sqleditor.RequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Query executed successfully with results, column names, and execution time",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sqleditor.ResponseBodySwagger"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Project ID missing, invalid request body, empty query, or dangerous SQL operations detected",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found or referenced table/column does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error, query execution failed, or error parsing results",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/forget-password/verify": {
             "post": {
                 "description": "Verify code and reset user password",
@@ -1664,7 +2146,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "$ref": "#/definitions/accounts.ErrorResponse400EmailNotFound"
+                            "$ref": "#/definitions/accounts.ErrorResponse"
                         }
                     }
                 }
@@ -2087,6 +2569,39 @@ const docTemplate = `{
                 }
             }
         },
+        "ai.AgentResponse": {
+            "type": "object",
+            "properties": {
+                "response": {
+                    "type": "string"
+                },
+                "schema_changes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.Table"
+                    }
+                },
+                "schema_ddl": {
+                    "type": "string"
+                }
+            }
+        },
+        "ai.ChatBotRequest": {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
+        "ai.Request": {
+            "type": "object",
+            "properties": {
+                "prompt": {
+                    "type": "string"
+                }
+            }
+        },
         "analytics.DatabaseActivityWithDates": {
             "type": "object",
             "properties": {
@@ -2308,51 +2823,38 @@ const docTemplate = `{
                 }
             }
         },
-        "tables.ClientTable": {
+        "sqleditor.RequestBody": {
             "type": "object",
             "properties": {
-                "columns": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tables.Column"
-                    }
-                },
-                "tableName": {
+                "query": {
                     "type": "string"
                 }
             }
         },
-        "tables.Column": {
+        "sqleditor.ResponseBodySwagger": {
+            "description": "SQL query execution response with results and metadata",
             "type": "object",
             "properties": {
-                "foreignKey": {
-                    "$ref": "#/definitions/tables.ForeignKey"
-                },
-                "isNullable": {
-                    "type": "boolean"
-                },
-                "isPrimaryKey": {
-                    "type": "boolean"
-                },
-                "isUnique": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "tables.ColumnCollection": {
-            "type": "object",
-            "properties": {
-                "columns": {
+                "column_names": {
+                    "description": "Names of columns in the result set",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/tables.Column"
-                    }
+                        "type": "string"
+                    },
+                    "example": [
+                        "[\"id\"",
+                        "\"name\"]"
+                    ]
+                },
+                "execution_time": {
+                    "description": "Query execution time in milliseconds",
+                    "type": "number",
+                    "example": 10.45
+                },
+                "result": {
+                    "description": "The JSON result of the query execution",
+                    "type": "string",
+                    "example": "[{\"id\":1,\"name\":\"test\"}]"
                 }
             }
         },
@@ -2374,17 +2876,6 @@ const docTemplate = `{
                 }
             }
         },
-        "tables.ForeignKey": {
-            "type": "object",
-            "properties": {
-                "columnName": {
-                    "type": "string"
-                },
-                "tableName": {
-                    "type": "string"
-                }
-            }
-        },
         "tables.ShowColumn": {
             "type": "object",
             "properties": {
@@ -2398,6 +2889,10 @@ const docTemplate = `{
         },
         "tables.Table": {
             "type": "object",
+            "required": [
+                "name",
+                "schema"
+            ],
             "properties": {
                 "description": {
                     "type": "string"
@@ -2413,37 +2908,163 @@ const docTemplate = `{
                 },
                 "project_id": {
                     "type": "integer"
+                },
+                "schema": {
+                    "$ref": "#/definitions/utils.Table"
                 }
             }
         },
-        "tables.TableUpdate": {
+        "tables.UpdateTableSchema": {
             "type": "object",
+            "required": [
+                "name",
+                "schema"
+            ],
             "properties": {
-                "delete": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "description": {
+                    "type": "string"
                 },
-                "insert": {
-                    "$ref": "#/definitions/tables.ColumnCollection"
+                "id": {
+                    "type": "integer"
                 },
-                "update": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tables.UpdateColumn"
-                    }
-                }
-            }
-        },
-        "tables.UpdateColumn": {
-            "type": "object",
-            "properties": {
                 "name": {
                     "type": "string"
                 },
-                "update": {
-                    "$ref": "#/definitions/tables.Column"
+                "oid": {
+                    "type": "string"
+                },
+                "project_id": {
+                    "type": "integer"
+                },
+                "renames": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.RenameRelation"
+                    }
+                },
+                "schema": {
+                    "$ref": "#/definitions/utils.Table"
+                }
+            }
+        },
+        "utils.ConstraintInfo": {
+            "type": "object",
+            "properties": {
+                "CheckClause": {
+                    "type": "string"
+                },
+                "ColumnName": {
+                    "type": "string"
+                },
+                "ConstraintName": {
+                    "type": "string"
+                },
+                "ConstraintType": {
+                    "type": "string"
+                },
+                "ForeignColumnName": {
+                    "type": "string"
+                },
+                "ForeignTableName": {
+                    "type": "string"
+                },
+                "OrdinalPosition": {
+                    "type": "integer"
+                },
+                "TableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.IndexInfo": {
+            "type": "object",
+            "properties": {
+                "ColumnName": {
+                    "type": "string"
+                },
+                "IndexName": {
+                    "type": "string"
+                },
+                "IndexType": {
+                    "type": "string"
+                },
+                "IsPrimary": {
+                    "type": "boolean"
+                },
+                "IsUnique": {
+                    "type": "boolean"
+                },
+                "TableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.RenameRelation": {
+            "type": "object",
+            "properties": {
+                "newName": {
+                    "type": "string"
+                },
+                "oldName": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.Table": {
+            "type": "object",
+            "properties": {
+                "Columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.TableColumn"
+                    }
+                },
+                "Constraints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.ConstraintInfo"
+                    }
+                },
+                "Indexes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utils.IndexInfo"
+                    }
+                },
+                "TableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.TableColumn": {
+            "type": "object",
+            "properties": {
+                "CharacterMaximumLength": {
+                    "type": "integer"
+                },
+                "ColumnDefault": {
+                    "type": "string"
+                },
+                "ColumnName": {
+                    "type": "string"
+                },
+                "DataType": {
+                    "type": "string"
+                },
+                "IsNullable": {
+                    "type": "boolean"
+                },
+                "NumericPrecision": {
+                    "type": "integer"
+                },
+                "NumericScale": {
+                    "type": "integer"
+                },
+                "OrdinalPosition": {
+                    "type": "integer"
+                },
+                "TableName": {
+                    "type": "string"
                 }
             }
         }
