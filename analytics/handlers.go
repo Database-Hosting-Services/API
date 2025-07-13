@@ -40,7 +40,7 @@ func CurrentStorage(app *config.Application) http.HandlerFunc {
 			response.NotFound(w, r, "No storage information found for the project", nil)
 			return
 		}
-		response.OK(w, r, "Storage history retrieved successfully", storage)
+		response.OK(w, r, "Storage history retrieved successfully", StorageResponse)
 	}
 }
 
@@ -66,13 +66,13 @@ func ExecutionTime(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		stats, apiErr := GetALLExecutionTimeStats(r.Context(), config.DB, projectOid)
+		_, apiErr := GetALLExecutionTimeStats(r.Context(), config.DB, projectOid)
 		if apiErr.Error() != nil {
 			utils.ResponseHandler(w, r, apiErr)
 			return
 		}
 
-		response.OK(w, r, "Execution time statistics retrieved successfully", stats)
+		response.OK(w, r, "Execution time statistics retrieved successfully", DatabaseActivityResponse)
 	}
 }
 
@@ -98,12 +98,12 @@ func DatabaseUsage(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		stats, apiErr := GetALLDatabaseUsageStats(r.Context(), config.DB, projectOid)
+		_, apiErr := GetALLDatabaseUsageStats(r.Context(), config.DB, projectOid)
 		if apiErr.Error() != nil {
 			utils.ResponseHandler(w, r, apiErr)
 			return
 		}
 
-		response.OK(w, r, "Database usage statistics retrieved successfully", stats)
+		response.OK(w, r, "Database usage statistics retrieved successfully", DatabaseUsageStatsResponse)
 	}
 }
