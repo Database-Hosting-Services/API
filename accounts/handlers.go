@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
 	"github.com/gorilla/mux"
 	"github.com/redis/go-redis/v9"
+	"net/http"
 )
 
 // GetUserData godoc

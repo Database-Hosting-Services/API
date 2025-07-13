@@ -46,6 +46,7 @@ func CreateUser(ctx context.Context, db pgx.Tx, user *User) error {
 
 func GetUser(ctx context.Context, db utils.Querier, SearchField interface{}, query string, dest *User) error {
 	err := pgxscan.Get(ctx, db, dest, query, SearchField)
+
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return fmt.Errorf("user with %s not found", SearchField)
