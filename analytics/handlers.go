@@ -5,6 +5,7 @@ import (
 	"DBHS/response"
 	"DBHS/utils"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -32,15 +33,17 @@ func CurrentStorage(app *config.Application) http.HandlerFunc {
 		}
 
 		storage, apiErr := GetALLDatabaseStorage(r.Context(), config.DB, projectOid)
+		if len(storage) == 0 || (apiErr.Error() != nil && strings.Contains(apiErr.Error().Error(), "cannot scan NULL into")) {
+			response.NotFound(w, r, "No storage information found for the project", nil)
+			return
+		}
+
 		if apiErr.Error() != nil {
 			utils.ResponseHandler(w, r, apiErr)
 			return
 		}
-		if len(storage) == 0 {
-			response.NotFound(w, r, "No storage information found for the project", nil)
-			return
-		}
-		response.OK(w, r, "Storage history retrieved successfully", StorageResponse)
+		
+		response.OK(w, r, "Storage history retrieved successfully", storage)
 	}
 }
 
@@ -66,13 +69,18 @@ func ExecutionTime(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		_, apiErr := GetALLExecutionTimeStats(r.Context(), config.DB, projectOid)
+		stats, apiErr := GetALLExecutionTimeStats(r.Context(), config.DB, projectOid)
+        if len(stats) == 0 || (apiErr.Error() != nil && strings.Contains(apiErr.Error().Error(), "cannot scan NULL into")) {
+			response.NotFound(w, r, "No execution time records found for the project", nil)
+			return
+		}
+
 		if apiErr.Error() != nil {
 			utils.ResponseHandler(w, r, apiErr)
 			return
 		}
 
-		response.OK(w, r, "Execution time statistics retrieved successfully", DatabaseActivityResponse)
+		response.OK(w, r, "Execution time statistics retrieved successfully", stats)
 	}
 }
 
@@ -98,12 +106,17 @@ func DatabaseUsage(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		_, apiErr := GetALLDatabaseUsageStats(r.Context(), config.DB, projectOid)
+		stats, apiErr := GetALLDatabaseUsageStats(r.Context(), config.DB, projectOid)
+		if len(stats) == 0 || (apiErr.Error() != nil && strings.Contains(apiErr.Error().Error(), "cannot scan NULL into")) {
+			response.NotFound(w, r, "No database usage records found for the project", nil)
+			return
+		}
+
 		if apiErr.Error() != nil {
 			utils.ResponseHandler(w, r, apiErr)
 			return
 		}
 
-		response.OK(w, r, "Database usage statistics retrieved successfully", DatabaseUsageStatsResponse)
+		response.OK(w, r, "Database usage statistics retrieved successfully", stats)
 	}
 }
